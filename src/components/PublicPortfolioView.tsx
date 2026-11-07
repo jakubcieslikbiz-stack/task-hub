@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { PortfolioProject } from '../types';
 import {
   Mail,
+  Phone,
   Copy,
   Check,
   X,
@@ -16,8 +17,11 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [lightboxProject, setLightboxProject] = useState<PortfolioProject | null>(null);
   const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
 
-  const myEmail = 'jakub.cieslik.biz@gmail.com';
+  const myEmail = 'jc.visualization.studio@gmail.com';
+  const myPhone = '+48 600 113 078';
+  const myPhoneRaw = '+48600113078';
 
   const categories = [
     { id: 'all', label: 'Wszystkie' },
@@ -36,6 +40,12 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
     navigator.clipboard.writeText(myEmail);
     setCopiedEmail(true);
     setTimeout(() => setCopiedEmail(false), 2500);
+  };
+
+  const handleCopyPhone = () => {
+    navigator.clipboard.writeText(myPhone);
+    setCopiedPhone(true);
+    setTimeout(() => setCopiedPhone(false), 2500);
   };
 
   return (
@@ -58,6 +68,17 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
           </a>
 
           <div className="flex items-center gap-3">
+            {/* Phone direct call */}
+            <a
+              href={`tel:${myPhoneRaw}`}
+              title="Zadzwoń bezpośrednio"
+              className="hidden lg:inline-flex items-center gap-2 px-3.5 py-2 rounded-full border border-neutral-800 hover:border-neutral-700 bg-neutral-950 text-neutral-400 hover:text-neutral-200 text-[11px] font-mono tracking-tight transition-all"
+            >
+              <Phone className="w-3.5 h-3.5 text-neutral-400" />
+              <span>{myPhone}</span>
+            </a>
+
+            {/* Email quick copy */}
             <button
               onClick={handleCopyEmail}
               title="Kopiuj adres e-mail"
@@ -66,7 +87,7 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
               {copiedEmail ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-neutral-200" />
-                  <span className="text-white">Skopiowano adres</span>
+                  <span className="text-white">Skopiowano e-mail</span>
                 </>
               ) : (
                 <>
@@ -290,31 +311,61 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
           </h2>
 
           <p className="text-sm sm:text-base text-neutral-400 max-w-xl mx-auto font-light leading-relaxed">
-            Prześlij rzuty, modele 3D lub szkic koncepcji. Wycenę wraz z proponowanym harmonogramem przygotuję w ciągu kilku godzin roboczych.
+            Prześlij rzuty, modele 3D lub zadzwoń bezpośrednio. Wycenę wraz z proponowanym harmonogramem przygotuję w ciągu kilku godzin roboczych.
           </p>
 
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+            {/* Primary Email Button */}
             <a
               href={`mailto:${myEmail}?subject=Zapytanie ofertowe - wizualizacje 3D`}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-white hover:bg-neutral-200 text-black font-medium text-xs tracking-wider uppercase transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white hover:bg-neutral-200 text-black font-medium text-xs tracking-wider uppercase transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center gap-2"
             >
               <Mail className="w-4 h-4" />
-              <span>Napisz bezpośrednio</span>
+              <span>Napisz e-mail</span>
             </a>
 
+            {/* Direct Phone Call Button */}
+            <a
+              href={`tel:${myPhoneRaw}`}
+              className="w-full sm:w-auto px-7 py-3.5 rounded-full border border-neutral-800 hover:border-neutral-600 bg-neutral-950 text-white font-mono text-xs tracking-tight transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              <Phone className="w-4 h-4 text-neutral-300" />
+              <span>Zadzwoń: {myPhone}</span>
+            </a>
+          </div>
+
+          {/* Quick copy chips for both email and phone */}
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-3 text-xs">
             <button
               onClick={handleCopyEmail}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-full border border-neutral-800 hover:border-neutral-700 bg-neutral-950 text-neutral-300 hover:text-white font-mono text-xs tracking-tight transition-all flex items-center justify-center gap-2"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-900 hover:border-neutral-800 bg-neutral-950/80 text-neutral-400 hover:text-neutral-200 font-mono text-[11px] tracking-tight transition-all"
             >
               {copiedEmail ? (
                 <>
-                  <Check className="w-4 h-4 text-white" />
-                  <span>Skopiowano: {myEmail}</span>
+                  <Check className="w-3.5 h-3.5 text-neutral-200" />
+                  <span className="text-white">Skopiowano: {myEmail}</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4 text-neutral-500" />
-                  <span>Kopiuj e-mail: {myEmail}</span>
+                  <Copy className="w-3.5 h-3.5 text-neutral-500" />
+                  <span>Kopiuj: {myEmail}</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleCopyPhone}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-900 hover:border-neutral-800 bg-neutral-950/80 text-neutral-400 hover:text-neutral-200 font-mono text-[11px] tracking-tight transition-all"
+            >
+              {copiedPhone ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-neutral-200" />
+                  <span className="text-white">Skopiowano: {myPhone}</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-neutral-500" />
+                  <span>Kopiuj: {myPhone}</span>
                 </>
               )}
             </button>
@@ -328,8 +379,16 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
           <div>
             © {new Date().getFullYear()} JAKUB CIEŚLIK • JC STUDIO ARCHITECTURAL CGI
           </div>
-          <div className="text-[11px] text-neutral-600">
-            ALL RIGHTS RESERVED • WARSZAWA / REMOTE
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-neutral-500">
+            <a href={`tel:${myPhoneRaw}`} className="hover:text-neutral-300 transition-colors">
+              tel. {myPhone}
+            </a>
+            <span>•</span>
+            <a href={`mailto:${myEmail}`} className="hover:text-neutral-300 transition-colors">
+              {myEmail}
+            </a>
+            <span>•</span>
+            <span>WARSZAWA / REMOTE</span>
           </div>
         </div>
       </footer>
