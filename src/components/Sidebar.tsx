@@ -12,7 +12,8 @@ import {
   CheckCircle2,
   Tag,
   Clock,
-  DollarSign
+  DollarSign,
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -172,6 +173,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <StickyNote className="w-4 h-4" />
               <span>To-Do & Notatki</span>
             </div>
+          </button>
+
+          {/* Image Converter */}
+          <button
+            onClick={() => {
+              onViewChange('converter');
+              onSelectCategory(null);
+            }}
+            className={`flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              currentView === 'converter'
+                ? 'bg-purple-600/15 text-purple-400 border border-purple-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <ImageIcon className="w-4 h-4 text-purple-400" />
+              <span>Konwerter Grafiki</span>
+            </div>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300">
+              NOWOŚĆ
+            </span>
           </button>
         </div>
 

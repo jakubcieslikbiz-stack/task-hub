@@ -26,7 +26,7 @@ export interface Task {
   completedAt?: string;
 }
 
-export type ViewMode = 'today' | 'all' | 'kanban' | 'timeline' | 'finances' | 'notes';
+export type ViewMode = 'today' | 'all' | 'kanban' | 'timeline' | 'finances' | 'notes' | 'converter';
 
 export interface Note {
   id: string;

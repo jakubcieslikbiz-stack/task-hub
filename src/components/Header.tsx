@@ -20,6 +20,7 @@ const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string }> = {
   timeline: { title: 'Timeline tygodnia', subtitle: 'Wizualny harmonogram Gantta na poszczególne dni' },
   finances: { title: 'Finanse & Koszty', subtitle: 'Rozliczenia zleceń, podatki i zysk netto na czysto' },
   notes: { title: 'To-Do & Szybkie Notatki', subtitle: 'Codzienna lista zadań i zapiski powiązane z AI' },
+  converter: { title: 'Konwerter Grafiki', subtitle: 'Błyskawiczna konwersja PNG, JPG, WEBP, SVG bez wysyłania do sieci' },
 };
 
 export const Header: React.FC<HeaderProps> = ({

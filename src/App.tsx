@@ -9,6 +9,7 @@ import { KanbanBoard } from './components/KanbanBoard';
 import { TimelineView } from './components/TimelineView';
 import { FinancesView } from './components/FinancesView';
 import { QuickNotes } from './components/QuickNotes';
+import { ImageConverterView } from './components/ImageConverterView';
 import { TaskModal } from './components/TaskModal';
 import { AiAssistantBar } from './components/AiAssistantBar';
 import { AiTaskModal } from './components/AiTaskModal';
@@ -584,7 +585,7 @@ export function App() {
           />
 
           {/* Interactive Financial & Order Status KPI Boxes */}
-          {currentView !== 'notes' && currentView !== 'finances' && (
+          {currentView !== 'notes' && currentView !== 'finances' && currentView !== 'converter' && (
             <FinanceSummaryBoxes
               tasks={tasks}
               costs={costs}
@@ -655,7 +656,9 @@ export function App() {
           )}
 
           {/* Active Views */}
-          {currentView === 'finances' ? (
+          {currentView === 'converter' ? (
+            <ImageConverterView />
+          ) : currentView === 'finances' ? (
             <FinancesView
               tasks={tasks}
               costs={costs}
