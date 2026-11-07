@@ -13,7 +13,8 @@ import {
   Tag,
   Clock,
   DollarSign,
-  Image as ImageIcon
+  Image as ImageIcon,
+  MailCheck
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -193,6 +194,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300">
               NOWOŚĆ
+            </span>
+          </button>
+
+          {/* Email & Offers Drafter */}
+          <button
+            onClick={() => {
+              onViewChange('offers');
+              onSelectCategory(null);
+            }}
+            className={`flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              currentView === 'offers'
+                ? 'bg-gradient-to-r from-indigo-600/20 to-purple-600/20 text-indigo-300 border border-indigo-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <MailCheck className="w-4 h-4 text-indigo-400" />
+              <span>Oferty & E-mail AI</span>
+            </div>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">
+              AI ✨
             </span>
           </button>
         </div>

@@ -165,6 +165,27 @@ export async function sendTaskReminderEmail(
   });
 }
 
+export async function sendCustomEmail({
+  to,
+  subject,
+  html,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  const apiKey = getStoredResendKey();
+  if (!apiKey) {
+    return { success: false, error: 'Brak klucza Resend API' };
+  }
+  return sendRawEmail({
+    to,
+    subject,
+    html,
+    apiKey,
+  });
+}
+
 export async function sendTestEmail(): Promise<{ success: boolean; id?: string; error?: string }> {
   const apiKey = getStoredResendKey();
   const recipient = getStoredRecipientEmail();

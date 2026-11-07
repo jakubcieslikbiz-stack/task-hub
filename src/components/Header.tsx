@@ -21,6 +21,7 @@ const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string }> = {
   finances: { title: 'Finanse & Koszty', subtitle: 'Rozliczenia zleceń, podatki i zysk netto na czysto' },
   notes: { title: 'To-Do & Szybkie Notatki', subtitle: 'Codzienna lista zadań i zapiski powiązane z AI' },
   converter: { title: 'Konwerter Grafiki', subtitle: 'Błyskawiczna konwersja PNG, JPG, WEBP, SVG bez wysyłania do sieci' },
+  offers: { title: 'Asystent Ofert & E-mail AI', subtitle: 'Twórz profesjonalne wyceny, oferty i odpowiedzi na zapytania klientów' },
 };
 
 export const Header: React.FC<HeaderProps> = ({

@@ -10,6 +10,7 @@ import { TimelineView } from './components/TimelineView';
 import { FinancesView } from './components/FinancesView';
 import { QuickNotes } from './components/QuickNotes';
 import { ImageConverterView } from './components/ImageConverterView';
+import { EmailOfferDrafterView } from './components/EmailOfferDrafterView';
 import { TaskModal } from './components/TaskModal';
 import { AiAssistantBar } from './components/AiAssistantBar';
 import { AiTaskModal } from './components/AiTaskModal';
@@ -585,16 +586,19 @@ export function App() {
           />
 
           {/* Interactive Financial & Order Status KPI Boxes */}
-          {currentView !== 'notes' && currentView !== 'finances' && currentView !== 'converter' && (
-            <FinanceSummaryBoxes
-              tasks={tasks}
-              costs={costs}
-              statusFilter={statusFilter}
-              onFilterChange={setStatusFilter}
-              onSaveCosts={handleSaveCosts}
-              onOpenFinancesView={() => setCurrentView('finances')}
-            />
-          )}
+          {currentView !== 'notes' &&
+            currentView !== 'finances' &&
+            currentView !== 'converter' &&
+            currentView !== 'offers' && (
+              <FinanceSummaryBoxes
+                tasks={tasks}
+                costs={costs}
+                statusFilter={statusFilter}
+                onFilterChange={setStatusFilter}
+                onSaveCosts={handleSaveCosts}
+                onOpenFinancesView={() => setCurrentView('finances')}
+              />
+            )}
 
           {/* Filter Pills for Task list */}
           {currentView === 'all' && (
@@ -666,7 +670,9 @@ export function App() {
           )}
 
           {/* Active Views */}
-          {currentView === 'converter' ? (
+          {currentView === 'offers' ? (
+            <EmailOfferDrafterView apiKey={apiKey} />
+          ) : currentView === 'converter' ? (
             <ImageConverterView />
           ) : currentView === 'finances' ? (
             <FinancesView

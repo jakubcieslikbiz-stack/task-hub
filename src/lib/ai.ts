@@ -164,3 +164,84 @@ Przekształć opis użytkownika w JSON:
     subtasks: Array.isArray(parsed.subtasks) ? parsed.subtasks : [],
   };
 }
+
+export interface DraftEmailParams {
+  preset: string;
+  clientMessage?: string;
+  myNotes: string;
+  tone: 'professional' | 'friendly' | 'concise';
+  includeRevisions?: boolean;
+  includeVat?: boolean;
+  senderSignature?: string;
+  adjustmentInstruction?: string;
+}
+
+export interface DraftEmailResult {
+  subject: string;
+  body: string;
+  summary?: string;
+}
+
+export async function draftEmailWithOpenAI(
+  params: DraftEmailParams,
+  apiKey: string
+): Promise<DraftEmailResult> {
+  const toneMap = {
+    professional: 'elegancki, wysoce profesjonalny, uprzejmy, biznesowy',
+    friendly: 'nowoczesny, serdeczny, bezpośredni, partnerski',
+    concise: 'maksymalnie zwięzły, konkretny, oszczędny w słowach, bez zbędnych wstępów',
+  };
+
+  const systemPrompt = `Jesteś doradcą klienta i ekspertem komunikacji biznesowej w studiu wizualizacji i grafiki 3D "JC Studio" (prowadzonym przez Jakuba Cieślika).
+Twoim zadaniem jest stworzenie perfekcyjnej, gotowej do wysłania wiadomości e-mail w języku polskim.
+
+Wytyczne stylu:
+- Ton wiadomości: ${toneMap[params.tone] || 'profesjonalny'}.
+- Podpis na końcu wiadomości: ${params.senderSignature || 'Jakub Cieślik | JC Studio'}.
+${params.includeRevisions ? '- Wyraźnie zaznacz, że w cenie zawarte są 2 tury poprawek.' : ''}
+${params.includeVat ? '- Zaznacz, że podane ceny są kwotami netto i wystawiasz fakturę VAT.' : ''}
+- Formatuj treść czytelnie: używaj akapitów, a w przypadku wycen, etapów lub listy potrzebnych materiałów stosuj eleganckie punktorowanie (•).
+- Pisz naturalną, nienaganną polszczyzną bez sztucznych kalk językowych.
+- Odpowiedz TYLKO I WYŁĄCZNIE poprawnym obiektem JSON z polami:
+  "subject": (string) krótki, profesjonalny temat e-maila,
+  "body": (string) pełna treść maila od powitania po podpis,
+  "summary": (string) 1 krótkie zdanie podsumowujące ofertę/odpowiedź.`;
+
+  const userPrompt = `Typ wiadomości: ${params.preset}
+${params.clientMessage ? `Wiadomość / zapytanie od klienta:\n"""\n${params.clientMessage}\n"""\n` : ''}
+Moje wytyczne i ustalenia do uwzględnienia:\n"""\n${params.myNotes}\n"""
+${params.adjustmentInstruction ? `Dodatkowa instrukcja poprawki: ${params.adjustmentInstruction}` : ''}`;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey.trim()}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.3,
+      response_format: { type: 'json_object' },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData?.error?.message || `Błąd OpenAI (${response.status})`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error('Pusta odpowiedź z OpenAI.');
+
+  const parsed = JSON.parse(content);
+  return {
+    subject: parsed.subject || 'Wiadomość od JC Studio',
+    body: parsed.body || '',
+    summary: parsed.summary,
+  };
+}
