@@ -7,6 +7,7 @@ interface HeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onOpenNewTaskModal: () => void;
+  onOpenAiModal: () => void;
   onOpenPhoneModal: () => void;
   completedTodayCount: number;
   totalTodayCount: number;
@@ -14,9 +15,11 @@ interface HeaderProps {
 
 const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string }> = {
   today: { title: 'Mój Dzień', subtitle: 'Skup się na tym, co najważniejsze na dzisiaj' },
-  all: { title: 'Wszystkie Zadania', subtitle: 'Pełny przegląd Twoich projektów i celów' },
-  kanban: { title: 'Tablica Kanban', subtitle: 'Wizualizuj i przesuwaj postęp prac' },
-  notes: { title: 'Szybkie Notatki', subtitle: 'Zapiski, linki i szkice w jednym miejscu' },
+  all: { title: 'Zlecenia & Zadania', subtitle: 'Pełny przegląd projektów, cen i statusów JC Studio' },
+  kanban: { title: 'Tablica Kanban', subtitle: 'Wizualizuj i przesuwaj etapy realizacji' },
+  timeline: { title: 'Timeline tygodnia', subtitle: 'Wizualny harmonogram Gantta na poszczególne dni' },
+  finances: { title: 'Finanse & Koszty', subtitle: 'Rozliczenia zleceń, podatki i zysk netto na czysto' },
+  notes: { title: 'To-Do & Szybkie Notatki', subtitle: 'Codzienna lista zadań i zapiski powiązane z AI' },
 };
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   searchQuery,
   onSearchChange,
   onOpenNewTaskModal,
+  onOpenAiModal,
   onOpenPhoneModal,
   completedTodayCount,
   totalTodayCount,
@@ -32,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
   const percent = totalTodayCount > 0 ? Math.round((completedTodayCount / totalTodayCount) * 100) : 0;
 
   return (
-    <header className="space-y-4 mb-6">
+    <header className="space-y-4 mb-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Title & Today stats */}
         <div>
@@ -52,6 +56,16 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Action buttons */}
         <div className="flex items-center gap-2.5">
+          {/* AI Quick Add Button */}
+          <button
+            onClick={onOpenAiModal}
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-purple-600/20 active:scale-95 transition-all"
+            title="Dodaj zlecenie przez AI (OpenAI)"
+          >
+            <Sparkles className="w-4 h-4 text-purple-200" />
+            <span>Dodaj przez AI</span>
+          </button>
+
           <button
             onClick={onOpenPhoneModal}
             className="md:hidden flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 text-indigo-400 border border-slate-700 text-xs font-semibold active:scale-95 transition-all"
@@ -63,21 +77,21 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={onOpenNewTaskModal}
-            className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-500/25 active:scale-95 transition-all"
+            className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-500/25 active:scale-95 transition-all"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Nowe zadanie</span>
+            <span>Nowe zlecenie</span>
           </button>
         </div>
       </div>
 
       {/* Search Bar */}
-      {currentView !== 'notes' && (
+      {currentView !== 'notes' && currentView !== 'finances' && currentView !== 'timeline' && (
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
-            placeholder="Szukaj zadań po nazwie, opisie lub dacie..."
+            placeholder="Szukaj zleceń po nazwie, uwagach, kwocie lub dacie..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-9 py-2 rounded-xl bg-slate-900/90 border border-slate-800 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"

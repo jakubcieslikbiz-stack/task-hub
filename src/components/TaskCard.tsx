@@ -11,7 +11,8 @@ import {
   ChevronUp,
   Trash2,
   Edit2,
-  ListTodo
+  ListTodo,
+  DollarSign
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -43,6 +44,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [showMenu, setShowMenu] = useState(false);
 
   const isDone = task.status === 'done';
+  const isPaid = task.status === 'paid';
   const category = CATEGORIES.find((c) => c.id === task.category);
   const priority = PRIORITY_CONFIG[task.priority];
 
@@ -51,7 +53,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const progressPercent = totalSubtasks > 0 ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0;
 
   const handleToggle = () => {
-    if (!isDone) {
+    if (!isDone && !isPaid) {
       confetti({
         particleCount: 50,
         spread: 60,
@@ -63,24 +65,28 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   };
 
   const isToday = task.dueDate === new Date().toISOString().split('T')[0];
-  const isPast = task.dueDate && task.dueDate < new Date().toISOString().split('T')[0] && !isDone;
+  const isPast = task.dueDate && task.dueDate < new Date().toISOString().split('T')[0] && !isDone && !isPaid;
 
   return (
     <div
       className={`group relative rounded-2xl border transition-all duration-200 bg-slate-900/80 backdrop-blur-sm p-4 sm:p-5 shadow-lg ${
-        isDone
+        isPaid
+          ? 'border-purple-500/30 bg-purple-950/10'
+          : isDone
           ? 'border-slate-800/80 opacity-60 hover:opacity-90'
           : 'border-slate-800 hover:border-indigo-500/40 hover:shadow-indigo-500/5'
       }`}
     >
-      {/* Top row: Checkbox, Title, Menu */}
+      {/* Top row: Checkbox, Title, Price, Menu */}
       <div className="flex items-start gap-3">
         <button
           onClick={handleToggle}
           className="mt-0.5 flex-shrink-0 text-slate-400 hover:text-indigo-400 transition-colors focus:outline-none"
-          title={isDone ? 'Oznacz jako niewykonane' : 'Oznacz jako zrobione'}
+          title={isPaid ? 'Opłacone' : isDone ? 'Oznacz jako niewykonane' : 'Oznacz jako zrobione'}
         >
-          {isDone ? (
+          {isPaid ? (
+            <CheckCircle2 className="w-6 h-6 text-purple-400 fill-purple-500/20" />
+          ) : isDone ? (
             <CheckCircle2 className="w-6 h-6 text-emerald-400 fill-emerald-500/20" />
           ) : (
             <Circle className="w-6 h-6 hover:stroke-indigo-400 transition-transform active:scale-90" />
@@ -88,13 +94,27 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         </button>
 
         <div className="flex-1 min-w-0">
-          <h3
-            className={`text-base font-medium leading-snug break-words transition-all ${
-              isDone ? 'line-through text-slate-400' : 'text-slate-100'
-            }`}
-          >
-            {task.title}
-          </h3>
+          <div className="flex items-start justify-between gap-2">
+            <h3
+              className={`text-base font-medium leading-snug break-words transition-all ${
+                isPaid
+                  ? 'text-purple-200'
+                  : isDone
+                  ? 'line-through text-slate-400'
+                  : 'text-slate-100'
+              }`}
+            >
+              {task.title}
+            </h3>
+
+            {/* Price Badge (from JC Studio) */}
+            {task.price !== undefined && (
+              <span className="flex-shrink-0 inline-flex items-center gap-0.5 px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+                <DollarSign className="w-3 h-3 text-emerald-400 -mr-0.5" />
+                {task.price.toLocaleString('pl-PL')} zł
+              </span>
+            )}
+          </div>
 
           {task.description && (
             <p className="mt-1 text-sm text-slate-400 line-clamp-2 leading-relaxed">
@@ -102,8 +122,29 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </p>
           )}
 
+          {task.notes && (
+            <div className="mt-2 text-xs text-indigo-300/80 bg-indigo-950/20 px-2.5 py-1.5 rounded-xl border border-indigo-500/20">
+              💡 {task.notes}
+            </div>
+          )}
+
           {/* Badges and metadata */}
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+            {/* Status Badge */}
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-[11px] font-semibold ${
+                isPaid
+                  ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                  : isDone
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                  : task.status === 'in_progress'
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  : 'bg-slate-800 text-slate-400 border-slate-700'
+              }`}
+            >
+              {isPaid ? 'Opłacone ✓' : isDone ? 'Gotowe' : task.status === 'in_progress' ? 'W toku' : 'Do zrobienia'}
+            </span>
+
             {/* Priority */}
             <span
               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border font-medium ${priority.badge}`}
@@ -237,7 +278,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     task.status === 'in_progress' ? 'text-amber-400 font-semibold' : ''
                   }`}
                 >
-                  W trakcie
+                  W toku
                 </button>
                 <button
                   onClick={() => {
@@ -248,7 +289,18 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     task.status === 'done' ? 'text-emerald-400 font-semibold' : ''
                   }`}
                 >
-                  Zrobione
+                  Gotowe
+                </button>
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    onUpdateStatus(task.id, 'paid');
+                  }}
+                  className={`w-full text-left px-3.5 py-1.5 text-xs hover:bg-slate-700/60 ${
+                    task.status === 'paid' ? 'text-purple-400 font-semibold' : ''
+                  }`}
+                >
+                  💰 Opłacone
                 </button>
 
                 <div className="border-t border-slate-700/60 my-1" />
@@ -261,7 +313,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   className="flex items-center gap-2.5 w-full px-3.5 py-2 hover:bg-rose-500/10 text-rose-400 text-left transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span>Usuń zadanie</span>
+                  <span>Usuń zlecenie</span>
                 </button>
               </div>
             </>

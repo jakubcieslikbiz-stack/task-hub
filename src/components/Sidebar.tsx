@@ -11,6 +11,8 @@ import {
   Upload,
   CheckCircle2,
   Tag,
+  Clock,
+  DollarSign
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -20,6 +22,7 @@ interface SidebarProps {
   onSelectCategory: (catId: string | null) => void;
   todayCount: number;
   totalCount: number;
+  monthlyRevenue: number;
   onOpenPhoneModal: () => void;
   onExportData: () => void;
   onImportData: () => void;
@@ -32,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectCategory,
   todayCount,
   totalCount,
+  monthlyRevenue,
   onOpenPhoneModal,
   onExportData,
   onImportData,
@@ -47,7 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div>
             <h1 className="font-bold text-base text-white tracking-tight">TaskHub</h1>
-            <p className="text-[11px] text-indigo-400 font-medium">Centrum Zadań</p>
+            <p className="text-[11px] text-indigo-400 font-medium">JC Studio Panel</p>
           </div>
         </div>
 
@@ -88,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="flex items-center gap-3">
               <CheckSquare className="w-4 h-4" />
-              <span>Wszystkie</span>
+              <span>Zlecenia & Zadania</span>
             </div>
             <span className="px-2 py-0.5 rounded-full text-xs font-medium text-slate-400 bg-slate-800">
               {totalCount}
@@ -112,6 +116,47 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </button>
 
+          {/* Timeline (from JC Studio) */}
+          <button
+            onClick={() => {
+              onViewChange('timeline');
+              onSelectCategory(null);
+            }}
+            className={`flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              currentView === 'timeline'
+                ? 'bg-indigo-600/15 text-indigo-400 border border-indigo-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Clock className="w-4 h-4 text-indigo-400" />
+              <span>Timeline (Tydzień)</span>
+            </div>
+          </button>
+
+          {/* Finances (from JC Studio) */}
+          <button
+            onClick={() => {
+              onViewChange('finances');
+              onSelectCategory(null);
+            }}
+            className={`flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              currentView === 'finances'
+                ? 'bg-emerald-600/15 text-emerald-400 border border-emerald-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <DollarSign className="w-4 h-4 text-emerald-400" />
+              <span>Finanse & Koszty</span>
+            </div>
+            {monthlyRevenue > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300">
+                {monthlyRevenue.toLocaleString('pl-PL')} zł
+              </span>
+            )}
+          </button>
+
           <button
             onClick={() => {
               onViewChange('notes');
@@ -125,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="flex items-center gap-3">
               <StickyNote className="w-4 h-4" />
-              <span>Szybkie Notatki</span>
+              <span>To-Do & Notatki</span>
             </div>
           </button>
         </div>
@@ -165,7 +210,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Bottom section: Phone connect & Data actions */}
       <div className="space-y-3 pt-4 border-t border-slate-800/80">
-        {/* Connect to phone button */}
         <button
           onClick={onOpenPhoneModal}
           className="flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-indigo-500/10 to-indigo-600/20 hover:from-indigo-500/20 hover:to-indigo-600/30 border border-indigo-500/30 text-indigo-300 text-xs font-semibold transition-all shadow-sm group"
@@ -174,7 +218,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <span>Otwórz na telefonie (QR)</span>
         </button>
 
-        {/* Backup / Export / Import */}
         <div className="flex gap-2">
           <button
             onClick={onExportData}

@@ -1,18 +1,25 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { Task, Note, ViewMode, Status } from './types';
+import type { Task, Note, ViewMode, Status, MonthlyCosts } from './types';
 import { INITIAL_TASKS, INITIAL_NOTES, CATEGORIES } from './data/initialData';
 import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
 import { TaskCard } from './components/TaskCard';
 import { KanbanBoard } from './components/KanbanBoard';
+import { TimelineView } from './components/TimelineView';
+import { FinancesView } from './components/FinancesView';
 import { QuickNotes } from './components/QuickNotes';
 import { TaskModal } from './components/TaskModal';
+import { AiAssistantBar } from './components/AiAssistantBar';
+import { AiTaskModal } from './components/AiTaskModal';
 import { ConnectPhoneModal } from './components/ConnectPhoneModal';
 import { Plus, CheckCircle2, Cloud, CloudOff, RefreshCw } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 
+const DEFAULT_API_KEY = '';
+
 export function App() {
+  // Tasks state
   const [tasks, setTasks] = useState<Task[]>(() => {
     try {
       const saved = localStorage.getItem('taskhub_tasks');
@@ -22,6 +29,7 @@ export function App() {
     }
   });
 
+  // Notes state
   const [notes, setNotes] = useState<Note[]>(() => {
     try {
       const saved = localStorage.getItem('taskhub_notes');
@@ -31,6 +39,21 @@ export function App() {
     }
   });
 
+  // Costs state (from JC Studio)
+  const [costs, setCosts] = useState<MonthlyCosts>(() => {
+    try {
+      const saved = localStorage.getItem('taskhub_costs');
+      return saved ? JSON.parse(saved) : { zus: 1600, tax: 0 };
+    } catch {
+      return { zus: 1600, tax: 0 };
+    }
+  });
+
+  // OpenAI API Key
+  const [apiKey, setApiKey] = useState<string>(() => {
+    return localStorage.getItem('openai_api_key') || DEFAULT_API_KEY;
+  });
+
   const [cloudSynced, setCloudSynced] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
@@ -38,18 +61,19 @@ export function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('today');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'done'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'done' | 'paid'>('all');
 
   // Modals state
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
-  const [defaultStatusForNewTask, setDefaultStatusForNewTask] = useState<Status>('todo');
+  const [defaultStatusForNewTask, setDefaultStatusForNewTask] = useState<Status>('in_progress');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isInitialRemoteLoad = useRef(true);
 
-  // Local storage backup
+  // Local storage persistence
   useEffect(() => {
     localStorage.setItem('taskhub_tasks', JSON.stringify(tasks));
   }, [tasks]);
@@ -57,6 +81,16 @@ export function App() {
   useEffect(() => {
     localStorage.setItem('taskhub_notes', JSON.stringify(notes));
   }, [notes]);
+
+  useEffect(() => {
+    localStorage.setItem('taskhub_costs', JSON.stringify(costs));
+  }, [costs]);
+
+  useEffect(() => {
+    if (apiKey) {
+      localStorage.setItem('openai_api_key', apiKey);
+    }
+  }, [apiKey]);
 
   // Load from Supabase on mount
   useEffect(() => {
@@ -72,6 +106,7 @@ export function App() {
         if (!error && data && data.length > 0) {
           const tasksRow = data.find((r) => r.key === 'tasks');
           const notesRow = data.find((r) => r.key === 'notes');
+          const costsRow = data.find((r) => r.key === 'costs');
 
           if (tasksRow && Array.isArray(tasksRow.data)) {
             setTasks(tasksRow.data);
@@ -79,12 +114,15 @@ export function App() {
           if (notesRow && Array.isArray(notesRow.data)) {
             setNotes(notesRow.data);
           }
+          if (costsRow && costsRow.data) {
+            setCosts(costsRow.data);
+          }
           setCloudSynced(true);
         } else if (data && data.length === 0) {
-          // Initialize empty cloud with existing local data
           await supabase!.from('taskhub_state').upsert([
             { key: 'tasks', data: tasks },
             { key: 'notes', data: notes },
+            { key: 'costs', data: costs },
           ]);
           setCloudSynced(true);
         }
@@ -111,6 +149,9 @@ export function App() {
           if (payload.new && payload.new.key === 'notes' && Array.isArray(payload.new.data)) {
             setNotes(payload.new.data);
           }
+          if (payload.new && payload.new.key === 'costs' && payload.new.data) {
+            setCosts(payload.new.data);
+          }
         }
       )
       .subscribe();
@@ -122,7 +163,7 @@ export function App() {
     };
   }, []);
 
-  // Sync tasks to cloud helper
+  // Sync helpers
   const syncTasksToCloud = useCallback(async (updatedTasks: Task[]) => {
     if (!supabase || isInitialRemoteLoad.current) return;
     try {
@@ -133,11 +174,10 @@ export function App() {
       });
       setCloudSynced(true);
     } catch {
-      // Graceful fallback to localStorage
+      // fallback to local
     }
   }, []);
 
-  // Sync notes to cloud helper
   const syncNotesToCloud = useCallback(async (updatedNotes: Note[]) => {
     if (!supabase || isInitialRemoteLoad.current) return;
     try {
@@ -148,24 +188,123 @@ export function App() {
       });
       setCloudSynced(true);
     } catch {
-      // Graceful fallback to localStorage
+      // fallback to local
     }
   }, []);
 
-  // Date helpers
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayTasks = tasks.filter((t) => t.dueDate === todayStr || t.status === 'in_progress');
-  const completedToday = todayTasks.filter((t) => t.status === 'done').length;
+  const syncCostsToCloud = useCallback(async (updatedCosts: MonthlyCosts) => {
+    if (!supabase || isInitialRemoteLoad.current) return;
+    try {
+      await supabase.from('taskhub_state').upsert({
+        key: 'costs',
+        data: updatedCosts,
+        updated_at: new Date().toISOString(),
+      });
+      setCloudSynced(true);
+    } catch {
+      // fallback to local
+    }
+  }, []);
+
+  // Financial summary calculation
+  const currentYm = new Date().toISOString().slice(0, 7);
+  const currentMonthTasks = tasks.filter((t) => {
+    const ym = t.createdAt ? t.createdAt.slice(0, 7) : '';
+    const dueYm = t.dueDate ? t.dueDate.slice(0, 7) : '';
+    return ym === currentYm || dueYm === currentYm;
+  });
+
+  const monthlyIncome = currentMonthTasks.reduce((sum, t) => sum + (t.price || 0), 0);
+  const monthlyPaid = currentMonthTasks
+    .filter((t) => t.status === 'paid')
+    .reduce((sum, t) => sum + (t.price || 0), 0);
+  const monthlyTotalCosts = (costs.zus || 0) + (costs.tax || 0);
+  const monthlyNet = monthlyPaid - monthlyTotalCosts;
+
+  // AI Command Handlers (From JC Studio)
+  const handleAiAddTask = (taskData: { name: string; price?: number; startDate?: string; endDate?: string }) => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const newTask: Task = {
+      id: Date.now().toString(),
+      title: taskData.name,
+      price: taskData.price,
+      startDate: taskData.startDate || todayStr,
+      dueDate: taskData.endDate || todayStr,
+      category: 'work',
+      priority: 'high',
+      status: 'in_progress',
+      subtasks: [],
+      notes: 'Dodane przez Asystenta AI ✨',
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [newTask, ...tasks];
+    setTasks(updated);
+    syncTasksToCloud(updated);
+  };
+
+  const handleAiAddTodo = (text: string) => {
+    const newNote: Note = {
+      id: Date.now().toString(),
+      title: `To-Do (${new Date().toLocaleDateString('pl-PL')})`,
+      content: `• ${text}`,
+      updatedAt: new Date().toISOString(),
+    };
+    const updated = [newNote, ...notes];
+    setNotes(updated);
+    syncNotesToCloud(updated);
+  };
+
+  const handleAiAddCost = (costData: { name: string; cost: number; type: 'business' | 'private' }) => {
+    const updated = {
+      ...costs,
+      zus: costData.type === 'business' ? costs.zus + costData.cost : costs.zus,
+    };
+    setCosts(updated);
+    syncCostsToCloud(updated);
+  };
+
+  const handleAiAddNoteToTask = (taskName: string, text: string): boolean => {
+    const taskMatch = tasks.find((t) => t.title.toLowerCase().includes(taskName.toLowerCase()));
+    if (!taskMatch) return false;
+
+    const updated = tasks.map((t) =>
+      t.id === taskMatch.id
+        ? {
+            ...t,
+            notes: (t.notes ? `${t.notes} | ` : '') + text,
+          }
+        : t
+    );
+    setTasks(updated);
+    syncTasksToCloud(updated);
+    return true;
+  };
+
+  const handleGetFinancialSummary = () => {
+    return {
+      income: monthlyIncome,
+      paid: monthlyPaid,
+      expenses: monthlyTotalCosts,
+      net: monthlyNet,
+    };
+  };
 
   // Task Actions
   const handleToggleStatus = (id: string) => {
     const updated = tasks.map((t) => {
       if (t.id === id) {
-        const isDone = t.status === 'done';
+        // Cycle: in_progress -> done -> paid -> todo
+        const nextStatus: Record<Status, Status> = {
+          todo: 'in_progress',
+          in_progress: 'done',
+          done: 'paid',
+          paid: 'in_progress',
+        };
+        const newStatus = nextStatus[t.status];
         return {
           ...t,
-          status: (isDone ? 'todo' : 'done') as Status,
-          completedAt: !isDone ? new Date().toISOString() : undefined,
+          status: newStatus,
+          completedAt: newStatus === 'done' || newStatus === 'paid' ? new Date().toISOString() : undefined,
         };
       }
       return t;
@@ -180,7 +319,7 @@ export function App() {
         ? {
             ...t,
             status,
-            completedAt: status === 'done' ? new Date().toISOString() : undefined,
+            completedAt: status === 'done' || status === 'paid' ? new Date().toISOString() : undefined,
           }
         : t
     );
@@ -213,10 +352,13 @@ export function App() {
         id: Date.now().toString(),
         title: taskData.title,
         description: taskData.description,
+        price: taskData.price,
+        startDate: taskData.startDate,
+        dueDate: taskData.dueDate,
         category: taskData.category,
         priority: taskData.priority,
-        status: defaultStatusForNewTask || taskData.status || 'todo',
-        dueDate: taskData.dueDate,
+        status: defaultStatusForNewTask || taskData.status || 'in_progress',
+        notes: taskData.notes,
         subtasks: taskData.subtasks || [],
         createdAt: new Date().toISOString(),
       };
@@ -237,7 +379,7 @@ export function App() {
     setIsTaskModalOpen(true);
   };
 
-  const handleOpenNew = (status: Status = 'todo') => {
+  const handleOpenNew = (status: Status = 'in_progress') => {
     setDefaultStatusForNewTask(status);
     setEditingTask(null);
     setIsTaskModalOpen(true);
@@ -270,14 +412,20 @@ export function App() {
     syncNotesToCloud(updated);
   };
 
-  // Export / Import Backup Data
+  // Costs Save
+  const handleSaveCosts = (newCosts: MonthlyCosts) => {
+    setCosts(newCosts);
+    syncCostsToCloud(newCosts);
+  };
+
+  // Export / Import
   const handleExportData = () => {
-    const backup = { tasks, notes, exportedAt: new Date().toISOString() };
+    const backup = { tasks, notes, costs, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `taskhub-backup-${todayStr}.json`;
+    a.download = `jc-studio-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -298,6 +446,10 @@ export function App() {
           setNotes(data.notes);
           syncNotesToCloud(data.notes);
         }
+        if (data.costs) {
+          setCosts(data.costs);
+          syncCostsToCloud(data.costs);
+        }
         alert('Kopia zapasowa została pomyślnie zaimportowana!');
       } catch {
         alert('Błąd podczas odczytu pliku kopii zapasowej.');
@@ -308,6 +460,10 @@ export function App() {
   };
 
   // Filtering for views
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayTasks = tasks.filter((t) => t.dueDate === todayStr || t.status === 'in_progress');
+  const completedToday = todayTasks.filter((t) => t.status === 'done' || t.status === 'paid').length;
+
   const filteredTasks = tasks.filter((task) => {
     if (currentView === 'today') {
       const isDueToday = task.dueDate === todayStr;
@@ -319,15 +475,18 @@ export function App() {
       return false;
     }
 
-    if (statusFilter === 'active' && task.status === 'done') return false;
+    if (statusFilter === 'in_progress' && task.status !== 'in_progress') return false;
     if (statusFilter === 'done' && task.status !== 'done') return false;
+    if (statusFilter === 'paid' && task.status !== 'paid') return false;
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const matchTitle = task.title.toLowerCase().includes(query);
       const matchDesc = task.description?.toLowerCase().includes(query);
+      const matchNotes = task.notes?.toLowerCase().includes(query);
+      const matchPrice = task.price?.toString().includes(query);
       const matchDate = task.dueDate?.includes(query);
-      return matchTitle || matchDesc || matchDate;
+      return matchTitle || matchDesc || matchNotes || matchPrice || matchDate;
     }
 
     return true;
@@ -349,8 +508,9 @@ export function App() {
         onViewChange={setCurrentView}
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
-        todayCount={todayTasks.filter((t) => t.status !== 'done').length}
-        totalCount={tasks.filter((t) => t.status !== 'done').length}
+        todayCount={todayTasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
+        totalCount={tasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
+        monthlyRevenue={monthlyPaid}
         onOpenPhoneModal={() => setIsPhoneModalOpen(true)}
         onExportData={handleExportData}
         onImportData={() => fileInputRef.current?.click()}
@@ -358,16 +518,16 @@ export function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-full overflow-y-auto pb-24 md:pb-8">
-        <div className="max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-          {/* Cloud Sync Status Indicator Banner */}
-          <div className="flex items-center justify-between mb-4 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs">
+        <div className="max-w-6xl w-full mx-auto p-3 sm:p-6 lg:p-8">
+          {/* Cloud Sync Status Indicator */}
+          <div className="flex items-center justify-between mb-3 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs">
             <div className="flex items-center gap-2">
               {isSupabaseConfigured ? (
                 cloudSynced ? (
                   <>
                     <Cloud className="w-4 h-4 text-emerald-400" />
                     <span className="text-emerald-300 font-medium">Chmura aktywna</span>
-                    <span className="text-slate-500">• Synchronizacja PC & Telefon w czasie rzeczywistym</span>
+                    <span className="text-slate-500 hidden sm:inline">• Synchronizacja PC & Telefon na żywo</span>
                   </>
                 ) : (
                   <>
@@ -378,7 +538,7 @@ export function App() {
               ) : (
                 <>
                   <CloudOff className="w-4 h-4 text-slate-400" />
-                  <span className="text-slate-400">Pamięć lokalna urządzenia (Offline / Local)</span>
+                  <span className="text-slate-400">Pamięć lokalna (Offline)</span>
                 </>
               )}
             </div>
@@ -390,18 +550,30 @@ export function App() {
             )}
           </div>
 
+          {/* AI Voice & Text Assistant Bar (from JC Studio) */}
+          <AiAssistantBar
+            apiKey={apiKey}
+            onSaveApiKey={setApiKey}
+            onAddTask={handleAiAddTask}
+            onAddTodo={handleAiAddTodo}
+            onAddCost={handleAiAddCost}
+            onAddNoteToTask={handleAiAddNoteToTask}
+            onGetFinancialSummary={handleGetFinancialSummary}
+          />
+
           <Header
             currentView={currentView}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            onOpenNewTaskModal={() => handleOpenNew('todo')}
+            onOpenNewTaskModal={() => handleOpenNew('in_progress')}
+            onOpenAiModal={() => setIsAiModalOpen(true)}
             onOpenPhoneModal={() => setIsPhoneModalOpen(true)}
             completedTodayCount={completedToday}
             totalTodayCount={todayTasks.length}
           />
 
-          {/* Filter Pills */}
-          {currentView !== 'notes' && currentView !== 'kanban' && (
+          {/* Filter Pills for Task list */}
+          {currentView === 'all' && (
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-2 border-b border-slate-800/60">
               <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
                 <button
@@ -413,12 +585,12 @@ export function App() {
                   Wszystkie
                 </button>
                 <button
-                  onClick={() => setStatusFilter('active')}
+                  onClick={() => setStatusFilter('in_progress')}
                   className={`px-3 py-1 rounded-lg transition-colors ${
-                    statusFilter === 'active' ? 'bg-indigo-600 text-white font-medium' : 'text-slate-400 hover:text-white'
+                    statusFilter === 'in_progress' ? 'bg-indigo-600 text-white font-medium' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  Aktywne
+                  W toku
                 </button>
                 <button
                   onClick={() => setStatusFilter('done')}
@@ -426,7 +598,15 @@ export function App() {
                     statusFilter === 'done' ? 'bg-indigo-600 text-white font-medium' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  Ukończone
+                  Gotowe
+                </button>
+                <button
+                  onClick={() => setStatusFilter('paid')}
+                  className={`px-3 py-1 rounded-lg transition-colors ${
+                    statusFilter === 'paid' ? 'bg-indigo-600 text-white font-medium' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Opłacone
                 </button>
               </div>
 
@@ -451,8 +631,19 @@ export function App() {
             </div>
           )}
 
-          {/* Active View */}
-          {currentView === 'notes' ? (
+          {/* Active Views */}
+          {currentView === 'finances' ? (
+            <FinancesView
+              tasks={tasks}
+              costs={costs}
+              onSaveCosts={handleSaveCosts}
+            />
+          ) : currentView === 'timeline' ? (
+            <TimelineView
+              tasks={tasks}
+              onEditTask={handleOpenEdit}
+            />
+          ) : currentView === 'notes' ? (
             <QuickNotes
               notes={notes}
               onAddNote={handleAddNote}
@@ -476,18 +667,18 @@ export function App() {
                   <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-3">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-semibold text-slate-300">Brak zadań do wyświetlenia</h3>
+                  <h3 className="text-base font-semibold text-slate-300">Brak zleceń do wyświetlenia</h3>
                   <p className="text-xs text-slate-500 max-w-sm mt-1">
                     {currentView === 'today'
-                      ? 'Wszystko zrobione na dzisiaj lub nie zaplanowałeś jeszcze zadań.'
-                      : 'Nie znaleziono zadań spełniających wybrane kryteria.'}
+                      ? 'Wszystko gotowe na dziś lub nie masz aktywnych projektów.'
+                      : 'Nie znaleziono zleceń spełniających wybrane filtry.'}
                   </p>
                   <button
-                    onClick={() => handleOpenNew('todo')}
+                    onClick={() => handleOpenNew('in_progress')}
                     className="mt-4 flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/20"
                   >
                     <Plus className="w-4 h-4" />
-                    Dodaj nowe zadanie
+                    Dodaj nowe zlecenie
                   </button>
                 </div>
               ) : (
@@ -511,7 +702,7 @@ export function App() {
       <BottomNav
         currentView={currentView}
         onViewChange={setCurrentView}
-        onQuickAdd={() => handleOpenNew('todo')}
+        onQuickAdd={() => handleOpenNew('in_progress')}
       />
 
       <TaskModal
@@ -519,6 +710,14 @@ export function App() {
         onClose={() => setIsTaskModalOpen(false)}
         onSave={handleSaveTask}
         initialTask={editingTask}
+      />
+
+      <AiTaskModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        onAddTask={handleSaveTask}
+        savedApiKey={apiKey}
+        onSaveApiKey={setApiKey}
       />
 
       <ConnectPhoneModal

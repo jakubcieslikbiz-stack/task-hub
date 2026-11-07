@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ViewMode } from '../types';
-import { Calendar, CheckSquare, Columns3, StickyNote, Plus } from 'lucide-react';
+import { Calendar, CheckSquare, Clock, DollarSign, StickyNote, Plus } from 'lucide-react';
 
 interface BottomNavProps {
   currentView: ViewMode;
@@ -14,56 +14,66 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onQuickAdd,
 }) => {
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 px-4 py-2 pb-safe flex items-center justify-around shadow-2xl">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 px-2 py-2 pb-safe flex items-center justify-around shadow-2xl">
       <button
         onClick={() => onViewChange('today')}
-        className={`flex flex-col items-center gap-1 py-1 px-2 transition-colors ${
-          currentView === 'today' ? 'text-indigo-400' : 'text-slate-400 hover:text-slate-200'
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
+          currentView === 'today' ? 'text-indigo-400 font-bold' : 'text-slate-400 hover:text-slate-200'
         }`}
       >
-        <Calendar className="w-5 h-5" />
-        <span className="text-[10px] font-medium">Dziś</span>
+        <Calendar className="w-4 h-4" />
+        <span className="text-[9px]">Dziś</span>
       </button>
 
       <button
         onClick={() => onViewChange('all')}
-        className={`flex flex-col items-center gap-1 py-1 px-2 transition-colors ${
-          currentView === 'all' ? 'text-indigo-400' : 'text-slate-400 hover:text-slate-200'
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
+          currentView === 'all' ? 'text-indigo-400 font-bold' : 'text-slate-400 hover:text-slate-200'
         }`}
       >
-        <CheckSquare className="w-5 h-5" />
-        <span className="text-[10px] font-medium">Zadania</span>
+        <CheckSquare className="w-4 h-4" />
+        <span className="text-[9px]">Zlecenia</span>
+      </button>
+
+      <button
+        onClick={() => onViewChange('timeline')}
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
+          currentView === 'timeline' ? 'text-indigo-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+        }`}
+      >
+        <Clock className="w-4 h-4" />
+        <span className="text-[9px]">Timeline</span>
       </button>
 
       {/* Floating Center Action Button */}
-      <div className="-mt-6">
+      <div className="-mt-5">
         <button
           onClick={onQuickAdd}
-          className="w-13 h-13 p-3 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-xl shadow-indigo-500/40 border-4 border-slate-950 flex items-center justify-center active:scale-90 transition-transform"
-          title="Dodaj zadanie"
+          className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-xl shadow-indigo-500/40 border-4 border-slate-950 flex items-center justify-center active:scale-90 transition-transform"
+          title="Dodaj zlecenie"
         >
-          <Plus className="w-6 h-6 stroke-[2.5]" />
+          <Plus className="w-5 h-5 stroke-[2.5]" />
         </button>
       </div>
 
       <button
-        onClick={() => onViewChange('kanban')}
-        className={`flex flex-col items-center gap-1 py-1 px-2 transition-colors ${
-          currentView === 'kanban' ? 'text-indigo-400' : 'text-slate-400 hover:text-slate-200'
+        onClick={() => onViewChange('finances')}
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
+          currentView === 'finances' ? 'text-emerald-400 font-bold' : 'text-slate-400 hover:text-slate-200'
         }`}
       >
-        <Columns3 className="w-5 h-5" />
-        <span className="text-[10px] font-medium">Tablica</span>
+        <DollarSign className="w-4 h-4" />
+        <span className="text-[9px]">Finanse</span>
       </button>
 
       <button
         onClick={() => onViewChange('notes')}
-        className={`flex flex-col items-center gap-1 py-1 px-2 transition-colors ${
-          currentView === 'notes' ? 'text-indigo-400' : 'text-slate-400 hover:text-slate-200'
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
+          currentView === 'notes' ? 'text-indigo-400 font-bold' : 'text-slate-400 hover:text-slate-200'
         }`}
       >
-        <StickyNote className="w-5 h-5" />
-        <span className="text-[10px] font-medium">Notatki</span>
+        <StickyNote className="w-4 h-4" />
+        <span className="text-[9px]">Notatki</span>
       </button>
     </nav>
   );
