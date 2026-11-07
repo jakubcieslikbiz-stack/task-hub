@@ -635,15 +635,25 @@ export function App() {
               </div>
 
               <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
+                <button
+                  onClick={() => setSelectedCategory(null)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
+                    selectedCategory === null
+                      ? 'bg-slate-200 text-slate-950 border-white font-semibold shadow-sm'
+                      : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  Wszystkie
+                </button>
                 {CATEGORIES.map((cat) => {
                   const isSelected = selectedCategory === cat.id;
                   return (
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCategory(isSelected ? null : cat.id)}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
+                      className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
                         isSelected
-                          ? 'bg-slate-200 text-slate-950 border-white'
+                          ? 'bg-slate-200 text-slate-950 border-white font-semibold shadow-sm'
                           : `${cat.color} opacity-80 hover:opacity-100`
                       }`}
                     >

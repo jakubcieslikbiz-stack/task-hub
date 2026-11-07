@@ -1,10 +1,8 @@
 import type { Task, Note } from '../types';
 
 export const CATEGORIES = [
-  { id: 'work', name: 'Zlecenia 3D / Studio', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+  { id: 'work', name: 'Zlecenia 3D', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
   { id: 'personal', name: 'Osobiste', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
-  { id: 'learning', name: 'Nauka & Narzędzia', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' },
-  { id: 'finance', name: 'Finanse & Rozliczenia', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' },
 ];
 
 const todayStr = new Date().toISOString().split('T')[0];

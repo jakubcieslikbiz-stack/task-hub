@@ -114,7 +114,7 @@ Dzisiejsza data: ${today} (${dayOfWeek}).
 Przekształć opis użytkownika w JSON:
 - "title": (string)
 - "price": (number lub null, kwota w zł)
-- "category": ("work" | "personal" | "learning" | "health" | "finance")
+- "category": ("work" | "personal", gdzie "work" to Zlecenia 3D, a "personal" to Osobiste)
 - "priority": ("low" | "medium" | "high" | "urgent")
 - "status": ("in_progress" | "todo" | "done" | "paid")
 - "startDate": (string YYYY-MM-DD, domyślnie ${today})
