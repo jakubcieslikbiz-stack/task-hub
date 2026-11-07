@@ -7,6 +7,12 @@ import {
   Check,
   X,
   Maximize2,
+  Compass,
+  FileText,
+  Plane,
+  Flag,
+  Palette,
+  Camera,
 } from 'lucide-react';
 
 interface PublicPortfolioViewProps {
@@ -27,8 +33,56 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
     { id: 'all', label: 'Wszystkie' },
     { id: 'interiors', label: 'Wnętrza' },
     { id: 'architecture', label: 'Architektura' },
+    { id: 'floorplans', label: 'Rzuty 3D & Karty' },
+    { id: 'aerial', label: 'Lot ptaka (Dron)' },
+    { id: 'branding', label: 'Banery & Loga' },
     { id: 'commercial', label: 'Komercyjne' },
     { id: 'animations', label: 'Animacje 3D' },
+  ];
+
+  const services = [
+    {
+      icon: Camera,
+      num: '01',
+      title: 'Wizualizacje 3D Architektury & Wnętrz',
+      desc: 'Fotorealistyczne renderingi 4K budynków, osiedli mieszkaniowych i apartamentów. Kalibracja naturalnego światła słonecznego i nastrojowych kadrów wieczornych.',
+      tag: '4K Ultra HD',
+    },
+    {
+      icon: Compass,
+      num: '02',
+      title: 'Rzuty 3D Kondygnacji i Mieszkań',
+      desc: 'Trójwymiarowe rzuty aksonometryczne z pełnym umeblowaniem, materiałami posadzek i oświetleniem. Pomagają nabywcy natychmiast poczuć potencjał przestrzeni.',
+      tag: 'Rzuty Akso & Top',
+    },
+    {
+      icon: FileText,
+      num: '03',
+      title: 'Karty Lokali dla Deweloperów',
+      desc: 'Profesjonalne karty katalogowe mieszkań i lokali usługowych w PDF oraz do druku dla biur sprzedaży. Zawierają rzut, wizualizację, tabelę metraży i układ stron.',
+      tag: 'PDF & Druk',
+    },
+    {
+      icon: Plane,
+      num: '04',
+      title: 'Ujęcia z Lotu Ptaka (Dron & Aerial)',
+      desc: 'Wielkoskalowe panoramy i fotomontaż bryły architektonicznej 3D w realne zdjęcia lotnicze z drona. Prezentacja układu osiedla, zieleni oraz infrastruktury.',
+      tag: 'Fotomontaż z Drona',
+    },
+    {
+      icon: Flag,
+      num: '05',
+      title: 'Banery Inwestycji & Billboardy',
+      desc: 'Kompleksowe projekty graficzne do druku wielkoformatowego: banery na ogrodzenia placu budowy, siatki mesh, nośniki przydrożne i tablice informacyjne.',
+      tag: 'Druk Wielkoformatowy',
+    },
+    {
+      icon: Palette,
+      num: '06',
+      title: 'Loga & Branding Inwestycji',
+      desc: 'Autorski projekt logotypu dla nazwy osiedla lub budynku, spójna paleta kolorystyczna, dobór fontów oraz identyfikacja wizualna materiałów marketingowych.',
+      tag: 'Identyfikacja Wizualna',
+    },
   ];
 
   const filteredProjects =
@@ -62,7 +116,7 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
                 Jakub Cieślik
               </span>
               <span className="block text-[10px] tracking-[0.18em] uppercase text-neutral-500 font-normal mt-0.5">
-                Architectural CGI & 3D Visualizer
+                Architectural CGI & Marketing Inwestycji
               </span>
             </div>
           </a>
@@ -98,7 +152,7 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
             </button>
 
             <a
-              href={`mailto:${myEmail}?subject=Zapytanie o wycenę wizualizacji 3D`}
+              href={`mailto:${myEmail}?subject=Zapytanie o wycenę wizualizacji i materiałów marketingowych`}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white hover:bg-neutral-200 text-black text-xs font-medium tracking-wide uppercase transition-all duration-200 active:scale-95 shadow-sm"
             >
               <Mail className="w-3.5 h-3.5" />
@@ -113,7 +167,7 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
         <div className="max-w-5xl mx-auto space-y-8">
           <div className="inline-flex items-center gap-2.5 px-3 py-1 rounded-full border border-neutral-900 bg-neutral-950/70 text-neutral-400 text-[10px] tracking-[0.25em] uppercase font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 animate-pulse" />
-            Portfolio Wybranych Realizacji
+            Wizualizacje 3D & Kompleksowy Marketing Deweloperski
           </div>
 
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-light tracking-tight text-neutral-100 leading-[1.15]">
@@ -123,28 +177,89 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
             </span>
           </h1>
 
-          <p className="text-sm sm:text-base text-neutral-400 max-w-2xl font-light leading-relaxed">
-            Tworzę fotorealistyczne wizualizacje architektury, wnętrz oraz animacje w jakości 4K dla pracowni projektowych, deweloperów i inwestorów. Każdy obraz buduje nastrój, proporcje i materialność inwestycji.
+          <p className="text-sm sm:text-base text-neutral-400 max-w-3xl font-light leading-relaxed">
+            Tworzę fotorealistyczne wizualizacje architektury i wnętrz, precyzyjne rzuty 3D, karty lokali dla biur sprzedaży deweloperów, ujęcia z lotu ptaka (dron), a także wielkoformatowe banery na budowę oraz unikalne loga i branding nieruchomości.
           </p>
 
-          {/* Minimalist Specs Strip */}
-          <div className="pt-4 flex flex-wrap items-center gap-y-3 gap-x-8 text-[11px] text-neutral-500 font-mono tracking-widest uppercase border-t border-neutral-900/80 pt-6">
+          {/* Minimalist Specs & Services Strip */}
+          <div className="pt-4 flex flex-wrap items-center gap-y-3 gap-x-7 text-[11px] text-neutral-500 font-mono tracking-widest uppercase border-t border-neutral-900/80 pt-6">
             <span className="flex items-center gap-2">
               <span className="w-1 h-1 rounded-full bg-neutral-600" />
-              Rozdzielczość 4K / Ultra HD
+              Wizualizacje 4K & Wnętrza
             </span>
             <span className="flex items-center gap-2">
               <span className="w-1 h-1 rounded-full bg-neutral-600" />
-              Wnętrza & Architektura
+              Rzuty 3D & Karty Lokali
             </span>
             <span className="flex items-center gap-2">
               <span className="w-1 h-1 rounded-full bg-neutral-600" />
-              Animacje Cinematic
+              Lot Ptaka (Dron)
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="w-1 h-1 rounded-full bg-neutral-600" />
+              Banery Inwestycji & Loga
             </span>
             <span className="flex items-center gap-2">
               <span className="w-1 h-1 rounded-full bg-neutral-600" />
               Warszawa & Remote
             </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Breakdown / Scope of Work */}
+      <section className="border-b border-neutral-900 bg-neutral-950/40 py-20 sm:py-24 px-6 sm:px-12">
+        <div className="max-w-7xl mx-auto space-y-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="space-y-2">
+              <span className="text-[10px] font-mono tracking-[0.25em] uppercase text-neutral-500 block">
+                Pełen Zakres Usług
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-light text-white tracking-tight">
+                Kompleksowa obsługa marketingu inwestycji
+              </h2>
+            </div>
+            <p className="text-xs text-neutral-500 font-light max-w-md">
+              Wszystkie materiały sprzedażowe w jednym miejscu – spójne stylistycznie i przygotowane pod klucz do druku oraz na www.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.map((srv) => {
+              const Icon = srv.icon;
+              return (
+                <div
+                  key={srv.num}
+                  className="group p-7 rounded-lg bg-neutral-950/80 border border-neutral-900 hover:border-neutral-700 transition-all duration-300 flex flex-col justify-between space-y-5"
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-mono text-neutral-500 tracking-wider">
+                        {srv.num}
+                      </span>
+                      <div className="w-8 h-8 rounded-full border border-neutral-800 bg-black flex items-center justify-center text-neutral-400 group-hover:text-white group-hover:border-neutral-600 transition-colors">
+                        <Icon className="w-4 h-4" />
+                      </div>
+                    </div>
+
+                    <h3 className="text-base font-medium text-neutral-100 group-hover:text-white transition-colors">
+                      {srv.title}
+                    </h3>
+
+                    <p className="text-xs text-neutral-400 font-light leading-relaxed">
+                      {srv.desc}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-neutral-900/80 flex items-center justify-between text-[10px] font-mono text-neutral-500 uppercase tracking-wider">
+                    <span>Standard Studio</span>
+                    <span className="px-2 py-0.5 rounded-sm bg-neutral-900 text-neutral-300 border border-neutral-800">
+                      {srv.tag}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -262,7 +377,7 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-4 border-l border-neutral-800 pl-6">
               <span className="text-xs font-mono text-neutral-500 tracking-widest block">
-                01 / KADROWANIE
+                01 / KADROWANIE & BRYŁA
               </span>
               <h3 className="text-base font-medium text-neutral-100">
                 Geometria & Ujęcia próbne
@@ -286,13 +401,13 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
 
             <div className="space-y-4 border-l border-neutral-800 pl-6">
               <span className="text-xs font-mono text-neutral-500 tracking-widest block">
-                03 / POSTPRODUKCJA 4K
+                03 / POSTPRODUKCJA & DRUK
               </span>
               <h3 className="text-base font-medium text-neutral-100">
-                Finał i 2 tury uwag w cenie
+                Finał 4K i 2 tury uwag w cenie
               </h3>
               <p className="text-xs text-neutral-400 leading-relaxed font-light">
-                Końcowy rendering w rozdzielczości 4K Ultra HD z zaawansowanym gradingiem barwnym. W cenie każdej realizacji zawarte są 2 serie poprawek.
+                Końcowy rendering w rozdzielczości 4K Ultra HD z zaawansowanym gradingiem barwnym lub pliki do druku wielkoformatowego. 2 serie poprawek w cenie.
               </p>
             </div>
           </div>
@@ -311,13 +426,13 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
           </h2>
 
           <p className="text-sm sm:text-base text-neutral-400 max-w-xl mx-auto font-light leading-relaxed">
-            Prześlij rzuty, modele 3D lub zadzwoń bezpośrednio. Wycenę wraz z proponowanym harmonogramem przygotuję w ciągu kilku godzin roboczych.
+            Potrzebujesz fotorealistycznych wizualizacji, rzutów 3D, kart lokali, ujęć z drona czy banerów i logo na budowę? Prześlij materiały lub zadzwoń bezpośrednio – bezpłatną wycenę przygotuję w kilka godzin.
           </p>
 
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5">
             {/* Primary Email Button */}
             <a
-              href={`mailto:${myEmail}?subject=Zapytanie ofertowe - wizualizacje 3D`}
+              href={`mailto:${myEmail}?subject=Zapytanie ofertowe - wizualizacje i marketing 3D`}
               className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white hover:bg-neutral-200 text-black font-medium text-xs tracking-wider uppercase transition-all duration-200 active:scale-95 shadow-md flex items-center justify-center gap-2"
             >
               <Mail className="w-4 h-4" />

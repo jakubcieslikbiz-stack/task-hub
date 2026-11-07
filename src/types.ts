@@ -40,7 +40,7 @@ export type ViewMode =
 export interface PortfolioProject {
   id: string;
   title: string;
-  category: 'interiors' | 'architecture' | 'commercial' | 'animations';
+  category: string;
   categoryLabel: string;
   description: string;
   imageUrl: string;

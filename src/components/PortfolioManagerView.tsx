@@ -30,7 +30,7 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
 
   // Form fields
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<'interiors' | 'architecture' | 'commercial' | 'animations'>('interiors');
+  const [category, setCategory] = useState<string>('interiors');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [client, setClient] = useState('');
@@ -95,6 +95,8 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
       interiors: 'Wnętrza',
       architecture: 'Architektura',
       commercial: 'Komercyjne',
+      floorplans: 'Rzuty 3D & Karty lokali',
+      branding: 'Banery & Loga inwestycji',
       animations: 'Animacje 3D',
     };
 
@@ -320,12 +322,14 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
                   </label>
                   <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value as any)}
+                    onChange={(e) => setCategory(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-800 rounded-xl border border-slate-700 text-white text-xs focus:outline-none focus:border-indigo-500"
                   >
                     <option value="interiors">Wnętrza</option>
                     <option value="architecture">Architektura</option>
                     <option value="commercial">Komercyjne</option>
+                    <option value="floorplans">Rzuty 3D & Karty lokali</option>
+                    <option value="branding">Banery & Loga inwestycji</option>
                     <option value="animations">Animacje 3D</option>
                   </select>
                 </div>
