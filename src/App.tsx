@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Task, Note, ViewMode, Status } from './types';
 import { INITIAL_TASKS, INITIAL_NOTES, CATEGORIES } from './data/initialData';
 import { Sidebar } from './components/Sidebar';
@@ -9,10 +9,10 @@ import { KanbanBoard } from './components/KanbanBoard';
 import { QuickNotes } from './components/QuickNotes';
 import { TaskModal } from './components/TaskModal';
 import { ConnectPhoneModal } from './components/ConnectPhoneModal';
-import { Plus, CheckCircle2 } from 'lucide-react';
+import { Plus, CheckCircle2, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
 
 export function App() {
-  // Load tasks from localStorage or initial
   const [tasks, setTasks] = useState<Task[]>(() => {
     try {
       const saved = localStorage.getItem('taskhub_tasks');
@@ -22,7 +22,6 @@ export function App() {
     }
   });
 
-  // Load notes from localStorage or initial
   const [notes, setNotes] = useState<Note[]>(() => {
     try {
       const saved = localStorage.getItem('taskhub_notes');
@@ -31,6 +30,9 @@ export function App() {
       return INITIAL_NOTES;
     }
   });
+
+  const [cloudSynced, setCloudSynced] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   // Navigation and Filter state
   const [currentView, setCurrentView] = useState<ViewMode>('today');
@@ -45,16 +47,110 @@ export function App() {
   const [defaultStatusForNewTask, setDefaultStatusForNewTask] = useState<Status>('todo');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isInitialRemoteLoad = useRef(true);
 
-  // Sync tasks to LocalStorage
+  // Local storage backup
   useEffect(() => {
     localStorage.setItem('taskhub_tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  // Sync notes to LocalStorage
   useEffect(() => {
     localStorage.setItem('taskhub_notes', JSON.stringify(notes));
   }, [notes]);
+
+  // Load from Supabase on mount
+  useEffect(() => {
+    if (!supabase) return;
+
+    async function loadRemoteData() {
+      setIsSyncing(true);
+      try {
+        const { data, error } = await supabase!
+          .from('taskhub_state')
+          .select('key, data');
+
+        if (!error && data && data.length > 0) {
+          const tasksRow = data.find((r) => r.key === 'tasks');
+          const notesRow = data.find((r) => r.key === 'notes');
+
+          if (tasksRow && Array.isArray(tasksRow.data)) {
+            setTasks(tasksRow.data);
+          }
+          if (notesRow && Array.isArray(notesRow.data)) {
+            setNotes(notesRow.data);
+          }
+          setCloudSynced(true);
+        } else if (data && data.length === 0) {
+          // Initialize empty cloud with existing local data
+          await supabase!.from('taskhub_state').upsert([
+            { key: 'tasks', data: tasks },
+            { key: 'notes', data: notes },
+          ]);
+          setCloudSynced(true);
+        }
+      } catch (err) {
+        console.warn('Supabase sync notice:', err);
+      } finally {
+        setIsSyncing(false);
+        isInitialRemoteLoad.current = false;
+      }
+    }
+
+    loadRemoteData();
+
+    // Listen to real-time updates from other devices (e.g. phone <-> pc)
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'taskhub_state' },
+        (payload: any) => {
+          if (payload.new && payload.new.key === 'tasks' && Array.isArray(payload.new.data)) {
+            setTasks(payload.new.data);
+          }
+          if (payload.new && payload.new.key === 'notes' && Array.isArray(payload.new.data)) {
+            setNotes(payload.new.data);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (supabase) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, []);
+
+  // Sync tasks to cloud helper
+  const syncTasksToCloud = useCallback(async (updatedTasks: Task[]) => {
+    if (!supabase || isInitialRemoteLoad.current) return;
+    try {
+      await supabase.from('taskhub_state').upsert({
+        key: 'tasks',
+        data: updatedTasks,
+        updated_at: new Date().toISOString(),
+      });
+      setCloudSynced(true);
+    } catch {
+      // Graceful fallback to localStorage
+    }
+  }, []);
+
+  // Sync notes to cloud helper
+  const syncNotesToCloud = useCallback(async (updatedNotes: Note[]) => {
+    if (!supabase || isInitialRemoteLoad.current) return;
+    try {
+      await supabase.from('taskhub_state').upsert({
+        key: 'notes',
+        data: updatedNotes,
+        updated_at: new Date().toISOString(),
+      });
+      setCloudSynced(true);
+    } catch {
+      // Graceful fallback to localStorage
+    }
+  }, []);
 
   // Date helpers
   const todayStr = new Date().toISOString().split('T')[0];
@@ -63,64 +159,56 @@ export function App() {
 
   // Task Actions
   const handleToggleStatus = (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === id) {
-          const isDone = t.status === 'done';
-          return {
-            ...t,
-            status: isDone ? 'todo' : 'done',
-            completedAt: !isDone ? new Date().toISOString() : undefined,
-          };
-        }
-        return t;
-      })
-    );
+    const updated = tasks.map((t) => {
+      if (t.id === id) {
+        const isDone = t.status === 'done';
+        return {
+          ...t,
+          status: (isDone ? 'todo' : 'done') as Status,
+          completedAt: !isDone ? new Date().toISOString() : undefined,
+        };
+      }
+      return t;
+    });
+    setTasks(updated);
+    syncTasksToCloud(updated);
   };
 
   const handleUpdateStatus = (id: string, status: Status) => {
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === id
-          ? {
-              ...t,
-              status,
-              completedAt: status === 'done' ? new Date().toISOString() : undefined,
-            }
-          : t
-      )
+    const updated = tasks.map((t) =>
+      t.id === id
+        ? {
+            ...t,
+            status,
+            completedAt: status === 'done' ? new Date().toISOString() : undefined,
+          }
+        : t
     );
+    setTasks(updated);
+    syncTasksToCloud(updated);
   };
 
   const handleToggleSubtask = (taskId: string, subtaskId: string) => {
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === taskId) {
-          const updatedSubtasks = t.subtasks.map((st) =>
-            st.id === subtaskId ? { ...st, completed: !st.completed } : st
-          );
-          return { ...t, subtasks: updatedSubtasks };
-        }
-        return t;
-      })
-    );
+    const updated = tasks.map((t) => {
+      if (t.id === taskId) {
+        const updatedSubtasks = t.subtasks.map((st) =>
+          st.id === subtaskId ? { ...st, completed: !st.completed } : st
+        );
+        return { ...t, subtasks: updatedSubtasks };
+      }
+      return t;
+    });
+    setTasks(updated);
+    syncTasksToCloud(updated);
   };
 
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'createdAt'> & { id?: string }) => {
+    let updated: Task[];
     if (taskData.id) {
-      // Edit existing
-      setTasks((prev) =>
-        prev.map((t) =>
-          t.id === taskData.id
-            ? {
-                ...t,
-                ...taskData,
-              }
-            : t
-        )
+      updated = tasks.map((t) =>
+        t.id === taskData.id ? { ...t, ...taskData } : t
       );
     } else {
-      // Create new
       const newTask: Task = {
         id: Date.now().toString(),
         title: taskData.title,
@@ -132,12 +220,16 @@ export function App() {
         subtasks: taskData.subtasks || [],
         createdAt: new Date().toISOString(),
       };
-      setTasks((prev) => [newTask, ...prev]);
+      updated = [newTask, ...tasks];
     }
+    setTasks(updated);
+    syncTasksToCloud(updated);
   };
 
   const handleDeleteTask = (id: string) => {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    const updated = tasks.filter((t) => t.id !== id);
+    setTasks(updated);
+    syncTasksToCloud(updated);
   };
 
   const handleOpenEdit = (task: Task) => {
@@ -159,17 +251,23 @@ export function App() {
       content: newNoteData.content,
       updatedAt: new Date().toISOString(),
     };
-    setNotes((prev) => [newNote, ...prev]);
+    const updated = [newNote, ...notes];
+    setNotes(updated);
+    syncNotesToCloud(updated);
   };
 
   const handleUpdateNote = (id: string, content: string, title: string) => {
-    setNotes((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, content, title, updatedAt: new Date().toISOString() } : n))
+    const updated = notes.map((n) =>
+      n.id === id ? { ...n, content, title, updatedAt: new Date().toISOString() } : n
     );
+    setNotes(updated);
+    syncNotesToCloud(updated);
   };
 
   const handleDeleteNote = (id: string) => {
-    setNotes((prev) => prev.filter((n) => n.id !== id));
+    const updated = notes.filter((n) => n.id !== id);
+    setNotes(updated);
+    syncNotesToCloud(updated);
   };
 
   // Export / Import Backup Data
@@ -192,8 +290,14 @@ export function App() {
     reader.onload = (event) => {
       try {
         const data = JSON.parse(event.target?.result as string);
-        if (Array.isArray(data.tasks)) setTasks(data.tasks);
-        if (Array.isArray(data.notes)) setNotes(data.notes);
+        if (Array.isArray(data.tasks)) {
+          setTasks(data.tasks);
+          syncTasksToCloud(data.tasks);
+        }
+        if (Array.isArray(data.notes)) {
+          setNotes(data.notes);
+          syncNotesToCloud(data.notes);
+        }
         alert('Kopia zapasowa została pomyślnie zaimportowana!');
       } catch {
         alert('Błąd podczas odczytu pliku kopii zapasowej.');
@@ -205,23 +309,19 @@ export function App() {
 
   // Filtering for views
   const filteredTasks = tasks.filter((task) => {
-    // View filtering
     if (currentView === 'today') {
       const isDueToday = task.dueDate === todayStr;
       const isInProgress = task.status === 'in_progress';
       if (!isDueToday && !isInProgress) return false;
     }
 
-    // Category filter
     if (selectedCategory && task.category !== selectedCategory) {
       return false;
     }
 
-    // Status filter
     if (statusFilter === 'active' && task.status === 'done') return false;
     if (statusFilter === 'done' && task.status !== 'done') return false;
 
-    // Search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const matchTitle = task.title.toLowerCase().includes(query);
@@ -235,7 +335,6 @@ export function App() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950 font-sans text-slate-100">
-      {/* Hidden file input for import */}
       <input
         type="file"
         ref={fileInputRef}
@@ -260,6 +359,37 @@ export function App() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-full overflow-y-auto pb-24 md:pb-8">
         <div className="max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+          {/* Cloud Sync Status Indicator Banner */}
+          <div className="flex items-center justify-between mb-4 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs">
+            <div className="flex items-center gap-2">
+              {isSupabaseConfigured ? (
+                cloudSynced ? (
+                  <>
+                    <Cloud className="w-4 h-4 text-emerald-400" />
+                    <span className="text-emerald-300 font-medium">Chmura aktywna</span>
+                    <span className="text-slate-500">• Synchronizacja PC & Telefon w czasie rzeczywistym</span>
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4 text-amber-400 animate-spin" />
+                    <span className="text-amber-300 font-medium">Łączenie z bazą Supabase...</span>
+                  </>
+                )
+              ) : (
+                <>
+                  <CloudOff className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-400">Pamięć lokalna urządzenia (Offline / Local)</span>
+                </>
+              )}
+            </div>
+
+            {isSyncing && (
+              <span className="text-[11px] text-indigo-400 animate-pulse font-medium">
+                Aktualizowanie...
+              </span>
+            )}
+          </div>
+
           <Header
             currentView={currentView}
             searchQuery={searchQuery}
@@ -270,10 +400,9 @@ export function App() {
             totalTodayCount={todayTasks.length}
           />
 
-          {/* Filter Pills (for 'all' or 'today' view) */}
+          {/* Filter Pills */}
           {currentView !== 'notes' && currentView !== 'kanban' && (
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-2 border-b border-slate-800/60">
-              {/* Status pills */}
               <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
                 <button
                   onClick={() => setStatusFilter('all')}
@@ -301,7 +430,6 @@ export function App() {
                 </button>
               </div>
 
-              {/* Mobile Category chips */}
               <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
                 {CATEGORIES.map((cat) => {
                   const isSelected = selectedCategory === cat.id;
@@ -323,7 +451,7 @@ export function App() {
             </div>
           )}
 
-          {/* Render Active View */}
+          {/* Active View */}
           {currentView === 'notes' ? (
             <QuickNotes
               notes={notes}
@@ -342,7 +470,6 @@ export function App() {
               onAddNewWithStatus={(status) => handleOpenNew(status)}
             />
           ) : (
-            /* List View (Today or All) */
             <div className="space-y-3">
               {filteredTasks.length === 0 ? (
                 <div className="py-20 text-center flex flex-col items-center justify-center border border-dashed border-slate-800 rounded-3xl p-6">
@@ -381,14 +508,12 @@ export function App() {
         </div>
       </main>
 
-      {/* Mobile Bottom Navigation Bar */}
       <BottomNav
         currentView={currentView}
         onViewChange={setCurrentView}
         onQuickAdd={() => handleOpenNew('todo')}
       />
 
-      {/* Task Modal (Add/Edit) */}
       <TaskModal
         isOpen={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
@@ -396,7 +521,6 @@ export function App() {
         initialTask={editingTask}
       />
 
-      {/* Phone Connect Modal with QR */}
       <ConnectPhoneModal
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
