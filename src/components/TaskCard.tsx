@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Task, Priority, Status } from '../types';
 import { CATEGORIES } from '../data/initialData';
+import { sendTaskReminderEmail } from '../lib/email';
 import {
   CheckCircle2,
   Circle,
@@ -12,7 +13,10 @@ import {
   Trash2,
   Edit2,
   ListTodo,
-  DollarSign
+  DollarSign,
+  Mail,
+  Loader2,
+  Check,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -42,6 +46,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 }) => {
   const [showSubtasks, setShowSubtasks] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [emailSentStatus, setEmailSentStatus] = useState<string | null>(null);
 
   const isDone = task.status === 'done';
   const isPaid = task.status === 'paid';
@@ -62,6 +68,28 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       });
     }
     onToggleStatus(task.id);
+  };
+
+  const handleQuickSendEmail = async () => {
+    setIsSendingEmail(true);
+    setEmailSentStatus(null);
+    const res = await sendTaskReminderEmail({
+      title: task.title,
+      dueDate: task.dueDate,
+      price: task.price,
+      priority: task.priority,
+      category: category?.name,
+      notes: task.notes,
+      description: task.description,
+      subtasks: task.subtasks.map((s) => s.title),
+    });
+    setIsSendingEmail(false);
+    if (res.success) {
+      setEmailSentStatus('Wysłano!');
+      setTimeout(() => setEmailSentStatus(null), 3500);
+    } else {
+      alert(`Błąd wysyłki e-mail: ${res.error || 'Nieznany błąd'}`);
+    }
   };
 
   const isToday = task.dueDate === new Date().toISOString().split('T')[0];
@@ -178,6 +206,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               </span>
             )}
 
+            {/* Email reminder badge */}
+            {task.remindByEmail && (
+              <span
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-[11px] font-medium bg-indigo-500/15 text-indigo-300 border-indigo-500/30"
+                title="Powiadomienie e-mail skonfigurowane"
+              >
+                <Mail className="w-3 h-3 text-indigo-400" />
+                Mail
+              </span>
+            )}
+
             {/* Subtask count badge */}
             {totalSubtasks > 0 && (
               <button
@@ -229,8 +268,27 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           )}
         </div>
 
-        {/* Right action button */}
-        <div className="relative">
+        {/* Right action buttons: Quick Email & Menu */}
+        <div className="flex items-center gap-0.5 relative">
+          <button
+            onClick={handleQuickSendEmail}
+            disabled={isSendingEmail}
+            className={`p-1.5 rounded-lg transition-colors ${
+              emailSentStatus
+                ? 'bg-emerald-500/20 text-emerald-300'
+                : 'text-slate-400 hover:text-indigo-400 hover:bg-slate-800'
+            }`}
+            title={emailSentStatus || 'Wyślij przypomnienie e-mailem'}
+          >
+            {isSendingEmail ? (
+              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+            ) : emailSentStatus ? (
+              <Check className="w-4 h-4 text-emerald-400" />
+            ) : (
+              <Mail className="w-4 h-4" />
+            )}
+          </button>
+
           <button
             onClick={() => setShowMenu(!showMenu)}
             className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
@@ -241,7 +299,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           {showMenu && (
             <>
               <div className="fixed inset-0 z-20" onClick={() => setShowMenu(false)} />
-              <div className="absolute right-0 top-8 z-30 w-44 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl py-1 text-sm text-slate-200 backdrop-blur-md">
+              <div className="absolute right-0 top-8 z-30 w-48 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl py-1 text-sm text-slate-200 backdrop-blur-md">
                 <button
                   onClick={() => {
                     setShowMenu(false);
@@ -251,6 +309,18 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 >
                   <Edit2 className="w-4 h-4 text-slate-400" />
                   <span>Edytuj</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowMenu(false);
+                    handleQuickSendEmail();
+                  }}
+                  disabled={isSendingEmail}
+                  className="flex items-center gap-2.5 w-full px-3.5 py-2 hover:bg-slate-700/60 text-left transition-colors text-indigo-300"
+                >
+                  <Mail className="w-4 h-4 text-indigo-400" />
+                  <span>Wyślij e-mail</span>
                 </button>
 
                 <div className="border-t border-slate-700/60 my-1" />

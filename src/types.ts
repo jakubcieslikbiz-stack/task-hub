@@ -19,6 +19,8 @@ export interface Task {
   priority: Priority;
   status: Status;        // todo | in_progress | done | paid
   notes?: string;        // Uwagi do projektu
+  remindByEmail?: boolean; // Czy wysłać/oznaczyć przypomnienie e-mail
+  emailReminderSentAt?: string; // Data i czas wysłania przypomnienia
   subtasks: Subtask[];
   createdAt: string;
   completedAt?: string;

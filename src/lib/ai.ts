@@ -10,6 +10,7 @@ export interface AiCommandResult {
   cost?: number;
   taskName?: string;
   text?: string;
+  remindByEmail?: boolean;
 }
 
 export interface ParsedAiTask {
@@ -23,6 +24,7 @@ export interface ParsedAiTask {
   description?: string;
   notes?: string;
   subtasks: string[];
+  remindByEmail?: boolean;
 }
 
 export function speakText(text: string, enabled: boolean = true) {
@@ -51,8 +53,8 @@ Twoim zadaniem jest zamienienie komendy użytkownika w języku polskim na format
 Nie dodawaj żadnego tekstu przed ani po JSON-ie. Odpowiedz TYLKO i wyłącznie obiektem JSON.
 
 Dozwolone akcje (action) i struktury:
-1. Dodanie nowego zadania/projektu (jeśli brak dat start/end, przyjmij dzisiejszą datę. Wyłuskaj budżet w zł. Zostaw samą nazwę projektu):
-   {"action": "add_task", "name": "nazwa projektu", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "price": liczba}
+1. Dodanie nowego zadania/projektu (jeśli brak dat start/end, przyjmij dzisiejszą datę. Wyłuskaj budżet w zł. Zostaw samą nazwę projektu. Jeśli użytkownik mówi "przypomnij mailem", "wyślij na maila", "przypomnij na maila", "wyślij powiadomienie na maila", dodaj "remindByEmail": true):
+   {"action": "add_task", "name": "nazwa projektu", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "price": liczba, "remindByEmail": true/false}
 
 2. Dodanie do To-Do / Szybkich Notatek (np. "dodaj do to do kupić mleko", "muszę zadzwonić do klienta"):
    {"action": "todo", "text": "treść zadania"}
@@ -119,7 +121,8 @@ Przekształć opis użytkownika w JSON:
 - "dueDate": (string YYYY-MM-DD)
 - "description": (string)
 - "notes": (string)
-- "subtasks": (tablica stringów)`;
+- "subtasks": (tablica stringów)
+- "remindByEmail": (boolean, ustaw true jeśli użytkownik prosi o przypomnienie mailem/na maila/powiadomienie mailowe)`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',

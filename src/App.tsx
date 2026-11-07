@@ -223,7 +223,13 @@ export function App() {
   const monthlyNet = monthlyPaid - monthlyTotalCosts;
 
   // AI Command Handlers (From JC Studio)
-  const handleAiAddTask = (taskData: { name: string; price?: number; startDate?: string; endDate?: string }) => {
+  const handleAiAddTask = (taskData: {
+    name: string;
+    price?: number;
+    startDate?: string;
+    endDate?: string;
+    remindByEmail?: boolean;
+  }) => {
     const todayStr = new Date().toISOString().split('T')[0];
     const newTask: Task = {
       id: Date.now().toString(),
@@ -236,6 +242,8 @@ export function App() {
       status: 'in_progress',
       subtasks: [],
       notes: 'Dodane przez Asystenta AI ✨',
+      remindByEmail: taskData.remindByEmail,
+      emailReminderSentAt: taskData.remindByEmail ? new Date().toISOString() : undefined,
       createdAt: new Date().toISOString(),
     };
     const updated = [newTask, ...tasks];
@@ -360,6 +368,8 @@ export function App() {
         priority: taskData.priority,
         status: defaultStatusForNewTask || taskData.status || 'in_progress',
         notes: taskData.notes,
+        remindByEmail: taskData.remindByEmail,
+        emailReminderSentAt: taskData.emailReminderSentAt,
         subtasks: taskData.subtasks || [],
         createdAt: new Date().toISOString(),
       };

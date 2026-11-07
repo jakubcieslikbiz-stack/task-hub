@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import type { ParsedAiTask } from '../lib/ai';
 import { parseTaskWithOpenAI } from '../lib/ai';
 import type { Task, Subtask } from '../types';
-import { Sparkles, Key, X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { sendTaskReminderEmail } from '../lib/email';
+import { Sparkles, Key, X, CheckCircle2, AlertCircle, Loader2, Mail } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface AiTaskModalProps {
@@ -26,6 +27,7 @@ export const AiTaskModal: React.FC<AiTaskModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewTask, setPreviewTask] = useState<ParsedAiTask | null>(null);
+  const [remindByEmail, setRemindByEmail] = useState(false);
 
   if (!isOpen) return null;
 
@@ -46,6 +48,10 @@ export const AiTaskModal: React.FC<AiTaskModalProps> = ({
       onSaveApiKey(apiKey.trim());
       const parsed = await parseTaskWithOpenAI(prompt.trim(), apiKey.trim());
       setPreviewTask(parsed);
+      const wantsMail =
+        Boolean(parsed.remindByEmail) ||
+        /przypomnij.*(mail|e-mail|poczt)|wy[sś]lij.*(mail|e-mail|poczt)/i.test(prompt);
+      setRemindByEmail(wantsMail);
     } catch (err: any) {
       setError(err?.message || 'Wystąpił błąd podczas komunikacji z OpenAI.');
     } finally {
@@ -55,6 +61,19 @@ export const AiTaskModal: React.FC<AiTaskModalProps> = ({
 
   const handleConfirm = () => {
     if (!previewTask) return;
+
+    if (remindByEmail) {
+      sendTaskReminderEmail({
+        title: previewTask.title,
+        dueDate: previewTask.dueDate,
+        price: previewTask.price,
+        priority: previewTask.priority,
+        category: previewTask.category,
+        notes: previewTask.notes,
+        description: previewTask.description,
+        subtasks: previewTask.subtasks,
+      });
+    }
 
     const subtasks: Subtask[] = previewTask.subtasks.map((st: string, i: number) => ({
       id: `${Date.now()}-${i}`,
@@ -72,6 +91,8 @@ export const AiTaskModal: React.FC<AiTaskModalProps> = ({
       dueDate: previewTask.dueDate,
       description: previewTask.description,
       notes: previewTask.notes,
+      remindByEmail,
+      emailReminderSentAt: remindByEmail ? new Date().toISOString() : undefined,
       subtasks,
     });
 
@@ -241,6 +262,20 @@ export const AiTaskModal: React.FC<AiTaskModalProps> = ({
                   </ul>
                 </div>
               )}
+
+              {/* Email reminder checkbox */}
+              <div className="pt-2 border-t border-slate-700/60 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-xs text-indigo-300">
+                  <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Wyślij przypomnienie na e-mail</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={remindByEmail}
+                  onChange={(e) => setRemindByEmail(e.target.checked)}
+                  className="w-4 h-4 rounded text-indigo-600 focus:ring-0 bg-slate-900 border-slate-700 cursor-pointer accent-indigo-600"
+                />
+              </div>
             </div>
           )}
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import type { Task, Priority, Status, Subtask } from '../types';
 import { CATEGORIES } from '../data/initialData';
-import { X, Plus, Trash, DollarSign } from 'lucide-react';
+import { getStoredRecipientEmail, sendTaskReminderEmail } from '../lib/email';
+import { X, Plus, Trash, DollarSign, Mail } from 'lucide-react';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [startDate, setStartDate] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [remindByEmail, setRemindByEmail] = useState(false);
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
 
@@ -41,6 +43,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setStartDate(initialTask.startDate || '');
       setDueDate(initialTask.dueDate || '');
       setNotes(initialTask.notes || '');
+      setRemindByEmail(initialTask.remindByEmail || false);
       setSubtasks(initialTask.subtasks || []);
     } else {
       setTitle('');
@@ -52,6 +55,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setStartDate(todayStr);
       setDueDate(todayStr);
       setNotes('');
+      setRemindByEmail(false);
       setSubtasks([]);
     }
     setNewSubtaskTitle('');
@@ -76,6 +80,19 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     e.preventDefault();
     if (!title.trim()) return;
 
+    if (remindByEmail) {
+      sendTaskReminderEmail({
+        title: title.trim(),
+        dueDate: dueDate || undefined,
+        price: price.trim() !== '' ? Number(price) : undefined,
+        priority,
+        category,
+        notes: notes.trim() || undefined,
+        description: description.trim() || undefined,
+        subtasks: subtasks.map((s) => s.title),
+      });
+    }
+
     onSave({
       id: initialTask?.id,
       title: title.trim(),
@@ -87,6 +104,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       startDate: startDate || undefined,
       dueDate: dueDate || undefined,
       notes: notes.trim() || undefined,
+      remindByEmail,
+      emailReminderSentAt: remindByEmail
+        ? (initialTask?.emailReminderSentAt || new Date().toISOString())
+        : undefined,
       subtasks,
     });
     onClose();
@@ -289,6 +310,29 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Email Reminder Toggle */}
+          <div className="flex items-center justify-between p-3.5 rounded-2xl bg-indigo-950/30 border border-indigo-500/20">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                <Mail className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-white block">
+                  Wyślij przypomnienie e-mailem
+                </span>
+                <span className="text-[11px] text-slate-400 block">
+                  Powiadomienie na: {getStoredRecipientEmail()}
+                </span>
+              </div>
+            </div>
+            <input
+              type="checkbox"
+              checked={remindByEmail}
+              onChange={(e) => setRemindByEmail(e.target.checked)}
+              className="w-5 h-5 rounded-md text-indigo-600 focus:ring-0 bg-slate-800 border-slate-700 cursor-pointer accent-indigo-600"
+            />
           </div>
 
           {/* Footer Submit */}
