@@ -13,6 +13,7 @@ import { TaskModal } from './components/TaskModal';
 import { AiAssistantBar } from './components/AiAssistantBar';
 import { AiTaskModal } from './components/AiTaskModal';
 import { ConnectPhoneModal } from './components/ConnectPhoneModal';
+import { FinanceSummaryBoxes } from './components/FinanceSummaryBoxes';
 import { Plus, CheckCircle2, Cloud, CloudOff, RefreshCw } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 
@@ -571,6 +572,18 @@ export function App() {
             completedTodayCount={completedToday}
             totalTodayCount={todayTasks.length}
           />
+
+          {/* Interactive Financial & Order Status KPI Boxes */}
+          {currentView !== 'notes' && currentView !== 'finances' && (
+            <FinanceSummaryBoxes
+              tasks={tasks}
+              costs={costs}
+              statusFilter={statusFilter}
+              onFilterChange={setStatusFilter}
+              onSaveCosts={handleSaveCosts}
+              onOpenFinancesView={() => setCurrentView('finances')}
+            />
+          )}
 
           {/* Filter Pills for Task list */}
           {currentView === 'all' && (
