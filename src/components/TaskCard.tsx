@@ -103,7 +103,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           : isDone
           ? 'border-slate-800/80 opacity-60 hover:opacity-90'
           : 'border-slate-800 hover:border-indigo-500/40 hover:shadow-indigo-500/5'
-      }`}
+      } ${showMenu ? 'z-40' : 'z-0'}`}
     >
       {/* Top row: Checkbox, Title, Price, Menu */}
       <div className="flex items-start gap-3">
@@ -298,8 +298,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
           {showMenu && (
             <>
-              <div className="fixed inset-0 z-20" onClick={() => setShowMenu(false)} />
-              <div className="absolute right-0 top-8 z-30 w-48 rounded-xl bg-slate-800 border border-slate-700 shadow-2xl py-1 text-sm text-slate-200 backdrop-blur-md">
+              <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+              <div className="absolute right-0 top-8 z-50 w-48 rounded-xl bg-slate-900 border border-slate-700 shadow-2xl py-1 text-sm text-slate-200">
                 <button
                   onClick={() => {
                     setShowMenu(false);
