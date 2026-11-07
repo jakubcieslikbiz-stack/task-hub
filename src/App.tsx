@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { Task, Note, ViewMode, Status, MonthlyCosts } from './types';
+import type { Task, Note, ViewMode, Status, MonthlyCosts, PortfolioProject } from './types';
 import { INITIAL_TASKS, INITIAL_NOTES, CATEGORIES } from './data/initialData';
+import { INITIAL_PORTFOLIO_PROJECTS } from './data/initialPortfolio';
 import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
@@ -11,6 +12,8 @@ import { FinancesView } from './components/FinancesView';
 import { QuickNotes } from './components/QuickNotes';
 import { ImageConverterView } from './components/ImageConverterView';
 import { EmailOfferDrafterView } from './components/EmailOfferDrafterView';
+import { PublicPortfolioView } from './components/PublicPortfolioView';
+import { PortfolioManagerView } from './components/PortfolioManagerView';
 import { TaskModal } from './components/TaskModal';
 import { AiAssistantBar } from './components/AiAssistantBar';
 import { AiTaskModal } from './components/AiTaskModal';
@@ -52,6 +55,16 @@ export function App() {
     }
   });
 
+  // Client Portfolio projects state
+  const [portfolioProjects, setPortfolioProjects] = useState<PortfolioProject[]>(() => {
+    try {
+      const saved = localStorage.getItem('taskhub_portfolio');
+      return saved ? JSON.parse(saved) : INITIAL_PORTFOLIO_PROJECTS;
+    } catch {
+      return INITIAL_PORTFOLIO_PROJECTS;
+    }
+  });
+
   // OpenAI API Key
   const [apiKey, setApiKey] = useState<string>(() => {
     return localStorage.getItem('openai_api_key') || DEFAULT_API_KEY;
@@ -90,6 +103,10 @@ export function App() {
   }, [costs]);
 
   useEffect(() => {
+    localStorage.setItem('taskhub_portfolio', JSON.stringify(portfolioProjects));
+  }, [portfolioProjects]);
+
+  useEffect(() => {
     if (apiKey) {
       localStorage.setItem('openai_api_key', apiKey);
     }
@@ -110,6 +127,7 @@ export function App() {
           const tasksRow = data.find((r) => r.key === 'tasks');
           const notesRow = data.find((r) => r.key === 'notes');
           const costsRow = data.find((r) => r.key === 'costs');
+          const portfolioRow = data.find((r) => r.key === 'portfolio');
 
           if (tasksRow && Array.isArray(tasksRow.data)) {
             setTasks(tasksRow.data);
@@ -120,12 +138,16 @@ export function App() {
           if (costsRow && costsRow.data) {
             setCosts(costsRow.data);
           }
+          if (portfolioRow && Array.isArray(portfolioRow.data)) {
+            setPortfolioProjects(portfolioRow.data);
+          }
           setCloudSynced(true);
         } else if (data && data.length === 0) {
           await supabase!.from('taskhub_state').upsert([
             { key: 'tasks', data: tasks },
             { key: 'notes', data: notes },
             { key: 'costs', data: costs },
+            { key: 'portfolio', data: portfolioProjects },
           ]);
           setCloudSynced(true);
         }
@@ -154,6 +176,9 @@ export function App() {
           }
           if (payload.new && payload.new.key === 'costs' && payload.new.data) {
             setCosts(payload.new.data);
+          }
+          if (payload.new && payload.new.key === 'portfolio' && Array.isArray(payload.new.data)) {
+            setPortfolioProjects(payload.new.data);
           }
         }
       )
@@ -208,6 +233,25 @@ export function App() {
       // fallback to local
     }
   }, []);
+
+  const syncPortfolioToCloud = useCallback(async (updatedPortfolio: PortfolioProject[]) => {
+    if (!supabase || isInitialRemoteLoad.current) return;
+    try {
+      await supabase.from('taskhub_state').upsert({
+        key: 'portfolio',
+        data: updatedPortfolio,
+        updated_at: new Date().toISOString(),
+      });
+      setCloudSynced(true);
+    } catch {
+      // fallback to local
+    }
+  }, []);
+
+  const handleSavePortfolio = (updated: PortfolioProject[]) => {
+    setPortfolioProjects(updated);
+    syncPortfolioToCloud(updated);
+  };
 
   // Financial summary calculation
   const currentYm = new Date().toISOString().slice(0, 7);
@@ -505,6 +549,17 @@ export function App() {
     return true;
   });
 
+  // Client public portfolio check: when visiting /portfolio or ?portfolio, only show public portfolio view
+  const isPublicPortfolio =
+    typeof window !== 'undefined' &&
+    (window.location.pathname.toLowerCase().includes('/portfolio') ||
+      window.location.search.toLowerCase().includes('portfolio') ||
+      window.location.hash.toLowerCase().includes('portfolio'));
+
+  if (isPublicPortfolio) {
+    return <PublicPortfolioView projects={portfolioProjects} />;
+  }
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-slate-950 font-sans text-slate-100">
       <input
@@ -589,7 +644,8 @@ export function App() {
           {currentView !== 'notes' &&
             currentView !== 'finances' &&
             currentView !== 'converter' &&
-            currentView !== 'offers' && (
+            currentView !== 'offers' &&
+            currentView !== 'portfolio_manager' && (
               <FinanceSummaryBoxes
                 tasks={tasks}
                 costs={costs}
@@ -670,7 +726,15 @@ export function App() {
           )}
 
           {/* Active Views */}
-          {currentView === 'offers' ? (
+          {currentView === 'portfolio_manager' ? (
+            <PortfolioManagerView
+              projects={portfolioProjects}
+              onSaveProjects={handleSavePortfolio}
+              onOpenClientPreview={() => {
+                window.open(`${window.location.origin}/portfolio`, '_blank');
+              }}
+            />
+          ) : currentView === 'offers' ? (
             <EmailOfferDrafterView apiKey={apiKey} />
           ) : currentView === 'converter' ? (
             <ImageConverterView />

@@ -26,7 +26,29 @@ export interface Task {
   completedAt?: string;
 }
 
-export type ViewMode = 'today' | 'all' | 'kanban' | 'timeline' | 'finances' | 'notes' | 'converter' | 'offers';
+export type ViewMode =
+  | 'today'
+  | 'all'
+  | 'kanban'
+  | 'timeline'
+  | 'finances'
+  | 'notes'
+  | 'converter'
+  | 'offers'
+  | 'portfolio_manager';
+
+export interface PortfolioProject {
+  id: string;
+  title: string;
+  category: 'interiors' | 'architecture' | 'commercial' | 'animations';
+  categoryLabel: string;
+  description: string;
+  imageUrl: string;
+  client?: string;
+  year?: string;
+  tags: string[];
+  featured?: boolean;
+}
 
 export interface Note {
   id: string;

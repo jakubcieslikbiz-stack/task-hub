@@ -14,7 +14,8 @@ import {
   Clock,
   DollarSign,
   Image as ImageIcon,
-  MailCheck
+  MailCheck,
+  Globe
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -215,6 +216,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">
               AI ✨
+            </span>
+          </button>
+
+          {/* Client Portfolio */}
+          <button
+            onClick={() => {
+              onViewChange('portfolio_manager');
+              onSelectCategory(null);
+            }}
+            className={`flex items-center justify-between w-full px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              currentView === 'portfolio_manager'
+                ? 'bg-blue-600/15 text-blue-300 border border-blue-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <Globe className="w-4 h-4 text-blue-400" />
+              <span>Portfolio Klienta</span>
+            </div>
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-500/20 text-blue-300">
+              WWW
             </span>
           </button>
         </div>
