@@ -6,6 +6,7 @@ import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
 import { TaskCard } from './components/TaskCard';
+import { TaskTable } from './components/TaskTable';
 import { KanbanBoard } from './components/KanbanBoard';
 import { TimelineView } from './components/TimelineView';
 import { FinancesView } from './components/FinancesView';
@@ -20,7 +21,7 @@ import { AiAssistantBar } from './components/AiAssistantBar';
 import { AiTaskModal } from './components/AiTaskModal';
 import { ConnectPhoneModal } from './components/ConnectPhoneModal';
 import { FinanceSummaryBoxes } from './components/FinanceSummaryBoxes';
-import { Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 
 const DEFAULT_API_KEY = '';
@@ -79,6 +80,7 @@ export function App() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'done' | 'paid'>('all');
+  const [tasksLayoutMode, setTasksLayoutMode] = useState<'table' | 'cards'>('table');
 
   // Modals state
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
@@ -685,51 +687,83 @@ export function App() {
             />
           ) : currentView === 'all' ? (
             <div className="space-y-4">
-              {/* Filter pills: Status & Category */}
+              {/* Filter pills: Status, Category & Layout Switcher */}
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-[#2e231c]">
-                <div className="flex items-center gap-1 glass-pill p-1 rounded-full border border-[#2e231c] text-xs">
-                  <button
-                    onClick={() => setStatusFilter('all')}
-                    className={`px-3 py-1 rounded-full transition-all ${
-                      statusFilter === 'all'
-                        ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
-                        : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                    }`}
-                  >
-                    Wszystkie
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter('in_progress')}
-                    className={`px-3 py-1 rounded-full transition-all ${
-                      statusFilter === 'in_progress'
-                        ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
-                        : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                    }`}
-                  >
-                    W toku
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter('done')}
-                    className={`px-3 py-1 rounded-full transition-all ${
-                      statusFilter === 'done'
-                        ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
-                        : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                    }`}
-                  >
-                    Gotowe
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter('paid')}
-                    className={`px-3 py-1 rounded-full transition-all ${
-                      statusFilter === 'paid'
-                        ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
-                        : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                    }`}
-                  >
-                    Opłacone
-                  </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Status Pills */}
+                  <div className="flex items-center gap-1 glass-pill p-1 rounded-full border border-[#2e231c] text-xs">
+                    <button
+                      onClick={() => setStatusFilter('all')}
+                      className={`px-3 py-1 rounded-full transition-all ${
+                        statusFilter === 'all'
+                          ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
+                          : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                      }`}
+                    >
+                      Wszystkie
+                    </button>
+                    <button
+                      onClick={() => setStatusFilter('in_progress')}
+                      className={`px-3 py-1 rounded-full transition-all ${
+                        statusFilter === 'in_progress'
+                          ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
+                          : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                      }`}
+                    >
+                      W toku
+                    </button>
+                    <button
+                      onClick={() => setStatusFilter('done')}
+                      className={`px-3 py-1 rounded-full transition-all ${
+                        statusFilter === 'done'
+                          ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
+                          : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                      }`}
+                    >
+                      Gotowe
+                    </button>
+                    <button
+                      onClick={() => setStatusFilter('paid')}
+                      className={`px-3 py-1 rounded-full transition-all ${
+                        statusFilter === 'paid'
+                          ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
+                          : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                      }`}
+                    >
+                      Opłacone
+                    </button>
+                  </div>
+
+                  {/* Layout Mode Switch: Tabela (Default) vs Karty */}
+                  <div className="flex items-center gap-1 glass-pill p-1 rounded-full border border-[#2e231c] text-xs">
+                    <button
+                      onClick={() => setTasksLayoutMode('table')}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all ${
+                        tasksLayoutMode === 'table'
+                          ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
+                          : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                      }`}
+                      title="Widok tabeli"
+                    >
+                      <Table className="w-3.5 h-3.5" />
+                      <span>Tabela</span>
+                    </button>
+                    <button
+                      onClick={() => setTasksLayoutMode('cards')}
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full transition-all ${
+                        tasksLayoutMode === 'cards'
+                          ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
+                          : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                      }`}
+                      title="Widok kafelków"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                      <span>Karty</span>
+                    </button>
+                  </div>
                 </div>
 
+                {/* Categories filter */}
                 <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
                   <button
                     onClick={() => setSelectedCategory(null)}
@@ -760,7 +794,18 @@ export function App() {
                 </div>
               </div>
 
-              {filteredTasks.length === 0 ? (
+              {/* View Rendering: Table (Default) or Cards */}
+              {tasksLayoutMode === 'table' ? (
+                <TaskTable
+                  tasks={filteredTasks}
+                  onToggleStatus={handleToggleStatus}
+                  onUpdateStatus={handleUpdateStatus}
+                  onToggleSubtask={handleToggleSubtask}
+                  onEdit={handleOpenEdit}
+                  onDelete={handleDeleteTask}
+                  onOpenNew={() => handleOpenNew('in_progress')}
+                />
+              ) : filteredTasks.length === 0 ? (
                 <div className="py-16 text-center flex flex-col items-center justify-center border border-dashed border-[#2e231c] rounded-3xl p-6">
                   <h3 className="text-base font-light text-[#f5ede4]">Brak zleceń do wyświetlenia</h3>
                   <p className="text-xs text-[#9e8f82] max-w-sm mt-1">
@@ -810,34 +855,15 @@ export function App() {
                   </button>
                 </div>
 
-                {todayTasks.length === 0 ? (
-                  <div className="py-10 text-center flex flex-col items-center justify-center border border-dashed border-[#2e231c] rounded-3xl p-6">
-                    <h4 className="text-sm font-light text-[#f5ede4]">Brak pilnych zadań na dziś</h4>
-                    <p className="text-xs text-[#9e8f82] max-w-sm mt-1">
-                      Wszystko na bieżąco! Możesz dodać nowe zlecenie lub sprawdzić tablicę Kanban.
-                    </p>
-                    <button
-                      onClick={() => handleOpenNew('in_progress')}
-                      className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md transition-all active:scale-95"
-                    >
-                      + Dodaj nowe zlecenie
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {todayTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onToggleStatus={handleToggleStatus}
-                        onUpdateStatus={handleUpdateStatus}
-                        onToggleSubtask={handleToggleSubtask}
-                        onEdit={handleOpenEdit}
-                        onDelete={handleDeleteTask}
-                      />
-                    ))}
-                  </div>
-                )}
+                <TaskTable
+                  tasks={todayTasks}
+                  onToggleStatus={handleToggleStatus}
+                  onUpdateStatus={handleUpdateStatus}
+                  onToggleSubtask={handleToggleSubtask}
+                  onEdit={handleOpenEdit}
+                  onDelete={handleDeleteTask}
+                  onOpenNew={() => handleOpenNew('in_progress')}
+                />
               </div>
             </div>
           )}
