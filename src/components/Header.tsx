@@ -3,7 +3,6 @@ import type { ViewMode } from '../types';
 import {
   Search,
   Plus,
-  Smartphone,
   Sparkles,
   X,
   Calendar,
@@ -24,7 +23,7 @@ interface HeaderProps {
   onSearchChange: (query: string) => void;
   onOpenNewTaskModal: () => void;
   onOpenAiModal?: () => void;
-  onOpenPhoneModal: () => void;
+  onOpenPhoneModal?: () => void;
   completedTodayCount: number;
   totalTodayCount: number;
   todayCount?: number;
@@ -52,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchChange,
   onOpenNewTaskModal,
   onOpenAiModal: _onOpenAiModal,
-  onOpenPhoneModal,
+  onOpenPhoneModal: _onOpenPhoneModal,
   completedTodayCount,
   totalTodayCount,
   todayCount = 0,
@@ -140,16 +139,6 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right: Quick actions & User Pill */}
         <div className="flex items-center gap-2 pr-1">
-          {/* Smartphone QR button */}
-          <button
-            onClick={onOpenPhoneModal}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-[#251b14] hover:bg-[#322319] text-[#9e8f82] hover:text-[#f5ede4] border border-[#3d2f24] text-xs transition-all active:scale-95"
-            title="Otwórz na telefonie (QR)"
-          >
-            <Smartphone className="w-3.5 h-3.5 text-[#9e8f82]" />
-            <span className="hidden md:inline text-[11px]">Telefon</span>
-          </button>
-
           {/* New Task button */}
           <button
             onClick={onOpenNewTaskModal}
