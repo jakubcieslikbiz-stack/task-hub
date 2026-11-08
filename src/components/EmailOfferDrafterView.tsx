@@ -277,31 +277,6 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Top Banner */}
-      <div className="relative overflow-hidden rounded-3xl glass-panel border border-[#2b211a] p-6 sm:p-7 shadow-2xl">
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30 mb-2.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#d99b5a]" />
-              <span>Asystent Komunikacji Biznesowej JC Studio</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight">
-              Generator Ofert & Profesjonalnych Odpowiedzi E-mail
-            </h2>
-            <p className="text-xs sm:text-sm text-[#9e8f82] mt-1 max-w-xl font-light">
-              Wklej zapytanie klienta lub podaj kilka słów wytycznych, a sztuczna inteligencja przygotuje elegancką ofertę z wyceną 3D, warunkami i terminem.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs">
-            <span className="px-3 py-1.5 rounded-full bg-[#140f0c] border border-[#2e231c] text-[#7ec29a] flex items-center gap-1.5">
-              <DollarSign className="w-3.5 h-3.5 text-[#7ec29a]" />
-              Koszt: ułamek grosza za maila
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Preset Buttons */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {PRESETS.map((preset) => {

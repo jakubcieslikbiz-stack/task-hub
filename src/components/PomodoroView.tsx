@@ -9,7 +9,6 @@ import {
   VolumeX,
   Coffee,
   Layers,
-  Flame,
   Award,
   Headphones,
   Sliders
@@ -318,20 +317,50 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Top Banner */}
-      <div className="relative overflow-hidden rounded-3xl glass-panel border border-[#2b211a] p-6 sm:p-7 shadow-2xl">
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30 mb-2.5">
-              <Flame className="w-3.5 h-3.5 text-[#d99b5a]" />
-              <span>Studio Deep Work & Focus Timer</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight">
-              Timer Skupienia & Przerw Pomodoro
-            </h2>
-            <p className="text-xs sm:text-sm text-[#9e8f82] mt-1 max-w-xl font-light">
-              Bloki głębokiej pracy nad ujęciami 3D, modelowaniem i renderami z regenerującymi przerwami dla wzroku.
-            </p>
+      {/* Main Timer Display Card */}
+      <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 sm:p-10 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden">
+        {/* Soft radial background glow matching mode */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-15 blur-3xl transition-all duration-700"
+          style={{
+            background: `radial-gradient(circle at 50% 50%, ${currentThemeColor}, transparent 65%)`,
+          }}
+        />
+
+        {/* Top Controls Bar: Mode Switcher & Audio Controls */}
+        <div className="w-full relative z-10 flex flex-wrap items-center justify-between gap-3 mb-8 pb-4 border-b border-[#2e231c]">
+          {/* Mode Switcher Tabs */}
+          <div className="flex items-center gap-1 p-1 rounded-full bg-[#140f0c] border border-[#2e231c] shadow-lg">
+            <button
+              onClick={() => handleSwitchMode('focus')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                mode === 'focus'
+                  ? 'bg-[#f5ede4] text-[#120e0a] font-semibold shadow-md'
+                  : 'text-[#9e8f82] hover:text-[#f5ede4]'
+              }`}
+            >
+              ⚡ Praca ({activePreset.focus}m)
+            </button>
+            <button
+              onClick={() => handleSwitchMode('short_break')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                mode === 'short_break'
+                  ? 'bg-[#7ec29a] text-[#120e0a] font-semibold shadow-md'
+                  : 'text-[#9e8f82] hover:text-[#f5ede4]'
+              }`}
+            >
+              ☕ Przerwa ({activePreset.shortBreak}m)
+            </button>
+            <button
+              onClick={() => handleSwitchMode('long_break')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                mode === 'long_break'
+                  ? 'bg-[#e07a68] text-[#120e0a] font-semibold shadow-md'
+                  : 'text-[#9e8f82] hover:text-[#f5ede4]'
+              }`}
+            >
+              🌿 Długa ({activePreset.longBreak}m)
+            </button>
           </div>
 
           {/* Quick Audio Controls */}
@@ -351,9 +380,9 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
 
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`p-2 rounded-full border transition-all ${
+              className={`p-1.5 rounded-full border transition-all ${
                 soundEnabled
-                  ? 'bg-[#140f0c] text-[#f5ede4] border-[#2e231c]'
+                  ? 'bg-[#140f0c] text-[#7ec29a] border-[#2e231c]'
                   : 'bg-[#140f0c] text-[#7a6b5e] border-[#2e231c]'
               }`}
               title={soundEnabled ? 'Dźwięk dzwonka włączony' : 'Wyciszony'}
@@ -361,51 +390,6 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
               {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Main Timer Display Card */}
-      <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 sm:p-10 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden">
-        {/* Soft radial background glow matching mode */}
-        <div
-          className="absolute inset-0 pointer-events-none opacity-15 blur-3xl transition-all duration-700"
-          style={{
-            background: `radial-gradient(circle at 50% 50%, ${currentThemeColor}, transparent 65%)`,
-          }}
-        />
-
-        {/* Mode Switcher Tabs */}
-        <div className="relative z-10 flex items-center gap-1 p-1.5 rounded-full bg-[#140f0c] border border-[#2e231c] shadow-lg mb-8">
-          <button
-            onClick={() => handleSwitchMode('focus')}
-            className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
-              mode === 'focus'
-                ? 'bg-[#f5ede4] text-[#120e0a] font-semibold shadow-md'
-                : 'text-[#9e8f82] hover:text-[#f5ede4]'
-            }`}
-          >
-            ⚡ Praca w skupieniu ({activePreset.focus}m)
-          </button>
-          <button
-            onClick={() => handleSwitchMode('short_break')}
-            className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
-              mode === 'short_break'
-                ? 'bg-[#7ec29a] text-[#120e0a] font-semibold shadow-md'
-                : 'text-[#9e8f82] hover:text-[#f5ede4]'
-            }`}
-          >
-            ☕ Krótka przerwa ({activePreset.shortBreak}m)
-          </button>
-          <button
-            onClick={() => handleSwitchMode('long_break')}
-            className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
-              mode === 'long_break'
-                ? 'bg-[#e07a68] text-[#120e0a] font-semibold shadow-md'
-                : 'text-[#9e8f82] hover:text-[#f5ede4]'
-            }`}
-          >
-            🌿 Długa przerwa ({activePreset.longBreak}m)
-          </button>
         </div>
 
         {/* Circular SVG Timer */}

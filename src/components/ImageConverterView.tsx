@@ -10,9 +10,6 @@ import {
   Sliders,
   Maximize2,
   ArrowRight,
-  Sparkles,
-  Zap,
-  Check,
   Eye,
   X
 } from 'lucide-react';
@@ -391,36 +388,6 @@ export const ImageConverterView: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Top Banner & Features */}
-      <div className="relative overflow-hidden rounded-3xl glass-panel border border-[#2b211a] p-6 sm:p-7 shadow-2xl">
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30 mb-2.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#d99b5a]" />
-              <span>100% Bezpieczna Konwersja Offline</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight flex items-center gap-2">
-              Błyskawiczny Konwerter & Kompresor Grafiki
-            </h2>
-            <p className="text-xs sm:text-sm text-[#9e8f82] mt-1 max-w-xl">
-              Konwertuj pliki PNG, JPG, WEBP, SVG, GIF, BMP i ICO lokalnie w przeglądarce. Zero limitów, pełna prywatność, żadnych plików wysyłanych na serwery.
-            </p>
-          </div>
-
-          {/* Quick Badges */}
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="px-3 py-1.5 rounded-full bg-[#18120e] border border-[#2e231c] text-[#c4b5a5] flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-[#d99b5a]" />
-              Wklejanie ze schowka (Ctrl + V)
-            </span>
-            <span className="px-3 py-1.5 rounded-full bg-[#18120e] border border-[#2e231c] text-[#7ec29a] flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-[#7ec29a]" />
-              Wielowątkowy batch
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Global Control Bar */}
       <div className="glass-panel border border-[#2b211a] rounded-3xl p-5 shadow-xl space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-[#2e231c]">

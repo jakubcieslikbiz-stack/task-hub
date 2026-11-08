@@ -142,53 +142,33 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Client Link Card */}
-      <div className="relative overflow-hidden rounded-3xl glass-panel border border-[#2b211a] p-6 sm:p-7 shadow-2xl">
-        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30">
-              <Globe className="w-3.5 h-3.5 text-[#d99b5a]" />
-              <span>Dedykowana podstrona dla Twoich Klientów</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight">
-              Twoje Publiczne Portfolio JC Studio
-            </h2>
-            <p className="text-xs sm:text-sm text-[#9e8f82] leading-relaxed font-light">
-              Klient widzi <strong className="text-[#f5ede4] font-medium">wyłącznie tę jedną podstronę</strong> z Twoimi najlepszymi pracami i formularzem kontaktu. Twój ekosystem (zlecenia, finanse, koszty, asystent AI) jest całkowicie ukryty i niedostępny.
-            </p>
-          </div>
-
-          {/* Share Box */}
-          <div className="w-full lg:w-auto bg-[#140f0c] p-4 rounded-2xl border border-[#2e231c] space-y-3">
-            <span className="text-[11px] font-mono uppercase tracking-wider text-[#9e8f82] block">
-              Link do wysłania klientowi:
-            </span>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                readOnly
-                value={publicUrl}
-                className="w-full sm:w-80 px-3.5 py-2 bg-[#1a1410] rounded-xl border border-[#382b20] text-[#f5ede4] text-xs font-mono select-all focus:outline-none"
-              />
-              <button
-                onClick={handleCopyLink}
-                className="px-4 py-2 rounded-xl bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md flex items-center gap-1.5 transition-all flex-shrink-0 active:scale-95"
-              >
-                {copiedLink ? <Check className="w-4 h-4 text-[#7ec29a]" /> : <Copy className="w-4 h-4 text-[#120e0a]" />}
-                <span>{copiedLink ? 'Skopiowano!' : 'Kopiuj link'}</span>
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between pt-1">
-              <button
-                onClick={onOpenClientPreview}
-                className="text-xs text-[#d99b5a] hover:text-[#f1c38e] font-medium flex items-center gap-1 transition-colors"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span>Zobacz jak wygląda oczami klienta →</span>
-              </button>
-            </div>
-          </div>
+      {/* Compact Client Share Link Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl glass-panel border border-[#2e231c] shadow-lg">
+        <div className="flex items-center gap-2 text-xs text-[#9e8f82]">
+          <Globe className="w-4 h-4 text-[#d99b5a]" />
+          <span>Publiczny link portfolio dla klienta:</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <input
+            type="text"
+            readOnly
+            value={publicUrl}
+            className="w-full sm:w-72 px-3 py-1.5 bg-[#140f0c] rounded-xl border border-[#2e231c] text-[#f5ede4] text-xs font-mono select-all focus:outline-none"
+          />
+          <button
+            onClick={handleCopyLink}
+            className="px-3.5 py-1.5 rounded-xl bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md flex items-center gap-1.5 transition-all flex-shrink-0 active:scale-95"
+          >
+            {copiedLink ? <Check className="w-3.5 h-3.5 text-[#7ec29a]" /> : <Copy className="w-3.5 h-3.5 text-[#120e0a]" />}
+            <span>{copiedLink ? 'Skopiowano' : 'Kopiuj'}</span>
+          </button>
+          <button
+            onClick={onOpenClientPreview}
+            className="px-3 py-1.5 rounded-xl bg-[#140f0c] hover:bg-[#1e1713] text-[#d99b5a] border border-[#2e231c] text-xs font-medium flex items-center gap-1.5 transition-all flex-shrink-0"
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>Podgląd</span>
+          </button>
         </div>
       </div>
 
