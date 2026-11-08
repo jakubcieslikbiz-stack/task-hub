@@ -361,36 +361,6 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
         </div>
       )}
 
-      {/* Quick Prompt Pill Shortcuts */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-2 text-[11px] text-slate-400">
-        <span className="text-slate-500 whitespace-nowrap pl-1">Szybkie komendy:</span>
-        <button
-          onClick={() => handleExecute('Dodaj projekt Wizualizacja za 1500 zł na piątek, przypomnij mailem')}
-          className="px-2.5 py-1 rounded-lg bg-indigo-950/50 hover:bg-indigo-900/60 text-indigo-300 border border-indigo-500/30 whitespace-nowrap transition-colors flex items-center gap-1"
-        >
-          <Mail className="w-3 h-3 text-indigo-400" />
-          ✉️ Projekt + Przypomnij mailem
-        </button>
-        <button
-          onClick={() => handleExecute('Podsumowanie finansowe')}
-          className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 whitespace-nowrap transition-colors"
-        >
-          💰 Podsumowanie finansowe
-        </button>
-        <button
-          onClick={() => handleExecute('Dodaj projekt Wizualizacja salonu za 2500 zł do piątku')}
-          className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 whitespace-nowrap transition-colors"
-        >
-          + Projekt za 2500 zł
-        </button>
-        <button
-          onClick={() => handleExecute('Dodaj do to do wysłać fakturę do klienta')}
-          className="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 whitespace-nowrap transition-colors"
-        >
-          ✓ Dodaj do To-Do
-        </button>
-      </div>
-
       {/* Settings Modal (OpenAI + Resend Email) */}
       {showSettings && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150">
