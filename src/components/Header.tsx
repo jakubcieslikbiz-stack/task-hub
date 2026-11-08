@@ -28,7 +28,6 @@ const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string; short: st
   pomodoro: { title: 'Pomodoro Focus Timer', subtitle: 'Sesje głębokiej pracy nad ujęciami 3D z regenerującymi przerwami dla wzroku', short: 'Pomodoro' },
   timeline: { title: 'Timeline tygodnia', subtitle: 'Wizualny harmonogram Gantta na poszczególne dni', short: 'Schedule' },
   finances: { title: 'Finanse & Koszty', subtitle: 'Rozliczenia zleceń, podatki i zysk netto na czysto', short: 'Finance' },
-  notes: { title: 'Notatki & Zapiski', subtitle: 'Szybkie notatki, wytyczne od klientów i zapiski powiązane z AI', short: 'Notatki' },
   converter: { title: 'Konwerter Grafiki', subtitle: 'Błyskawiczna konwersja PNG, JPG, WEBP, SVG bez wysyłania do sieci', short: 'Narzędzia' },
   offers: { title: 'Asystent Ofert & E-mail AI', subtitle: 'Twórz profesjonalne wyceny, oferty i odpowiedzi na zapytania klientów', short: 'Oferty AI' },
   portfolio_manager: { title: 'Zarządzaj Portfolio Klienta', subtitle: 'Dodawaj projekty i udostępniaj link do dedykowanej wizytówki JC Studio', short: 'Portfolio' },
@@ -92,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Search Bar (Warm glass style) */}
-      {currentView !== 'notes' && currentView !== 'finances' && currentView !== 'timeline' && currentView !== 'pomodoro' && (
+      {currentView !== 'finances' && currentView !== 'timeline' && currentView !== 'pomodoro' && (
         <div className="relative pt-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9e8f82]" />
           <input

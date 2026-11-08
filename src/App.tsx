@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Task, Note, ViewMode, Status, MonthlyCosts, PortfolioProject } from './types';
-import { INITIAL_TASKS, INITIAL_NOTES } from './data/initialData';
+import { INITIAL_TASKS, INITIAL_NOTES, CATEGORIES } from './data/initialData';
 import { INITIAL_PORTFOLIO_PROJECTS } from './data/initialPortfolio';
 import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
+import { TaskCard } from './components/TaskCard';
 import { KanbanBoard } from './components/KanbanBoard';
 import { TimelineView } from './components/TimelineView';
 import { FinancesView } from './components/FinancesView';
-import { QuickNotes } from './components/QuickNotes';
 import { ImageConverterView } from './components/ImageConverterView';
 import { EmailOfferDrafterView } from './components/EmailOfferDrafterView';
 import { PublicPortfolioView } from './components/PublicPortfolioView';
@@ -443,33 +443,6 @@ export function App() {
     setIsTaskModalOpen(true);
   };
 
-  // Notes Actions
-  const handleAddNote = (newNoteData: Omit<Note, 'id' | 'updatedAt'>) => {
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: newNoteData.title,
-      content: newNoteData.content,
-      updatedAt: new Date().toISOString(),
-    };
-    const updated = [newNote, ...notes];
-    setNotes(updated);
-    syncNotesToCloud(updated);
-  };
-
-  const handleUpdateNote = (id: string, content: string, title: string) => {
-    const updated = notes.map((n) =>
-      n.id === id ? { ...n, content, title, updatedAt: new Date().toISOString() } : n
-    );
-    setNotes(updated);
-    syncNotesToCloud(updated);
-  };
-
-  const handleDeleteNote = (id: string) => {
-    const updated = notes.filter((n) => n.id !== id);
-    setNotes(updated);
-    syncNotesToCloud(updated);
-  };
-
   // Costs Save
   const handleSaveCosts = (newCosts: MonthlyCosts) => {
     setCosts(newCosts);
@@ -688,13 +661,6 @@ export function App() {
             />
           ) : currentView === 'pomodoro' ? (
             <PomodoroView tasks={tasks} />
-          ) : currentView === 'notes' ? (
-            <QuickNotes
-              notes={notes}
-              onAddNote={handleAddNote}
-              onUpdateNote={handleUpdateNote}
-              onDeleteNote={handleDeleteNote}
-            />
           ) : currentView === 'kanban' ? (
             <KanbanBoard
               tasks={filteredTasks}
@@ -705,11 +671,163 @@ export function App() {
               onDelete={handleDeleteTask}
               onAddNewWithStatus={(status) => handleOpenNew(status)}
             />
+          ) : currentView === 'all' ? (
+            <div className="space-y-4">
+              {/* Filter pills: Status & Category */}
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-[#2e231c]">
+                <div className="flex items-center gap-1 glass-pill p-1 rounded-full border border-[#2e231c] text-xs">
+                  <button
+                    onClick={() => setStatusFilter('all')}
+                    className={`px-3 py-1 rounded-full transition-all ${
+                      statusFilter === 'all'
+                        ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
+                        : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                    }`}
+                  >
+                    Wszystkie
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('in_progress')}
+                    className={`px-3 py-1 rounded-full transition-all ${
+                      statusFilter === 'in_progress'
+                        ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
+                        : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                    }`}
+                  >
+                    W toku
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('done')}
+                    className={`px-3 py-1 rounded-full transition-all ${
+                      statusFilter === 'done'
+                        ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
+                        : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                    }`}
+                  >
+                    Gotowe
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('paid')}
+                    className={`px-3 py-1 rounded-full transition-all ${
+                      statusFilter === 'paid'
+                        ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm'
+                        : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                    }`}
+                  >
+                    Opłacone
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
+                  <button
+                    onClick={() => setSelectedCategory(null)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
+                      selectedCategory === null
+                        ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
+                        : 'glass-pill text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4] hover:bg-[#251b14]'
+                    }`}
+                  >
+                    Wszystkie kategorie
+                  </button>
+                  {CATEGORIES.map((cat) => {
+                    const isSelected = selectedCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(isSelected ? null : cat.id)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
+                          isSelected
+                            ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
+                            : `${cat.color} hover:opacity-100`
+                        }`}
+                      >
+                        {cat.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {filteredTasks.length === 0 ? (
+                <div className="py-16 text-center flex flex-col items-center justify-center border border-dashed border-[#2e231c] rounded-3xl p-6">
+                  <h3 className="text-base font-light text-[#f5ede4]">Brak zleceń do wyświetlenia</h3>
+                  <p className="text-xs text-[#9e8f82] max-w-sm mt-1">
+                    Nie znaleziono zleceń spełniających wybrane kryteria filtrów.
+                  </p>
+                  <button
+                    onClick={() => handleOpenNew('in_progress')}
+                    className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md transition-all active:scale-95"
+                  >
+                    + Dodaj nowe zlecenie
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onToggleStatus={handleToggleStatus}
+                      onUpdateStatus={handleUpdateStatus}
+                      onToggleSubtask={handleToggleSubtask}
+                      onEdit={handleOpenEdit}
+                      onDelete={handleDeleteTask}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           ) : (
-            <RecentActivityAndGoals
-              tasks={tasks}
-              onNavigateToFinances={() => setCurrentView('finances')}
-            />
+            <div className="space-y-6">
+              <RecentActivityAndGoals
+                tasks={tasks}
+                onNavigateToFinances={() => setCurrentView('finances')}
+              />
+
+              {/* Today's active tasks section */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between pb-2 border-b border-[#2e231c]">
+                  <h3 className="text-sm font-medium text-[#f5ede4]">
+                    Zlecenia w toku & na dziś ({todayTasks.length})
+                  </h3>
+                  <button
+                    onClick={() => setCurrentView('all')}
+                    className="text-xs text-[#d99b5a] hover:text-[#f1c38e] transition-colors"
+                  >
+                    Zobacz wszystkie zlecenia →
+                  </button>
+                </div>
+
+                {todayTasks.length === 0 ? (
+                  <div className="py-10 text-center flex flex-col items-center justify-center border border-dashed border-[#2e231c] rounded-3xl p-6">
+                    <h4 className="text-sm font-light text-[#f5ede4]">Brak pilnych zadań na dziś</h4>
+                    <p className="text-xs text-[#9e8f82] max-w-sm mt-1">
+                      Wszystko na bieżąco! Możesz dodać nowe zlecenie lub sprawdzić tablicę Kanban.
+                    </p>
+                    <button
+                      onClick={() => handleOpenNew('in_progress')}
+                      className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md transition-all active:scale-95"
+                    >
+                      + Dodaj nowe zlecenie
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {todayTasks.map((task) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onToggleStatus={handleToggleStatus}
+                        onUpdateStatus={handleUpdateStatus}
+                        onToggleSubtask={handleToggleSubtask}
+                        onEdit={handleOpenEdit}
+                        onDelete={handleDeleteTask}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </main>

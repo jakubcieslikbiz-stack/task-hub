@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ViewMode } from '../types';
-import { Calendar, Timer, Clock, DollarSign, StickyNote, Plus, Image as ImageIcon, MailCheck } from 'lucide-react';
+import { Calendar, CheckSquare, Timer, Clock, DollarSign, Plus, Image as ImageIcon, MailCheck } from 'lucide-react';
 
 interface BottomNavProps {
   currentView: ViewMode;
@@ -26,6 +26,16 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       </button>
 
       <button
+        onClick={() => onViewChange('all')}
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
+          currentView === 'all' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
+        }`}
+      >
+        <CheckSquare className="w-4 h-4" />
+        <span className="text-[9px]">Zlecenia</span>
+      </button>
+
+      <button
         onClick={() => onViewChange('pomodoro')}
         className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
           currentView === 'pomodoro' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
@@ -33,16 +43,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       >
         <Timer className="w-4 h-4" />
         <span className="text-[9px]">Pomodoro</span>
-      </button>
-
-      <button
-        onClick={() => onViewChange('timeline')}
-        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
-          currentView === 'timeline' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
-        }`}
-      >
-        <Clock className="w-4 h-4" />
-        <span className="text-[9px]">Timeline</span>
       </button>
 
       {/* Floating Center Action Button (Warm bone cream) */}
@@ -57,6 +57,16 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       </div>
 
       <button
+        onClick={() => onViewChange('timeline')}
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
+          currentView === 'timeline' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
+        }`}
+      >
+        <Clock className="w-4 h-4" />
+        <span className="text-[9px]">Timeline</span>
+      </button>
+
+      <button
         onClick={() => onViewChange('finances')}
         className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
           currentView === 'finances' ? 'text-[#7ec29a] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
@@ -64,16 +74,6 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       >
         <DollarSign className="w-4 h-4" />
         <span className="text-[9px]">Finanse</span>
-      </button>
-
-      <button
-        onClick={() => onViewChange('notes')}
-        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
-          currentView === 'notes' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
-        }`}
-      >
-        <StickyNote className="w-4 h-4" />
-        <span className="text-[9px]">Notatki</span>
       </button>
 
       <button

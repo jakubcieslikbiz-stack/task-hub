@@ -33,7 +33,6 @@ export type ViewMode =
   | 'pomodoro'
   | 'timeline'
   | 'finances'
-  | 'notes'
   | 'converter'
   | 'offers'
   | 'portfolio_manager';
