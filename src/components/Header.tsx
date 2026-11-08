@@ -2,18 +2,8 @@ import React from 'react';
 import type { ViewMode } from '../types';
 import {
   Search,
-  Plus,
   Sparkles,
   X,
-  Calendar,
-  Columns3,
-  Timer,
-  Clock,
-  DollarSign,
-  MailCheck,
-  Image as ImageIcon,
-  StickyNote,
-  Globe,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -21,7 +11,7 @@ interface HeaderProps {
   onViewChange?: (view: ViewMode) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  onOpenNewTaskModal: () => void;
+  onOpenNewTaskModal?: () => void;
   onOpenAiModal?: () => void;
   onOpenPhoneModal?: () => void;
   completedTodayCount: number;
@@ -46,15 +36,10 @@ const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string; short: st
 
 export const Header: React.FC<HeaderProps> = ({
   currentView,
-  onViewChange,
   searchQuery,
   onSearchChange,
-  onOpenNewTaskModal,
-  onOpenAiModal: _onOpenAiModal,
-  onOpenPhoneModal: _onOpenPhoneModal,
   completedTodayCount,
   totalTodayCount,
-  todayCount = 0,
 }) => {
   const { title, subtitle, short } = VIEW_TITLES[currentView];
   const percent = totalTodayCount > 0 ? Math.round((completedTodayCount / totalTodayCount) * 100) : 0;
@@ -71,87 +56,10 @@ export const Header: React.FC<HeaderProps> = ({
     year: 'numeric',
   });
 
-  const navItems: { id: ViewMode; label: string; icon: React.FC<{ className?: string }>; badge?: string | number }[] = [
-    { id: 'today', label: 'Overview', icon: Calendar, badge: todayCount > 0 ? todayCount : undefined },
-    { id: 'kanban', label: 'Pipeline', icon: Columns3 },
-    { id: 'pomodoro', label: 'Pomodoro', icon: Timer },
-    { id: 'timeline', label: 'Schedule', icon: Clock },
-    { id: 'finances', label: 'Finance', icon: DollarSign },
-    { id: 'offers', label: 'Oferty AI', icon: MailCheck, badge: '✨' },
-    { id: 'converter', label: 'Konwerter', icon: ImageIcon },
-    { id: 'notes', label: 'Notatki', icon: StickyNote },
-    { id: 'portfolio_manager', label: 'Portfolio', icon: Globe },
-  ];
-
   return (
-    <header className="space-y-6 mb-6">
-      {/* Floating Top Horizontal Capsule Header (Kindra style) */}
-      <div className="glass-panel rounded-full px-3.5 py-2 flex items-center justify-between gap-3 shadow-2xl">
-        {/* Left: Brand Monogram & Name */}
-        <div className="flex items-center gap-2.5 pl-1.5 flex-shrink-0">
-          <div className="w-8 h-8 rounded-xl bg-[#251b14] border border-[#3d2f24] flex items-center justify-center text-[#f5ede4] font-semibold text-xs tracking-wider shadow-inner">
-            JC
-          </div>
-          <div className="hidden lg:block leading-tight">
-            <span className="text-xs font-semibold text-[#f5ede4] tracking-tight block">
-              JC Studio
-            </span>
-            <span className="text-[10px] text-[#9e8f82] tracking-wider uppercase block font-mono">
-              Workspace
-            </span>
-          </div>
-        </div>
-
-        {/* Center: Capsule Navigation Pills */}
-        {onViewChange && (
-          <nav className="hidden xl:flex items-center gap-1 overflow-x-auto py-0.5 px-1">
-            {navItems.map((item) => {
-              const isActive = currentView === item.id;
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => onViewChange(item.id)}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                    isActive
-                      ? 'bg-[#f5ede4] text-[#120e0a] shadow-md font-semibold'
-                      : 'text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14]/70'
-                  }`}
-                >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#120e0a]' : 'text-[#9e8f82]'}`} />
-                  <span>{item.label}</span>
-                  {item.badge !== undefined && (
-                    <span
-                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono leading-none ${
-                        isActive
-                          ? 'bg-[#120e0a]/15 text-[#120e0a]'
-                          : 'bg-[#d99b5a]/25 text-[#f1c38e]'
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-        )}
-
-        {/* Right: Quick actions & User Pill */}
-        <div className="flex items-center gap-2 pr-1">
-          {/* New Task button */}
-          <button
-            onClick={onOpenNewTaskModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-semibold shadow-md active:scale-95 transition-all"
-          >
-            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span className="hidden sm:inline">Nowe zlecenie</span>
-          </button>
-        </div>
-      </div>
-
+    <header className="space-y-4 mb-6">
       {/* Main Title & Editorial Header Area */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-2">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-1">
         <div>
           <span className="text-[11px] font-mono tracking-[0.2em] uppercase text-[#9e8f82] block mb-1">
             Welcome back, Jakub • {short}
@@ -172,7 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
           </p>
         </div>
 
-        {/* Date / Month display (Right aligned like in screenshot) */}
+        {/* Date / Month display (Right aligned) */}
         <div className="text-left sm:text-right flex flex-col justify-end">
           <span className="text-xs sm:text-sm font-mono text-[#f5ede4] tracking-wide block">
             {monthYearFormatted}
