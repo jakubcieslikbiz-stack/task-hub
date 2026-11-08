@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Task, Priority, Status, Subtask } from '../types';
 import { CATEGORIES } from '../data/initialData';
 import { getStoredRecipientEmail, sendTaskReminderEmail } from '../lib/email';
+import { MiniCalendarPicker } from './MiniCalendarPicker';
 import { X, Plus, Trash, DollarSign, Mail } from 'lucide-react';
 
 interface TaskModalProps {
@@ -185,31 +186,23 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             </div>
           </div>
 
-          {/* Dates: Start Date & Deadline */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5">
-                Data rozpoczęcia
-              </label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-2xl glass-input text-sm"
-              />
-            </div>
+          {/* Dates: Start Date & Deadline with MiniCalendarPicker */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <MiniCalendarPicker
+              label="Data rozpoczęcia"
+              value={startDate}
+              onChange={setStartDate}
+              placeholder="Wybierz start..."
+              align="left"
+            />
 
-            <div>
-              <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5">
-                Termin / Deadline
-              </label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-2xl glass-input text-sm"
-              />
-            </div>
+            <MiniCalendarPicker
+              label="Termin / Deadline"
+              value={dueDate}
+              onChange={setDueDate}
+              placeholder="Wybierz deadline..."
+              align="right"
+            />
           </div>
 
           {/* Category & Priority Row */}
