@@ -8,7 +8,7 @@ import {
   X,
   Calendar,
   Columns3,
-  CheckSquare,
+  Timer,
   Clock,
   DollarSign,
   MailCheck,
@@ -36,9 +36,10 @@ const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string; short: st
   today: { title: 'Mój Dzień', subtitle: 'Skup się na tym, co najważniejsze na dzisiaj', short: 'Overview' },
   all: { title: 'Zlecenia & Zadania', subtitle: 'Pełny przegląd projektów, cen i statusów JC Studio', short: 'Zlecenia' },
   kanban: { title: 'Tablica Kanban', subtitle: 'Wizualizuj i przesuwaj etapy realizacji', short: 'Pipeline' },
+  pomodoro: { title: 'Pomodoro Focus Timer', subtitle: 'Sesje głębokiej pracy nad ujęciami 3D z regenerującymi przerwami dla wzroku', short: 'Pomodoro' },
   timeline: { title: 'Timeline tygodnia', subtitle: 'Wizualny harmonogram Gantta na poszczególne dni', short: 'Schedule' },
   finances: { title: 'Finanse & Koszty', subtitle: 'Rozliczenia zleceń, podatki i zysk netto na czysto', short: 'Finance' },
-  notes: { title: 'To-Do & Szybkie Notatki', subtitle: 'Codzienna lista zadań i zapiski powiązane z AI', short: 'Notatki' },
+  notes: { title: 'Notatki & Zapiski', subtitle: 'Szybkie notatki, wytyczne od klientów i zapiski powiązane z AI', short: 'Notatki' },
   converter: { title: 'Konwerter Grafiki', subtitle: 'Błyskawiczna konwersja PNG, JPG, WEBP, SVG bez wysyłania do sieci', short: 'Narzędzia' },
   offers: { title: 'Asystent Ofert & E-mail AI', subtitle: 'Twórz profesjonalne wyceny, oferty i odpowiedzi na zapytania klientów', short: 'Oferty AI' },
   portfolio_manager: { title: 'Zarządzaj Portfolio Klienta', subtitle: 'Dodawaj projekty i udostępniaj link do dedykowanej wizytówki JC Studio', short: 'Portfolio' },
@@ -74,7 +75,7 @@ export const Header: React.FC<HeaderProps> = ({
   const navItems: { id: ViewMode; label: string; icon: React.FC<{ className?: string }>; badge?: string | number }[] = [
     { id: 'today', label: 'Overview', icon: Calendar, badge: todayCount > 0 ? todayCount : undefined },
     { id: 'kanban', label: 'Pipeline', icon: Columns3 },
-    { id: 'all', label: 'Zlecenia', icon: CheckSquare },
+    { id: 'pomodoro', label: 'Pomodoro', icon: Timer },
     { id: 'timeline', label: 'Schedule', icon: Clock },
     { id: 'finances', label: 'Finance', icon: DollarSign },
     { id: 'offers', label: 'Oferty AI', icon: MailCheck, badge: '✨' },
@@ -212,7 +213,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Search Bar (Warm glass style) */}
-      {currentView !== 'notes' && currentView !== 'finances' && currentView !== 'timeline' && (
+      {currentView !== 'notes' && currentView !== 'finances' && currentView !== 'timeline' && currentView !== 'pomodoro' && (
         <div className="relative pt-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9e8f82]" />
           <input

@@ -3,7 +3,7 @@ import type { ViewMode } from '../types';
 import { CATEGORIES } from '../data/initialData';
 import {
   Calendar,
-  CheckSquare,
+  Timer,
   Columns3,
   StickyNote,
   Smartphone,
@@ -40,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   selectedCategory,
   onSelectCategory,
   todayCount,
-  totalCount,
+  totalCount: _totalCount,
   monthlyRevenue: _monthlyRevenue,
   onOpenPhoneModal,
   onExportData,
@@ -125,19 +125,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={() => {
-            onViewChange('all');
+            onViewChange('pomodoro');
             onSelectCategory(null);
           }}
-          title="Wszystkie zlecenia"
+          title="Pomodoro Focus Timer"
           className={`group relative p-2.5 rounded-full transition-all ${
-            currentView === 'all' && selectedCategory === null
+            currentView === 'pomodoro'
               ? 'bg-[#2a1e16] text-[#f5ede4] border border-[#3d2c20]'
               : 'text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#221a14]/60'
           }`}
         >
-          <CheckSquare className="w-4 h-4" />
+          <Timer className="w-4 h-4" />
           <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-            Zlecenia ({totalCount})
+            Pomodoro Focus
           </span>
         </button>
 
@@ -288,7 +288,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={cat.id}
                   onClick={() => {
-                    onViewChange('all');
+                    onViewChange('kanban');
                     onSelectCategory(selectedCategory === cat.id ? null : cat.id);
                     setShowCategoryMenu(false);
                   }}

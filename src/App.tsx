@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Task, Note, ViewMode, Status, MonthlyCosts, PortfolioProject } from './types';
-import { INITIAL_TASKS, INITIAL_NOTES, CATEGORIES } from './data/initialData';
+import { INITIAL_TASKS, INITIAL_NOTES } from './data/initialData';
 import { INITIAL_PORTFOLIO_PROJECTS } from './data/initialPortfolio';
 import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
-import { TaskCard } from './components/TaskCard';
 import { KanbanBoard } from './components/KanbanBoard';
 import { TimelineView } from './components/TimelineView';
 import { FinancesView } from './components/FinancesView';
@@ -14,12 +13,14 @@ import { ImageConverterView } from './components/ImageConverterView';
 import { EmailOfferDrafterView } from './components/EmailOfferDrafterView';
 import { PublicPortfolioView } from './components/PublicPortfolioView';
 import { PortfolioManagerView } from './components/PortfolioManagerView';
+import { PomodoroView } from './components/PomodoroView';
+import { RecentActivityAndGoals } from './components/RecentActivityAndGoals';
 import { TaskModal } from './components/TaskModal';
 import { AiAssistantBar } from './components/AiAssistantBar';
 import { AiTaskModal } from './components/AiTaskModal';
 import { ConnectPhoneModal } from './components/ConnectPhoneModal';
 import { FinanceSummaryBoxes } from './components/FinanceSummaryBoxes';
-import { Plus, CheckCircle2, Cloud, CloudOff, RefreshCw } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 
 const DEFAULT_API_KEY = '';
@@ -649,89 +650,16 @@ export function App() {
             monthlyRevenue={monthlyPaid}
           />
 
-          {/* Interactive Financial & Order Status KPI Boxes */}
-          {currentView !== 'notes' &&
-            currentView !== 'finances' &&
-            currentView !== 'converter' &&
-            currentView !== 'offers' &&
-            currentView !== 'portfolio_manager' && (
-              <FinanceSummaryBoxes
-                tasks={tasks}
-                costs={costs}
-                statusFilter={statusFilter}
-                onFilterChange={setStatusFilter}
-                onSaveCosts={handleSaveCosts}
-                onOpenFinancesView={() => setCurrentView('finances')}
-              />
-            )}
-
-          {/* Filter Pills for Task list */}
-          {currentView === 'all' && (
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-3 border-b border-[#2e231c]">
-              <div className="flex items-center gap-1 glass-pill p-1 rounded-full border border-[#2e231c] text-xs">
-                <button
-                  onClick={() => setStatusFilter('all')}
-                  className={`px-3 py-1 rounded-full transition-all ${
-                    statusFilter === 'all' ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm' : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                  }`}
-                >
-                  Wszystkie
-                </button>
-                <button
-                  onClick={() => setStatusFilter('in_progress')}
-                  className={`px-3 py-1 rounded-full transition-all ${
-                    statusFilter === 'in_progress' ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm' : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                  }`}
-                >
-                  W toku
-                </button>
-                <button
-                  onClick={() => setStatusFilter('done')}
-                  className={`px-3 py-1 rounded-full transition-all ${
-                    statusFilter === 'done' ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm' : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                  }`}
-                >
-                  Gotowe
-                </button>
-                <button
-                  onClick={() => setStatusFilter('paid')}
-                  className={`px-3 py-1 rounded-full transition-all ${
-                    statusFilter === 'paid' ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm' : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                  }`}
-                >
-                  Opłacone
-                </button>
-              </div>
-
-              <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
-                <button
-                  onClick={() => setSelectedCategory(null)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
-                    selectedCategory === null
-                      ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
-                      : 'glass-pill text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4] hover:bg-[#251b14]'
-                  }`}
-                >
-                  Wszystkie
-                </button>
-                {CATEGORIES.map((cat) => {
-                  const isSelected = selectedCategory === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => setSelectedCategory(isSelected ? null : cat.id)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
-                        isSelected
-                          ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
-                          : `${cat.color} hover:opacity-100`
-                      }`}
-                    >
-                      {cat.name}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+          {/* Interactive Financial & Order Status KPI Boxes (Kindra Overview Dashboard) */}
+          {currentView === 'today' && (
+            <FinanceSummaryBoxes
+              tasks={tasks}
+              costs={costs}
+              statusFilter={statusFilter}
+              onFilterChange={setStatusFilter}
+              onSaveCosts={handleSaveCosts}
+              onOpenFinancesView={() => setCurrentView('finances')}
+            />
           )}
 
           {/* Active Views */}
@@ -758,6 +686,8 @@ export function App() {
               tasks={tasks}
               onEditTask={handleOpenEdit}
             />
+          ) : currentView === 'pomodoro' ? (
+            <PomodoroView tasks={tasks} />
           ) : currentView === 'notes' ? (
             <QuickNotes
               notes={notes}
@@ -776,40 +706,12 @@ export function App() {
               onAddNewWithStatus={(status) => handleOpenNew(status)}
             />
           ) : (
-            <div className="space-y-3">
-              {filteredTasks.length === 0 ? (
-                <div className="py-20 text-center flex flex-col items-center justify-center border border-dashed border-slate-800 rounded-3xl p-6">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 mb-3">
-                    <CheckCircle2 className="w-6 h-6" />
-                  </div>
-                  <h3 className="text-base font-semibold text-slate-300">Brak zleceń do wyświetlenia</h3>
-                  <p className="text-xs text-slate-500 max-w-sm mt-1">
-                    {currentView === 'today'
-                      ? 'Wszystko gotowe na dziś lub nie masz aktywnych projektów.'
-                      : 'Nie znaleziono zleceń spełniających wybrane filtry.'}
-                  </p>
-                  <button
-                    onClick={() => handleOpenNew('in_progress')}
-                    className="mt-4 flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/20"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Dodaj nowe zlecenie
-                  </button>
-                </div>
-              ) : (
-                filteredTasks.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onToggleStatus={handleToggleStatus}
-                    onUpdateStatus={handleUpdateStatus}
-                    onToggleSubtask={handleToggleSubtask}
-                    onEdit={handleOpenEdit}
-                    onDelete={handleDeleteTask}
-                  />
-                ))
-              )}
-            </div>
+            <RecentActivityAndGoals
+              tasks={tasks}
+              costs={costs}
+              onNavigateToPipeline={() => setCurrentView('kanban')}
+              onNavigateToFinances={() => setCurrentView('finances')}
+            />
           )}
         </div>
       </main>

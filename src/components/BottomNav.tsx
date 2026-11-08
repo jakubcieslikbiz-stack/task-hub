@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ViewMode } from '../types';
-import { Calendar, CheckSquare, Clock, DollarSign, StickyNote, Plus, Image as ImageIcon, MailCheck } from 'lucide-react';
+import { Calendar, Timer, Clock, DollarSign, StickyNote, Plus, Image as ImageIcon, MailCheck } from 'lucide-react';
 
 interface BottomNavProps {
   currentView: ViewMode;
@@ -26,13 +26,13 @@ export const BottomNav: React.FC<BottomNavProps> = ({
       </button>
 
       <button
-        onClick={() => onViewChange('all')}
+        onClick={() => onViewChange('pomodoro')}
         className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
-          currentView === 'all' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
+          currentView === 'pomodoro' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
         }`}
       >
-        <CheckSquare className="w-4 h-4" />
-        <span className="text-[9px]">Zlecenia</span>
+        <Timer className="w-4 h-4" />
+        <span className="text-[9px]">Pomodoro</span>
       </button>
 
       <button

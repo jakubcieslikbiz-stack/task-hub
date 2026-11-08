@@ -30,6 +30,7 @@ export type ViewMode =
   | 'today'
   | 'all'
   | 'kanban'
+  | 'pomodoro'
   | 'timeline'
   | 'finances'
   | 'notes'
