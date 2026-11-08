@@ -29,7 +29,6 @@ export interface Task {
 export type ViewMode =
   | 'today'
   | 'all'
-  | 'kanban'
   | 'pomodoro'
   | 'timeline'
   | 'finances'

@@ -23,8 +23,7 @@ interface HeaderProps {
 
 const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string; short: string }> = {
   today: { title: 'Mój Dzień', subtitle: 'Skup się na tym, co najważniejsze na dzisiaj', short: 'Overview' },
-  all: { title: 'Zlecenia & Zadania', subtitle: 'Pełny przegląd projektów, cen i statusów JC Studio', short: 'Zlecenia' },
-  kanban: { title: 'Tablica Kanban', subtitle: 'Wizualizuj i przesuwaj etapy realizacji', short: 'Pipeline' },
+  all: { title: 'Zlecenia & Projekty', subtitle: 'Pełny przegląd zleceń, statusów i wycen JC Studio', short: 'Zlecenia' },
   pomodoro: { title: 'Pomodoro Focus Timer', subtitle: 'Sesje głębokiej pracy nad ujęciami 3D z regenerującymi przerwami dla wzroku', short: 'Pomodoro' },
   timeline: { title: 'Timeline tygodnia', subtitle: 'Wizualny harmonogram Gantta na poszczególne dni', short: 'Schedule' },
   finances: { title: 'Finanse & Koszty', subtitle: 'Rozliczenia zleceń, podatki i zysk netto na czysto', short: 'Finance' },

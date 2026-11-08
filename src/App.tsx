@@ -7,7 +7,6 @@ import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
 import { TaskCard } from './components/TaskCard';
 import { TaskTable } from './components/TaskTable';
-import { KanbanBoard } from './components/KanbanBoard';
 import { TimelineView } from './components/TimelineView';
 import { FinancesView } from './components/FinancesView';
 import { ImageConverterView } from './components/ImageConverterView';
@@ -675,16 +674,6 @@ export function App() {
             />
           ) : currentView === 'pomodoro' ? (
             <PomodoroView tasks={tasks} />
-          ) : currentView === 'kanban' ? (
-            <KanbanBoard
-              tasks={filteredTasks}
-              onToggleStatus={handleToggleStatus}
-              onUpdateStatus={handleUpdateStatus}
-              onToggleSubtask={handleToggleSubtask}
-              onEdit={handleOpenEdit}
-              onDelete={handleDeleteTask}
-              onAddNewWithStatus={(status) => handleOpenNew(status)}
-            />
           ) : currentView === 'all' ? (
             <div className="space-y-4">
               {/* Filter pills: Status, Category & Layout Switcher */}
