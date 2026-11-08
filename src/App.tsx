@@ -400,10 +400,21 @@ export function App() {
   const handleSaveTask = (taskData: Omit<Task, 'id' | 'createdAt'> & { id?: string }) => {
     let updated: Task[];
     if (taskData.id) {
-      updated = tasks.map((t) =>
-        t.id === taskData.id ? { ...t, ...taskData } : t
-      );
+      updated = tasks.map((t) => {
+        if (t.id === taskData.id) {
+          const isNewlyCompleted =
+            (taskData.status === 'paid' || taskData.status === 'done') &&
+            (!t.completedAt || t.status !== taskData.status);
+          return {
+            ...t,
+            ...taskData,
+            completedAt: isNewlyCompleted ? new Date().toISOString() : taskData.completedAt || t.completedAt,
+          };
+        }
+        return t;
+      });
     } else {
+      const isPaidOrDone = taskData.status === 'paid' || taskData.status === 'done';
       const newTask: Task = {
         id: Date.now().toString(),
         title: taskData.title,
@@ -419,6 +430,7 @@ export function App() {
         emailReminderSentAt: taskData.emailReminderSentAt,
         subtasks: taskData.subtasks || [],
         createdAt: new Date().toISOString(),
+        completedAt: isPaidOrDone ? new Date().toISOString() : undefined,
       };
       updated = [newTask, ...tasks];
     }

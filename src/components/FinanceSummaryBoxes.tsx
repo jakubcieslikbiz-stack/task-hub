@@ -30,6 +30,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   const [tempZus, setTempZus] = useState(costs.zus.toString());
   const [tempTax, setTempTax] = useState(costs.tax.toString());
   const [chartMode, setChartMode] = useState<'daily' | 'cumulative'>('daily');
+  const [timeRange, setTimeRange] = useState<'10d' | 'month'>('10d');
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   // Calculations
@@ -54,52 +55,145 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
     setShowCostSettings(false);
   };
 
+  // Helper to format Date to local YYYY-MM-DD (avoiding UTC timezone shift)
+  const toLocalDateStr = (d: Date): string => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const getTaskCashFlowDate = (t: Task): string => {
+    // 1. If task is paid and completedAt is set, this is the exact payment transaction date
+    if (t.status === 'paid' && t.completedAt) {
+      try {
+        const d = new Date(t.completedAt);
+        if (!isNaN(d.getTime())) return toLocalDateStr(d);
+      } catch {}
+    }
+
+    // 2. dueDate
+    if (t.dueDate) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(t.dueDate)) return t.dueDate;
+      try {
+        const d = new Date(t.dueDate);
+        if (!isNaN(d.getTime())) return toLocalDateStr(d);
+      } catch {}
+    }
+
+    // 3. completedAt (for 'done')
+    if (t.completedAt) {
+      try {
+        const d = new Date(t.completedAt);
+        if (!isNaN(d.getTime())) return toLocalDateStr(d);
+      } catch {}
+    }
+
+    // 4. startDate
+    if (t.startDate) {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(t.startDate)) return t.startDate;
+      try {
+        const d = new Date(t.startDate);
+        if (!isNaN(d.getTime())) return toLocalDateStr(d);
+      } catch {}
+    }
+
+    // 5. Fallback to createdAt
+    if (t.createdAt) {
+      try {
+        const d = new Date(t.createdAt);
+        if (!isNaN(d.getTime())) return toLocalDateStr(d);
+      } catch {}
+      if (t.createdAt.length >= 10) return t.createdAt.slice(0, 10);
+    }
+
+    return '';
+  };
+
   // Build Real Timeline Data Points from tasks
   const getTimelinePoints = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth();
+    const curDate = now.getDate();
 
-    // Number of days to display (last 10 days)
-    const numDays = 10;
     const rawPoints: {
       dateStr: string;
       label: string;
       dailyVal: number;
       tasks: Task[];
+      isToday: boolean;
     }[] = [];
 
-    for (let i = numDays - 1; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      const dateStr = d.toISOString().slice(0, 10);
-      const label = `${d.getDate()} ${d.toLocaleDateString('pl-PL', { month: 'short' })}`;
+    if (timeRange === 'month') {
+      const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(curYear, curMonth, day);
+        const dateStr = toLocalDateStr(d);
+        const label = `${day} ${d.toLocaleDateString('pl-PL', { month: 'short' })}`;
+        const isToday = day === curDate;
 
-      // Filter tasks matching this day (dueDate or startDate or createdAt)
-      const dayTasks = tasks.filter((t) => {
-        const taskDate = t.dueDate || t.startDate || t.createdAt.slice(0, 10);
-        return taskDate === dateStr;
-      });
+        const dayTasks = tasks.filter((t) => {
+          const taskDate = getTaskCashFlowDate(t);
+          return taskDate === dateStr;
+        });
 
-      let dailyVal = 0;
-      if (statusFilter === 'paid') {
-        dailyVal = dayTasks
-          .filter((t) => t.status === 'paid')
-          .reduce((sum, t) => sum + (t.price || 0), 0);
-      } else if (statusFilter === 'in_progress') {
-        dailyVal = dayTasks
-          .filter((t) => t.status === 'in_progress')
-          .reduce((sum, t) => sum + (t.price || 0), 0);
-      } else {
-        // all active / completed / paid
-        dailyVal = dayTasks.reduce((sum, t) => sum + (t.price || 0), 0);
+        let dailyVal = 0;
+        if (statusFilter === 'paid') {
+          dailyVal = dayTasks
+            .filter((t) => t.status === 'paid')
+            .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+        } else if (statusFilter === 'in_progress') {
+          dailyVal = dayTasks
+            .filter((t) => t.status === 'in_progress' || t.status === 'todo')
+            .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+        } else {
+          dailyVal = dayTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+        }
+
+        rawPoints.push({
+          dateStr,
+          label,
+          dailyVal,
+          tasks: dayTasks,
+          isToday,
+        });
       }
+    } else {
+      // 10 days ending today
+      const numDays = 10;
+      for (let i = numDays - 1; i >= 0; i--) {
+        const d = new Date(curYear, curMonth, curDate - i);
+        const dateStr = toLocalDateStr(d);
+        const label = `${d.getDate()} ${d.toLocaleDateString('pl-PL', { month: 'short' })}`;
+        const isToday = i === 0;
 
-      rawPoints.push({
-        dateStr,
-        label,
-        dailyVal,
-        tasks: dayTasks,
-      });
+        const dayTasks = tasks.filter((t) => {
+          const taskDate = getTaskCashFlowDate(t);
+          return taskDate === dateStr;
+        });
+
+        let dailyVal = 0;
+        if (statusFilter === 'paid') {
+          dailyVal = dayTasks
+            .filter((t) => t.status === 'paid')
+            .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+        } else if (statusFilter === 'in_progress') {
+          dailyVal = dayTasks
+            .filter((t) => t.status === 'in_progress' || t.status === 'todo')
+            .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+        } else {
+          dailyVal = dayTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+        }
+
+        rawPoints.push({
+          dateStr,
+          label,
+          dailyVal,
+          tasks: dayTasks,
+          isToday,
+        });
+      }
     }
 
     // Apply cumulative mode if selected
@@ -183,6 +277,30 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
               </button>
             </div>
 
+            {/* Time range toggle (10 Days vs Full Month) */}
+            <div className="flex items-center gap-1 bg-[#140f0c] border border-[#2e231c] p-1 rounded-full text-[11px]">
+              <button
+                onClick={() => setTimeRange('10d')}
+                className={`px-3 py-1 rounded-full transition-all ${
+                  timeRange === '10d'
+                    ? 'bg-[#251b14] text-[#f5ede4] font-medium border border-[#382b20]'
+                    : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                }`}
+              >
+                10 dni
+              </button>
+              <button
+                onClick={() => setTimeRange('month')}
+                className={`px-3 py-1 rounded-full transition-all ${
+                  timeRange === 'month'
+                    ? 'bg-[#251b14] text-[#f5ede4] font-medium border border-[#382b20]'
+                    : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                }`}
+              >
+                Ten miesiąc
+              </button>
+            </div>
+
             {/* Status Filter buttons */}
             <div className="flex items-center gap-1 bg-[#140f0c] border border-[#2e231c] p-1 rounded-full text-[11px]">
               <button
@@ -262,13 +380,16 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
                 left: `${Math.min(Math.max(hoveredCoord.x - 50, 10), 600)}px`,
               }}
             >
-              <div className="text-[10px] text-[#9e8f82]">{hoveredCoord.pt.label}</div>
+              <div className="text-[10px] text-[#9e8f82]">
+                {hoveredCoord.pt.label}
+                {hoveredCoord.pt.isToday && ' • Dziś'}
+              </div>
               <div className="font-semibold text-[#f5ede4]">
                 {hoveredCoord.pt.val.toLocaleString('pl-PL')} zł
               </div>
               {hoveredCoord.pt.tasks.length > 0 && (
-                <div className="text-[10px] text-[#d99b5a] truncate max-w-[140px]">
-                  {hoveredCoord.pt.tasks[0].title}
+                <div className="text-[10px] text-[#d99b5a] truncate max-w-[220px]">
+                  {hoveredCoord.pt.tasks.map((t) => t.title).join(', ')}
                 </div>
               )}
             </div>
@@ -401,10 +522,18 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
                     y={svgHeight - 6}
                     textAnchor="middle"
                     className={`text-[9px] font-mono transition-colors ${
-                      isHovered ? 'fill-[#f5ede4] font-bold' : 'fill-[#7a6b5e]'
+                      isHovered
+                        ? 'fill-[#f5ede4] font-bold'
+                        : c.pt.isToday
+                        ? 'fill-[#d99b5a] font-semibold'
+                        : 'fill-[#7a6b5e]'
                     }`}
                   >
-                    {c.pt.label}
+                    {timeRange === 'month'
+                      ? i % 3 === 0 || c.pt.isToday || i === coords.length - 1
+                        ? c.pt.label
+                        : ''
+                      : c.pt.label}
                   </text>
                 </g>
               );
