@@ -23,7 +23,7 @@ interface HeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onOpenNewTaskModal: () => void;
-  onOpenAiModal: () => void;
+  onOpenAiModal?: () => void;
   onOpenPhoneModal: () => void;
   completedTodayCount: number;
   totalTodayCount: number;
@@ -51,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
   searchQuery,
   onSearchChange,
   onOpenNewTaskModal,
-  onOpenAiModal,
+  onOpenAiModal: _onOpenAiModal,
   onOpenPhoneModal,
   completedTodayCount,
   totalTodayCount,
@@ -140,16 +140,6 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right: Quick actions & User Pill */}
         <div className="flex items-center gap-2 pr-1">
-          {/* AI Quick Add */}
-          <button
-            onClick={onOpenAiModal}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#251b14] hover:bg-[#322319] text-[#f5ede4] border border-[#3d2f24] text-xs font-medium transition-all active:scale-95 shadow-sm"
-            title="Dodaj zlecenie przez AI (OpenAI)"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#d99b5a]" />
-            <span className="hidden sm:inline">Asystent AI</span>
-          </button>
-
           {/* Smartphone QR button */}
           <button
             onClick={onOpenPhoneModal}
