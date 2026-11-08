@@ -708,8 +708,6 @@ export function App() {
           ) : (
             <RecentActivityAndGoals
               tasks={tasks}
-              costs={costs}
-              onNavigateToPipeline={() => setCurrentView('kanban')}
               onNavigateToFinances={() => setCurrentView('finances')}
             />
           )}
