@@ -278,24 +278,24 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Top Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-950/50 via-slate-900 to-purple-950/40 border border-indigo-500/30 p-6 sm:p-7 shadow-2xl backdrop-blur-md">
+      <div className="relative overflow-hidden rounded-3xl glass-panel border border-[#2b211a] p-6 sm:p-7 shadow-2xl">
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 mb-2.5">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30 mb-2.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#d99b5a]" />
               <span>Asystent Komunikacji Biznesowej JC Studio</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight">
               Generator Ofert & Profesjonalnych Odpowiedzi E-mail
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+            <p className="text-xs sm:text-sm text-[#9e8f82] mt-1 max-w-xl font-light">
               Wklej zapytanie klienta lub podaj kilka słów wytycznych, a sztuczna inteligencja przygotuje elegancką ofertę z wyceną 3D, warunkami i terminem.
             </p>
           </div>
 
           <div className="flex items-center gap-2 text-xs">
-            <span className="px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 flex items-center gap-1.5">
-              <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="px-3 py-1.5 rounded-full bg-[#140f0c] border border-[#2e231c] text-[#7ec29a] flex items-center gap-1.5">
+              <DollarSign className="w-3.5 h-3.5 text-[#7ec29a]" />
               Koszt: ułamek grosza za maila
             </span>
           </div>
@@ -313,21 +313,21 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
               onClick={() => handleSelectPreset(preset.id)}
               className={`p-3.5 rounded-2xl border text-left transition-all relative overflow-hidden flex flex-col justify-between ${
                 isSelected
-                  ? 'bg-slate-800/90 border-indigo-500 shadow-lg shadow-indigo-500/15 ring-1 ring-indigo-500'
-                  : 'bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-800/40 text-slate-400'
+                  ? 'bg-[#251b14] border-[#d99b5a] shadow-lg ring-1 ring-[#d99b5a]'
+                  : 'glass-panel border-[#2b211a] hover:border-[#382b20] hover:bg-[#1a130f] text-[#9e8f82]'
               }`}
             >
               <div className="flex items-center gap-2 mb-2">
                 <div
-                  className={`w-7 h-7 rounded-xl bg-gradient-to-tr ${preset.color} flex items-center justify-center text-white shadow-md`}
+                  className="w-7 h-7 rounded-xl bg-[#1e1713] border border-[#2e231c] flex items-center justify-center text-[#d99b5a] shadow-md"
                 >
                   <Icon className="w-3.5 h-3.5" />
                 </div>
-                <span className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-slate-300'}`}>
+                <span className={`text-xs font-medium ${isSelected ? 'text-[#f5ede4]' : 'text-[#c4b5a5]'}`}>
                   {preset.title}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+              <p className="text-[11px] text-[#7a6b5e] line-clamp-2 leading-relaxed">
                 {preset.desc}
               </p>
             </button>
@@ -337,41 +337,41 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
 
       {/* Main Grid: Inputs vs Output */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Inputs Form (7 cols) */}
+        {/* Left Column: Inputs Form (6 cols) */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl backdrop-blur-md space-y-4">
+          <div className="glass-panel border border-[#2b211a] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
             {/* Input 1: Client Message (optional) */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+              <label className="block text-xs font-medium text-[#c4b5a5] mb-1.5 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <MessageSquare className="w-3.5 h-3.5 text-indigo-400" />
+                  <MessageSquare className="w-3.5 h-3.5 text-[#d99b5a]" />
                   Wiadomość / Zapytanie od klienta (opcjonalne)
                 </span>
-                <span className="text-[10px] text-slate-500 font-normal">Wklej e-mail, treść z OLX lub DM</span>
+                <span className="text-[10px] text-[#7a6b5e] font-normal">Wklej e-mail, treść z OLX lub DM</span>
               </label>
               <textarea
                 rows={3}
                 placeholder="Np. 'Dzień dobry, szukam kogoś do wykonania wizualizacji salonu z kuchnią 35m2 w Warszawie. Ile by to kosztowało i jaki czas?'"
                 value={clientMessage}
                 onChange={(e) => setClientMessage(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-950/70 border border-slate-800 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-indigo-500 resize-none"
+                className="w-full px-3.5 py-2.5 rounded-2xl bg-[#140f0c] border border-[#2e231c] text-[#f5ede4] placeholder-[#7a6b5e] text-xs focus:outline-none focus:border-[#d99b5a] resize-none"
               />
             </div>
 
             {/* Input 2: My Notes / Guidelines (with voice mic) */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                <label className="text-xs font-medium text-[#c4b5a5] flex items-center gap-1.5">
+                  <FileText className="w-3.5 h-3.5 text-[#7ec29a]" />
                   Twoje wytyczne do oferty (cena, termin, warunki)
                 </label>
                 <button
                   type="button"
                   onClick={toggleVoiceInput}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all ${
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1 transition-all ${
                     isListening
-                      ? 'bg-rose-500 text-white animate-pulse'
-                      : 'bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/30'
+                      ? 'bg-[#e07a68] text-white animate-pulse'
+                      : 'bg-[#140f0c] hover:bg-[#1f1712] text-[#d99b5a] border border-[#2e231c]'
                   }`}
                   title="Dyktuj wytyczne przez mikrofon"
                 >
@@ -385,19 +385,19 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
                 placeholder="Np. Cena 2500 zł netto, termin realizacji 4 dni robocze, 2 tury poprawek w cenie, potrzebuję rzutów w DWG/PDF i listy mebli..."
                 value={myNotes}
                 onChange={(e) => setMyNotes(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl bg-slate-950/70 border border-slate-800 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-indigo-500 resize-none font-mono"
+                className="w-full px-3.5 py-2.5 rounded-2xl bg-[#140f0c] border border-[#2e231c] text-[#f5ede4] placeholder-[#7a6b5e] text-xs focus:outline-none focus:border-[#d99b5a] resize-none font-mono"
               />
             </div>
 
             {/* Quick Option Toggles */}
-            <div className="pt-2 border-t border-slate-800/80 space-y-3">
+            <div className="pt-2 border-t border-[#2e231c] space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 {/* Tone Selector */}
                 <div>
-                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                  <label className="block text-[11px] font-medium text-[#9e8f82] mb-1">
                     Ton wypowiedzi
                   </label>
-                  <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+                  <div className="flex items-center gap-1 bg-[#140f0c] p-1 rounded-xl border border-[#2e231c] text-xs">
                     {[
                       { id: 'professional', label: 'Elegancki' },
                       { id: 'friendly', label: 'Partnerski' },
@@ -409,8 +409,8 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
                         onClick={() => setTone(t.id as any)}
                         className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
                           tone === t.id
-                            ? 'bg-indigo-600 text-white font-semibold'
-                            : 'text-slate-400 hover:text-white'
+                            ? 'bg-[#f5ede4] text-[#120e0a] font-semibold shadow-sm'
+                            : 'text-[#9e8f82] hover:text-[#f5ede4]'
                         }`}
                       >
                         {t.label}
@@ -421,44 +421,44 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
 
                 {/* Sender Signature */}
                 <div className="flex-1 min-w-[180px]">
-                  <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+                  <label className="block text-[11px] font-medium text-[#9e8f82] mb-1">
                     Podpis w mailu
                   </label>
                   <input
                     type="text"
                     value={senderSignature}
                     onChange={(e) => setSenderSignature(e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3 py-1.5 rounded-xl bg-[#140f0c] border border-[#2e231c] text-[#f5ede4] text-xs focus:outline-none focus:border-[#d99b5a]"
                   />
                 </div>
               </div>
 
               {/* Checkboxes: Revisions & VAT */}
               <div className="flex flex-wrap items-center gap-4 pt-1">
-                <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-[#c4b5a5]">
                   <input
                     type="checkbox"
                     checked={includeRevisions}
                     onChange={(e) => setIncludeRevisions(e.target.checked)}
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-0 bg-slate-950 border-slate-700 cursor-pointer accent-indigo-600"
+                    className="w-4 h-4 rounded text-[#d99b5a] focus:ring-0 bg-[#140f0c] border-[#2e231c] cursor-pointer accent-[#d99b5a]"
                   />
-                  <span>Zawrzyj informację: <strong>2 tury poprawek w cenie</strong></span>
+                  <span>Zawrzyj informację: <strong className="text-[#f5ede4]">2 tury poprawek w cenie</strong></span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-300">
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-[#c4b5a5]">
                   <input
                     type="checkbox"
                     checked={includeVat}
                     onChange={(e) => setIncludeVat(e.target.checked)}
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-0 bg-slate-950 border-slate-700 cursor-pointer accent-indigo-600"
+                    className="w-4 h-4 rounded text-[#d99b5a] focus:ring-0 bg-[#140f0c] border-[#2e231c] cursor-pointer accent-[#d99b5a]"
                   />
-                  <span>Zaznacz: <strong>Kwoty netto (Faktura VAT)</strong></span>
+                  <span>Zaznacz: <strong className="text-[#f5ede4]">Kwoty netto (Faktura VAT)</strong></span>
                 </label>
               </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 flex items-center gap-2">
+              <div className="p-3 bg-[#e07a68]/10 border border-[#e07a68]/30 rounded-xl text-xs text-[#e07a68] flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
@@ -468,16 +468,16 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
             <button
               onClick={() => handleGenerate()}
               disabled={isLoading}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white text-sm font-bold shadow-xl shadow-indigo-600/25 flex items-center justify-center gap-2 transition-all active:scale-98"
+              className="w-full py-3.5 rounded-2xl bg-[#f5ede4] hover:bg-white disabled:opacity-50 text-[#120e0a] text-sm font-semibold shadow-xl flex items-center justify-center gap-2 transition-all active:scale-98"
             >
               {isLoading ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-4 h-4 animate-spin text-[#120e0a]" />
                   <span>Tworzenie profesjonalnej odpowiedzi...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-4 h-4 text-[#120e0a]" />
                   <span>Wygeneruj eleganckiego maila AI</span>
                 </>
               )}
@@ -485,17 +485,17 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
           </div>
         </div>
 
-        {/* Right Column: Generated Output & Quick Edits (5 cols) */}
+        {/* Right Column: Generated Output & Quick Edits (6 cols) */}
         <div className="lg:col-span-6 space-y-4">
-          <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl backdrop-blur-md flex flex-col justify-between min-h-[500px]">
+          <div className="glass-panel border border-[#2b211a] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col justify-between min-h-[500px]">
             <div>
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <Mail className="w-4 h-4 text-indigo-400" />
+              <div className="flex items-center justify-between pb-3 border-b border-[#2e231c] mb-3">
+                <span className="text-xs font-medium text-[#f5ede4] flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-[#d99b5a]" />
                   Gotowa treść wiadomości
                 </span>
                 {result && (
-                  <span className="text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  <span className="text-[11px] font-medium text-[#7ec29a] bg-[#7ec29a]/10 px-2 py-0.5 rounded-full border border-[#7ec29a]/20">
                     ✓ Wygenerowano
                   </span>
                 )}
@@ -506,12 +506,12 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
                   {/* Subject Row */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[11px] font-semibold text-slate-400">Temat wiadomości:</span>
+                      <span className="text-[11px] font-medium text-[#9e8f82]">Temat wiadomości:</span>
                       <button
                         onClick={handleCopySubject}
-                        className="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium transition-colors"
+                        className="text-[11px] text-[#d99b5a] hover:text-[#f1c38e] flex items-center gap-1 font-medium transition-colors"
                       >
-                        {copiedSubject ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        {copiedSubject ? <Check className="w-3 h-3 text-[#7ec29a]" /> : <Copy className="w-3 h-3" />}
                         <span>{copiedSubject ? 'Skopiowano temat!' : 'Kopiuj temat'}</span>
                       </button>
                     </div>
@@ -519,19 +519,19 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
                       type="text"
                       value={editedSubject}
                       onChange={(e) => setEditedSubject(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white font-medium text-xs focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3 py-2 rounded-xl bg-[#140f0c] border border-[#2e231c] text-[#f5ede4] font-medium text-xs focus:outline-none focus:border-[#d99b5a]"
                     />
                   </div>
 
                   {/* Body Editor */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[11px] font-semibold text-slate-400">Treść e-maila:</span>
+                      <span className="text-[11px] font-medium text-[#9e8f82]">Treść e-maila:</span>
                       <button
                         onClick={handleCopyBody}
-                        className="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium transition-colors"
+                        className="text-[11px] text-[#d99b5a] hover:text-[#f1c38e] flex items-center gap-1 font-medium transition-colors"
                       >
-                        {copiedBody ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        {copiedBody ? <Check className="w-3 h-3 text-[#7ec29a]" /> : <Copy className="w-3 h-3 text-[#d99b5a]" />}
                         <span>{copiedBody ? 'Skopiowano treść!' : 'Kopiuj całość'}</span>
                       </button>
                     </div>
@@ -539,45 +539,45 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
                       rows={14}
                       value={editedBody}
                       onChange={(e) => setEditedBody(e.target.value)}
-                      className="w-full px-3.5 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-slate-200 text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-indigo-500 font-sans resize-y"
+                      className="w-full px-3.5 py-3 rounded-2xl bg-[#140f0c] border border-[#2e231c] text-[#f5ede4] text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-[#d99b5a] font-sans resize-y"
                     />
                   </div>
 
                   {/* Quick Polish Refinements */}
                   <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <span className="text-[11px] text-slate-500 mr-1">Szybkie poprawki:</span>
+                    <span className="text-[11px] text-[#7a6b5e] mr-1">Szybkie poprawki:</span>
                     <button
                       onClick={() => handleGenerate('Skróć treść o połowę, pozostawiając tylko kluczowe punkty wyceny i termin')}
                       disabled={isLoading}
-                      className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700 transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-[#1e1713] hover:bg-[#251b14] text-[#c4b5a5] text-[11px] border border-[#2e231c] transition-colors"
                     >
                       🤏 Skróć o połowę
                     </button>
                     <button
                       onClick={() => handleGenerate('Dodaj punkt informujący o zaliczce 30% przed rozpoczęciem prac')}
                       disabled={isLoading}
-                      className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700 transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-[#1e1713] hover:bg-[#251b14] text-[#c4b5a5] text-[11px] border border-[#2e231c] transition-colors"
                     >
                       💰 Dodaj zaliczkę 30%
                     </button>
                     <button
                       onClick={() => handleGenerate('Uczyń ton jeszcze bardziej formalnym i ekskluzywnym')}
                       disabled={isLoading}
-                      className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] border border-slate-700 transition-colors"
+                      className="px-2.5 py-1 rounded-lg bg-[#1e1713] hover:bg-[#251b14] text-[#c4b5a5] text-[11px] border border-[#2e231c] transition-colors"
                     >
                       👔 Bardziej formalnie
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="h-64 flex flex-col items-center justify-center text-center p-6 border border-dashed border-slate-800 rounded-2xl">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-800/60 flex items-center justify-center text-indigo-400 mb-3 shadow-inner">
+                <div className="h-64 flex flex-col items-center justify-center text-center p-6 border border-dashed border-[#2e231c] rounded-2xl">
+                  <div className="w-12 h-12 rounded-2xl bg-[#140f0c] border border-[#2e231c] flex items-center justify-center text-[#d99b5a] mb-3 shadow-inner">
                     <Sparkles className="w-6 h-6" />
                   </div>
-                  <h4 className="text-sm font-semibold text-slate-300 mb-1">
+                  <h4 className="text-sm font-medium text-[#f5ede4] mb-1">
                     Gotowy mail pojawi się w tym miejscu
                   </h4>
-                  <p className="text-xs text-slate-500 max-w-xs">
+                  <p className="text-xs text-[#7a6b5e] max-w-xs">
                     Wybierz szablon, wpisz swoje punkty po lewej i kliknij <em>"Wygeneruj eleganckiego maila AI"</em>.
                   </p>
                 </div>
@@ -586,7 +586,7 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
 
             {/* Direct Send via Resend Footer */}
             {result && (
-              <div className="pt-4 border-t border-slate-800/80 mt-4 space-y-2">
+              <div className="pt-4 border-t border-[#2e231c] mt-4 space-y-2">
                 <div className="flex flex-col sm:flex-row items-center gap-2">
                   <div className="relative flex-1 w-full">
                     <input
@@ -594,13 +594,13 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
                       placeholder="Wpisz e-mail klienta (np. klient@firma.pl)..."
                       value={recipientEmail}
                       onChange={(e) => setRecipientEmail(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-indigo-500"
+                      className="w-full px-3.5 py-2 rounded-xl bg-[#140f0c] border border-[#2e231c] text-[#f5ede4] placeholder-[#7a6b5e] text-xs focus:outline-none focus:border-[#d99b5a]"
                     />
                   </div>
                   <button
                     onClick={handleSendViaResend}
                     disabled={isSendingViaResend || !recipientEmail.trim()}
-                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center justify-center gap-1.5 transition-all"
+                    className="w-full sm:w-auto px-4 py-2 rounded-xl bg-[#7ec29a] hover:bg-[#9ee2b9] disabled:opacity-40 text-[#120e0a] text-xs font-semibold shadow-md flex items-center justify-center gap-1.5 transition-all"
                   >
                     {isSendingViaResend ? (
                       <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -615,14 +615,14 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
                   <div
                     className={`p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
                       resendStatus.success
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                        : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                        ? 'bg-[#7ec29a]/10 border-[#7ec29a]/30 text-[#7ec29a]'
+                        : 'bg-[#e07a68]/10 border-[#e07a68]/30 text-[#e07a68]'
                     }`}
                   >
                     {resendStatus.success ? (
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <Check className="w-3.5 h-3.5 text-[#7ec29a]" />
                     ) : (
-                      <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                      <AlertCircle className="w-3.5 h-3.5 text-[#e07a68]" />
                     )}
                     <span>{resendStatus.msg}</span>
                   </div>
@@ -635,17 +635,17 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
 
       {/* History of Recent Drafts */}
       {history.length > 0 && (
-        <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-5 shadow-lg backdrop-blur-md">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
+        <div className="glass-panel border border-[#2b211a] rounded-3xl p-5 shadow-lg">
+          <div className="flex items-center justify-between pb-3 border-b border-[#2e231c] mb-3">
             <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-indigo-400" />
-              <span className="text-xs font-bold text-white uppercase tracking-wider">
+              <History className="w-4 h-4 text-[#d99b5a]" />
+              <span className="text-xs font-medium text-[#f5ede4] uppercase tracking-wider">
                 Ostatnio wygenerowane oferty ({history.length})
               </span>
             </div>
             <button
               onClick={() => setHistory([])}
-              className="text-xs text-slate-500 hover:text-rose-400 flex items-center gap-1 transition-colors"
+              className="text-xs text-[#7a6b5e] hover:text-[#e07a68] flex items-center gap-1 transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Wyczyść historię</span>
@@ -661,21 +661,21 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
                   setEditedBody(draft.body);
                   setResult({ subject: draft.subject, body: draft.body });
                 }}
-                className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 hover:border-indigo-500/40 cursor-pointer transition-all group flex flex-col justify-between"
+                className="p-3.5 rounded-2xl bg-[#140f0c] border border-[#2e231c] hover:border-[#d99b5a]/40 cursor-pointer transition-all group flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-between text-[11px] text-slate-500 mb-1">
-                    <span className="font-semibold text-indigo-400">{draft.presetTitle}</span>
+                  <div className="flex items-center justify-between text-[11px] text-[#7a6b5e] mb-1">
+                    <span className="font-medium text-[#d99b5a]">{draft.presetTitle}</span>
                     <span>{draft.date}</span>
                   </div>
-                  <h5 className="text-xs font-semibold text-white group-hover:text-indigo-300 transition-colors truncate">
+                  <h5 className="text-xs font-medium text-[#f5ede4] group-hover:text-[#f1c38e] transition-colors truncate">
                     {draft.subject}
                   </h5>
-                  <p className="text-[11px] text-slate-400 line-clamp-3 mt-1 leading-relaxed">
+                  <p className="text-[11px] text-[#9e8f82] line-clamp-3 mt-1 leading-relaxed">
                     {draft.body}
                   </p>
                 </div>
-                <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-end text-[10px] text-indigo-400 font-semibold group-hover:translate-x-0.5 transition-transform">
+                <div className="mt-2 pt-2 border-t border-[#2e231c] flex items-center justify-end text-[10px] text-[#d99b5a] font-medium group-hover:translate-x-0.5 transition-transform">
                   Wczytaj ofertę →
                 </div>
               </div>

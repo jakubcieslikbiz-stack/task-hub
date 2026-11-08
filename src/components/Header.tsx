@@ -1,9 +1,25 @@
 import React from 'react';
 import type { ViewMode } from '../types';
-import { Search, Plus, Smartphone, Sparkles, X } from 'lucide-react';
+import {
+  Search,
+  Plus,
+  Smartphone,
+  Sparkles,
+  X,
+  Calendar,
+  Columns3,
+  CheckSquare,
+  Clock,
+  DollarSign,
+  MailCheck,
+  Image as ImageIcon,
+  StickyNote,
+  Globe,
+} from 'lucide-react';
 
 interface HeaderProps {
   currentView: ViewMode;
+  onViewChange?: (view: ViewMode) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onOpenNewTaskModal: () => void;
@@ -11,22 +27,26 @@ interface HeaderProps {
   onOpenPhoneModal: () => void;
   completedTodayCount: number;
   totalTodayCount: number;
+  todayCount?: number;
+  totalCount?: number;
+  monthlyRevenue?: number;
 }
 
-const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string }> = {
-  today: { title: 'Mój Dzień', subtitle: 'Skup się na tym, co najważniejsze na dzisiaj' },
-  all: { title: 'Zlecenia & Zadania', subtitle: 'Pełny przegląd projektów, cen i statusów JC Studio' },
-  kanban: { title: 'Tablica Kanban', subtitle: 'Wizualizuj i przesuwaj etapy realizacji' },
-  timeline: { title: 'Timeline tygodnia', subtitle: 'Wizualny harmonogram Gantta na poszczególne dni' },
-  finances: { title: 'Finanse & Koszty', subtitle: 'Rozliczenia zleceń, podatki i zysk netto na czysto' },
-  notes: { title: 'To-Do & Szybkie Notatki', subtitle: 'Codzienna lista zadań i zapiski powiązane z AI' },
-  converter: { title: 'Konwerter Grafiki', subtitle: 'Błyskawiczna konwersja PNG, JPG, WEBP, SVG bez wysyłania do sieci' },
-  offers: { title: 'Asystent Ofert & E-mail AI', subtitle: 'Twórz profesjonalne wyceny, oferty i odpowiedzi na zapytania klientów' },
-  portfolio_manager: { title: 'Zarządzaj Portfolio Klienta', subtitle: 'Dodawaj projekty i udostępniaj link do dedykowanej wizytówki JC Studio' },
+const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string; short: string }> = {
+  today: { title: 'Mój Dzień', subtitle: 'Skup się na tym, co najważniejsze na dzisiaj', short: 'Overview' },
+  all: { title: 'Zlecenia & Zadania', subtitle: 'Pełny przegląd projektów, cen i statusów JC Studio', short: 'Zlecenia' },
+  kanban: { title: 'Tablica Kanban', subtitle: 'Wizualizuj i przesuwaj etapy realizacji', short: 'Pipeline' },
+  timeline: { title: 'Timeline tygodnia', subtitle: 'Wizualny harmonogram Gantta na poszczególne dni', short: 'Schedule' },
+  finances: { title: 'Finanse & Koszty', subtitle: 'Rozliczenia zleceń, podatki i zysk netto na czysto', short: 'Finance' },
+  notes: { title: 'To-Do & Szybkie Notatki', subtitle: 'Codzienna lista zadań i zapiski powiązane z AI', short: 'Notatki' },
+  converter: { title: 'Konwerter Grafiki', subtitle: 'Błyskawiczna konwersja PNG, JPG, WEBP, SVG bez wysyłania do sieci', short: 'Narzędzia' },
+  offers: { title: 'Asystent Ofert & E-mail AI', subtitle: 'Twórz profesjonalne wyceny, oferty i odpowiedzi na zapytania klientów', short: 'Oferty AI' },
+  portfolio_manager: { title: 'Zarządzaj Portfolio Klienta', subtitle: 'Dodawaj projekty i udostępniaj link do dedykowanej wizytówki JC Studio', short: 'Portfolio' },
 };
 
 export const Header: React.FC<HeaderProps> = ({
   currentView,
+  onViewChange,
   searchQuery,
   onSearchChange,
   onOpenNewTaskModal,
@@ -34,75 +54,178 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenPhoneModal,
   completedTodayCount,
   totalTodayCount,
+  todayCount = 0,
 }) => {
-  const { title, subtitle } = VIEW_TITLES[currentView];
+  const { title, subtitle, short } = VIEW_TITLES[currentView];
   const percent = totalTodayCount > 0 ? Math.round((completedTodayCount / totalTodayCount) * 100) : 0;
 
+  const now = new Date();
+  const dateFormatted = now.toLocaleDateString('pl-PL', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  const monthYearFormatted = now.toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const navItems: { id: ViewMode; label: string; icon: React.FC<{ className?: string }>; badge?: string | number }[] = [
+    { id: 'today', label: 'Overview', icon: Calendar, badge: todayCount > 0 ? todayCount : undefined },
+    { id: 'kanban', label: 'Pipeline', icon: Columns3 },
+    { id: 'all', label: 'Zlecenia', icon: CheckSquare },
+    { id: 'timeline', label: 'Schedule', icon: Clock },
+    { id: 'finances', label: 'Finance', icon: DollarSign },
+    { id: 'offers', label: 'Oferty AI', icon: MailCheck, badge: '✨' },
+    { id: 'converter', label: 'Konwerter', icon: ImageIcon },
+    { id: 'notes', label: 'Notatki', icon: StickyNote },
+    { id: 'portfolio_manager', label: 'Portfolio', icon: Globe },
+  ];
+
   return (
-    <header className="space-y-4 mb-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Title & Today stats */}
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              {title}
-            </h1>
-            {currentView === 'today' && totalTodayCount > 0 && (
-              <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                <Sparkles className="w-3.5 h-3.5" />
-                {percent}% zrobione
-              </span>
-            )}
+    <header className="space-y-6 mb-6">
+      {/* Floating Top Horizontal Capsule Header (Kindra style) */}
+      <div className="glass-panel rounded-full px-3.5 py-2 flex items-center justify-between gap-3 shadow-2xl">
+        {/* Left: Brand Monogram & Name */}
+        <div className="flex items-center gap-2.5 pl-1.5 flex-shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-[#251b14] border border-[#3d2f24] flex items-center justify-center text-[#f5ede4] font-semibold text-xs tracking-wider shadow-inner">
+            JC
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">{subtitle}</p>
+          <div className="hidden lg:block leading-tight">
+            <span className="text-xs font-semibold text-[#f5ede4] tracking-tight block">
+              JC Studio
+            </span>
+            <span className="text-[10px] text-[#9e8f82] tracking-wider uppercase block font-mono">
+              Workspace
+            </span>
+          </div>
         </div>
 
-        {/* Action buttons */}
-        <div className="flex items-center gap-2.5">
-          {/* AI Quick Add Button */}
+        {/* Center: Capsule Navigation Pills */}
+        {onViewChange && (
+          <nav className="hidden xl:flex items-center gap-1 overflow-x-auto py-0.5 px-1">
+            {navItems.map((item) => {
+              const isActive = currentView === item.id;
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onViewChange(item.id)}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    isActive
+                      ? 'bg-[#f5ede4] text-[#120e0a] shadow-md font-semibold'
+                      : 'text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14]/70'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#120e0a]' : 'text-[#9e8f82]'}`} />
+                  <span>{item.label}</span>
+                  {item.badge !== undefined && (
+                    <span
+                      className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono leading-none ${
+                        isActive
+                          ? 'bg-[#120e0a]/15 text-[#120e0a]'
+                          : 'bg-[#d99b5a]/25 text-[#f1c38e]'
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        )}
+
+        {/* Right: Quick actions & User Pill */}
+        <div className="flex items-center gap-2 pr-1">
+          {/* AI Quick Add */}
           <button
             onClick={onOpenAiModal}
-            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-purple-600/20 active:scale-95 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#251b14] hover:bg-[#322319] text-[#f5ede4] border border-[#3d2f24] text-xs font-medium transition-all active:scale-95 shadow-sm"
             title="Dodaj zlecenie przez AI (OpenAI)"
           >
-            <Sparkles className="w-4 h-4 text-purple-200" />
-            <span>Dodaj przez AI</span>
+            <Sparkles className="w-3.5 h-3.5 text-[#d99b5a]" />
+            <span className="hidden sm:inline">Asystent AI</span>
           </button>
 
+          {/* Smartphone QR button */}
           <button
             onClick={onOpenPhoneModal}
-            className="md:hidden flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 text-indigo-400 border border-slate-700 text-xs font-semibold active:scale-95 transition-all"
-            title="Otwórz na telefonie"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-[#251b14] hover:bg-[#322319] text-[#9e8f82] hover:text-[#f5ede4] border border-[#3d2f24] text-xs transition-all active:scale-95"
+            title="Otwórz na telefonie (QR)"
           >
-            <Smartphone className="w-4 h-4" />
-            <span>Telefon</span>
+            <Smartphone className="w-3.5 h-3.5 text-[#9e8f82]" />
+            <span className="hidden md:inline text-[11px]">Telefon</span>
           </button>
 
+          {/* New Task button */}
           <button
             onClick={onOpenNewTaskModal}
-            className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold shadow-lg shadow-indigo-500/25 active:scale-95 transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-semibold shadow-md active:scale-95 transition-all"
           >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Nowe zlecenie</span>
+            <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span className="hidden sm:inline">Nowe zlecenie</span>
           </button>
+
+          {/* User Avatar Circle */}
+          <div
+            title="Jakub Cieślik • JC Studio"
+            className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#3d2f24] to-[#c88d51] border border-[#f5ede4]/20 flex items-center justify-center text-[#f5ede4] text-xs font-bold tracking-tight shadow-md flex-shrink-0"
+          >
+            JC
+          </div>
         </div>
       </div>
 
-      {/* Search Bar */}
+      {/* Main Title & Editorial Header Area */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-2">
+        <div>
+          <span className="text-[11px] font-mono tracking-[0.2em] uppercase text-[#9e8f82] block mb-1">
+            Welcome back, Jakub • {short}
+          </span>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-light text-[#f5ede4] tracking-tight">
+              {title}
+            </h1>
+            {currentView === 'today' && totalTodayCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30">
+                <Sparkles className="w-3.5 h-3.5 text-[#7ec29a]" />
+                {percent}% ukończone ({completedTodayCount}/{totalTodayCount})
+              </span>
+            )}
+          </div>
+          <p className="text-xs sm:text-sm text-[#9e8f82] mt-1 font-light max-w-xl">
+            {subtitle}
+          </p>
+        </div>
+
+        {/* Date / Month display (Right aligned like in screenshot) */}
+        <div className="text-left sm:text-right flex flex-col justify-end">
+          <span className="text-xs sm:text-sm font-mono text-[#f5ede4] tracking-wide block">
+            {monthYearFormatted}
+          </span>
+          <span className="text-[11px] text-[#7a6b5e] font-light capitalize block">
+            {dateFormatted}
+          </span>
+        </div>
+      </div>
+
+      {/* Search Bar (Warm glass style) */}
       {currentView !== 'notes' && currentView !== 'finances' && currentView !== 'timeline' && (
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+        <div className="relative pt-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9e8f82]" />
           <input
             type="text"
             placeholder="Szukaj zleceń po nazwie, uwagach, kwocie lub dacie..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-9 py-2 rounded-xl bg-slate-900/90 border border-slate-800 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
+            className="w-full pl-11 pr-10 py-2.5 rounded-2xl glass-input text-xs sm:text-sm placeholder-[#7a6b5e] transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => onSearchChange('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9e8f82] hover:text-[#f5ede4]"
             >
               <X className="w-4 h-4" />
             </button>

@@ -36,21 +36,21 @@ export const QuickNotes: React.FC<QuickNotesProps> = ({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <StickyNote className="w-5 h-5 text-indigo-400" />
-            Szybkie Notatki
+          <h2 className="text-xl font-light text-[#f5ede4] flex items-center gap-2">
+            <StickyNote className="w-5 h-5 text-[#d99b5a]" />
+            To-Do & Szybkie Notatki
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Zapisuj luźne myśli, pomysły, linki i szkice
+          <p className="text-xs text-[#9e8f82] mt-0.5 font-light">
+            Zapisuj luźne myśli, pomysły, linki i szkice powiązane z AI
           </p>
         </div>
 
         {!isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-semibold shadow-md transition-all active:scale-95"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 stroke-[2.5]" />
             Nowa notatka
           </button>
         )}
@@ -59,14 +59,14 @@ export const QuickNotes: React.FC<QuickNotesProps> = ({
       {isAdding && (
         <form
           onSubmit={handleCreate}
-          className="bg-slate-900 border border-indigo-500/40 rounded-2xl p-4 shadow-xl space-y-3"
+          className="glass-panel border border-[#3d2f24] rounded-3xl p-6 shadow-2xl space-y-4"
         >
           <input
             type="text"
             placeholder="Tytuł notatki..."
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-800/80 rounded-xl border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500"
+            className="w-full px-4 py-2.5 rounded-2xl glass-input text-sm placeholder-[#7a6b5e]"
             autoFocus
           />
           <textarea
@@ -74,19 +74,19 @@ export const QuickNotes: React.FC<QuickNotesProps> = ({
             placeholder="Wpisz treść notatki..."
             value={newContent}
             onChange={(e) => setNewContent(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-800/80 rounded-xl border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 resize-none"
+            className="w-full px-4 py-2.5 rounded-2xl glass-input text-sm resize-none placeholder-[#7a6b5e]"
           />
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-1">
             <button
               type="button"
               onClick={() => setIsAdding(false)}
-              className="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white text-xs"
+              className="px-4 py-2 rounded-full text-[#9e8f82] hover:text-[#f5ede4] text-xs transition-colors"
             >
               Anuluj
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold"
+              className="px-5 py-2 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-semibold shadow-md"
             >
               Dodaj notatkę
             </button>
@@ -96,14 +96,14 @@ export const QuickNotes: React.FC<QuickNotesProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {notes.length === 0 ? (
-          <div className="col-span-full py-16 text-center border border-dashed border-slate-800 rounded-2xl text-slate-500 text-sm">
+          <div className="col-span-full py-16 text-center border border-dashed border-[#2e231c] rounded-3xl text-[#7a6b5e] text-sm">
             Brak notatek. Kliknij "Nowa notatka", aby dodać pierwszy wpis!
           </div>
         ) : (
           notes.map((note) => (
             <div
               key={note.id}
-              className="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 flex flex-col justify-between shadow-lg group transition-all"
+              className="glass-panel border border-[#2b211a] hover:border-[#3d2f24] rounded-3xl p-5 flex flex-col justify-between shadow-xl group transition-all"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -111,11 +111,11 @@ export const QuickNotes: React.FC<QuickNotesProps> = ({
                     type="text"
                     value={note.title}
                     onChange={(e) => onUpdateNote(note.id, note.content, e.target.value)}
-                    className="font-semibold text-sm text-slate-200 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-indigo-500/40 rounded px-1 -mx-1 w-full"
+                    className="font-medium text-sm text-[#f5ede4] bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-[#d99b5a]/40 rounded px-1 -mx-1 w-full"
                   />
                   <button
                     onClick={() => onDeleteNote(note.id)}
-                    className="text-slate-500 hover:text-rose-400 p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-[#7a6b5e] hover:text-[#e07a68] p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Usuń notatkę"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -125,16 +125,16 @@ export const QuickNotes: React.FC<QuickNotesProps> = ({
                   value={note.content}
                   onChange={(e) => onUpdateNote(note.id, e.target.value, note.title)}
                   rows={5}
-                  className="w-full bg-slate-950/40 border border-slate-800/80 rounded-xl p-2.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-500/50 resize-none font-mono"
+                  className="w-full bg-[#140f0c]/60 border border-[#2e231c] rounded-2xl p-3 text-xs text-[#dcd1c7] focus:outline-none focus:border-[#d99b5a]/50 resize-none font-mono"
                 />
               </div>
 
-              <div className="mt-3 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-500">
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
+              <div className="mt-4 pt-3 border-t border-[#2e231c] flex items-center justify-between text-[11px] text-[#7a6b5e] font-mono">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-3 h-3 text-[#9e8f82]" />
                   {new Date(note.updatedAt).toLocaleDateString('pl-PL')}
                 </span>
-                <span>Zapisano automatycznie</span>
+                <span>Zapisano w chmurze</span>
               </div>
             </div>
           ))

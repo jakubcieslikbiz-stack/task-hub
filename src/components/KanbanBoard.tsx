@@ -17,30 +17,30 @@ const COLUMNS: { id: Status; title: string; icon: React.ReactNode; color: string
   {
     id: 'in_progress',
     title: 'W toku',
-    icon: <Clock className="w-4 h-4 text-amber-400" />,
-    color: 'bg-amber-500/10 text-amber-300',
-    border: 'border-amber-500/20',
+    icon: <Clock className="w-4 h-4 text-[#d99b5a]" />,
+    color: 'bg-[#d99b5a]/15 text-[#f1c38e]',
+    border: 'border-[#d99b5a]/30',
   },
   {
     id: 'todo',
     title: 'Do zrobienia',
-    icon: <Circle className="w-4 h-4 text-slate-400" />,
-    color: 'bg-slate-800/40 text-slate-300',
-    border: 'border-slate-800',
+    icon: <Circle className="w-4 h-4 text-[#9e8f82]" />,
+    color: 'bg-[#251b14] text-[#9e8f82]',
+    border: 'border-[#382b20]',
   },
   {
     id: 'done',
     title: 'Gotowe',
-    icon: <CheckCircle2 className="w-4 h-4 text-emerald-400" />,
-    color: 'bg-emerald-500/10 text-emerald-300',
-    border: 'border-emerald-500/20',
+    icon: <CheckCircle2 className="w-4 h-4 text-[#7ec29a]" />,
+    color: 'bg-[#7ec29a]/15 text-[#9ee2b9]',
+    border: 'border-[#7ec29a]/30',
   },
   {
     id: 'paid',
     title: 'Opłacone',
-    icon: <DollarSign className="w-4 h-4 text-purple-400" />,
-    color: 'bg-purple-500/10 text-purple-300',
-    border: 'border-purple-500/20',
+    icon: <DollarSign className="w-4 h-4 text-[#f5ede4]" />,
+    color: 'bg-[#f5ede4]/15 text-[#f5ede4]',
+    border: 'border-[#f5ede4]/30',
   },
 ];
 
@@ -62,29 +62,29 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         return (
           <div
             key={col.id}
-            className="flex flex-col rounded-3xl bg-slate-900/40 border border-slate-800/80 p-4 min-h-[450px]"
+            className="flex flex-col rounded-3xl glass-panel p-4 min-h-[480px] shadow-2xl border border-[#2b211a]"
           >
             {/* Column header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
+            <div className="flex items-center justify-between pb-3 border-b border-[#2e231c] mb-3">
               <div className="flex items-center gap-2">
                 {col.icon}
-                <h3 className="font-semibold text-slate-200 text-sm tracking-wide">
+                <h3 className="font-medium text-[#f5ede4] text-sm tracking-wide">
                   {col.title}
                 </h3>
-                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400">
+                <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-[#251b14] text-[#9e8f82] border border-[#382b20]">
                   {columnTasks.length}
                 </span>
               </div>
 
               <div className="flex items-center gap-1.5">
                 {columnValue > 0 && (
-                  <span className="text-[11px] font-mono text-emerald-400 font-semibold pr-1">
+                  <span className="text-[11px] font-mono text-[#7ec29a] font-medium pr-1">
                     {columnValue.toLocaleString('pl-PL')} zł
                   </span>
                 )}
                 <button
                   onClick={() => onAddNewWithStatus(col.id)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  className="p-1 rounded-lg text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-colors"
                   title={`Dodaj do ${col.title}`}
                 >
                   <Plus className="w-4 h-4" />
@@ -95,7 +95,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             {/* Task cards list */}
             <div className="flex-1 space-y-3 overflow-y-auto pr-1">
               {columnTasks.length === 0 ? (
-                <div className="h-28 flex flex-col items-center justify-center border border-dashed border-slate-800 rounded-2xl text-xs text-slate-500 text-center p-3">
+                <div className="h-32 flex flex-col items-center justify-center border border-dashed border-[#2e231c] rounded-2xl text-xs text-[#7a6b5e] text-center p-3">
                   Brak zleceń w tej kolumnie
                 </div>
               ) : (

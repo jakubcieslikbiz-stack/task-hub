@@ -48,7 +48,7 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
       particleCount: 50,
       spread: 60,
       origin: { y: 0.8 },
-      colors: ['#6366f1', '#10b981', '#a855f7'],
+      colors: ['#d99b5a', '#7ec29a', '#f5ede4'],
     });
     setTimeout(() => setCopiedLink(false), 2500);
   };
@@ -143,24 +143,24 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Client Link Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-950/60 via-slate-900 to-purple-950/60 border border-indigo-500/30 p-6 sm:p-7 shadow-2xl backdrop-blur-md">
+      <div className="relative overflow-hidden rounded-3xl glass-panel border border-[#2b211a] p-6 sm:p-7 shadow-2xl">
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
-              <Globe className="w-3.5 h-3.5 text-indigo-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30">
+              <Globe className="w-3.5 h-3.5 text-[#d99b5a]" />
               <span>Dedykowana podstrona dla Twoich Klientów</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight">
               Twoje Publiczne Portfolio JC Studio
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Klient widzi <strong>wyłącznie tę jedną podstronę</strong> z Twoimi najlepszymi pracami i formularzem kontaktu. Twój ekosystem (zlecenia, finanse, koszty, asystent AI) jest całkowicie ukryty i niedostępny.
+            <p className="text-xs sm:text-sm text-[#9e8f82] leading-relaxed font-light">
+              Klient widzi <strong className="text-[#f5ede4] font-medium">wyłącznie tę jedną podstronę</strong> z Twoimi najlepszymi pracami i formularzem kontaktu. Twój ekosystem (zlecenia, finanse, koszty, asystent AI) jest całkowicie ukryty i niedostępny.
             </p>
           </div>
 
           {/* Share Box */}
-          <div className="w-full lg:w-auto bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-3">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">
+          <div className="w-full lg:w-auto bg-[#140f0c] p-4 rounded-2xl border border-[#2e231c] space-y-3">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-[#9e8f82] block">
               Link do wysłania klientowi:
             </span>
             <div className="flex items-center gap-2">
@@ -168,13 +168,13 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
                 type="text"
                 readOnly
                 value={publicUrl}
-                className="w-full sm:w-80 px-3.5 py-2 bg-slate-900 rounded-xl border border-slate-700 text-indigo-300 text-xs font-mono select-all focus:outline-none"
+                className="w-full sm:w-80 px-3.5 py-2 bg-[#1a1410] rounded-xl border border-[#382b20] text-[#f5ede4] text-xs font-mono select-all focus:outline-none"
               />
               <button
                 onClick={handleCopyLink}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 flex items-center gap-1.5 transition-all flex-shrink-0 active:scale-95"
+                className="px-4 py-2 rounded-xl bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md flex items-center gap-1.5 transition-all flex-shrink-0 active:scale-95"
               >
-                {copiedLink ? <Check className="w-4 h-4 text-emerald-300" /> : <Copy className="w-4 h-4" />}
+                {copiedLink ? <Check className="w-4 h-4 text-[#7ec29a]" /> : <Copy className="w-4 h-4 text-[#120e0a]" />}
                 <span>{copiedLink ? 'Skopiowano!' : 'Kopiuj link'}</span>
               </button>
             </div>
@@ -182,7 +182,7 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
             <div className="flex items-center justify-between pt-1">
               <button
                 onClick={onOpenClientPreview}
-                className="text-xs text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 transition-colors"
+                className="text-xs text-[#d99b5a] hover:text-[#f1c38e] font-medium flex items-center gap-1 transition-colors"
               >
                 <Eye className="w-3.5 h-3.5" />
                 <span>Zobacz jak wygląda oczami klienta →</span>
@@ -195,18 +195,18 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
       {/* Projects Management Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <ImageIcon className="w-5 h-5 text-indigo-400" />
+          <h3 className="text-lg font-light text-[#f5ede4] flex items-center gap-2">
+            <ImageIcon className="w-5 h-5 text-[#d99b5a]" />
             <span>Projekty w Portfolio ({projects.length})</span>
           </h3>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[#9e8f82]">
             Zarządzaj ujęciami i wizualizacjami, które pojawiają się na stronie klienta.
           </p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-semibold shadow-lg shadow-indigo-600/20 flex items-center gap-1.5 transition-all active:scale-95"
+          className="px-5 py-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md flex items-center gap-1.5 transition-all active:scale-95"
         >
           <Plus className="w-4 h-4" />
           <span>Dodaj projekt do portfolio</span>
@@ -218,18 +218,18 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
         {projects.map((project) => (
           <div
             key={project.id}
-            className="group rounded-3xl bg-slate-900/70 border border-slate-800 overflow-hidden hover:border-slate-700 transition-all shadow-xl flex flex-col justify-between"
+            className="group rounded-3xl glass-panel border border-[#2b211a] overflow-hidden hover:border-[#3d2f25] transition-all shadow-xl flex flex-col justify-between"
           >
             <div>
               {/* Thumbnail */}
-              <div className="relative aspect-[16/10] bg-slate-950 overflow-hidden">
+              <div className="relative aspect-[16/10] bg-[#140f0c] overflow-hidden">
                 <img
                   src={project.imageUrl}
                   alt={project.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute top-3 left-3">
-                  <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-950/80 backdrop-blur-md text-white border border-white/10">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-[#140f0c]/80 backdrop-blur-md text-[#f5ede4] border border-[#2e231c]">
                     {project.categoryLabel}
                   </span>
                 </div>
@@ -237,23 +237,23 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
 
               {/* Info */}
               <div className="p-4 space-y-2">
-                <h4 className="text-sm font-bold text-white truncate">
+                <h4 className="text-sm font-medium text-[#f5ede4] truncate">
                   {project.title}
                 </h4>
-                <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                <p className="text-xs text-[#9e8f82] line-clamp-2 leading-relaxed">
                   {project.description}
                 </p>
-                <div className="text-[11px] text-slate-500">
+                <div className="text-[11px] text-[#7a6b5e]">
                   {project.client} {project.year ? `• ${project.year}` : ''}
                 </div>
               </div>
             </div>
 
             {/* Actions Bar */}
-            <div className="p-4 pt-2 border-t border-slate-800/80 flex items-center justify-between">
+            <div className="p-4 pt-2 border-t border-[#2e231c] flex items-center justify-between">
               <div className="flex flex-wrap gap-1">
                 {project.tags.slice(0, 2).map((t, idx) => (
-                  <span key={idx} className="text-[10px] text-slate-400 bg-slate-800 px-2 py-0.5 rounded">
+                  <span key={idx} className="text-[10px] text-[#9e8f82] bg-[#1e1713] px-2 py-0.5 rounded-full border border-[#2e231c]">
                     {t}
                   </span>
                 ))}
@@ -262,14 +262,14 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleOpenEdit(project)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  className="p-1.5 rounded-lg text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-colors"
                   title="Edytuj"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(project.id)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                  className="p-1.5 rounded-lg text-[#9e8f82] hover:text-[#e07a68] hover:bg-[#251b14] transition-colors"
                   title="Usuń"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -282,19 +282,19 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
 
       {/* Add / Edit Project Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
+            className="w-full max-w-lg bg-[#18120e] border border-[#2e231c] rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-indigo-400" />
+            <div className="flex items-center justify-between pb-3 border-b border-[#2e231c]">
+              <h3 className="text-base font-light text-[#f5ede4] flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-[#d99b5a]" />
                 <span>{editingProject ? 'Edytuj projekt' : 'Nowy projekt w portfolio'}</span>
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white"
+                className="p-1.5 rounded-xl hover:bg-[#251b14] text-[#9e8f82] hover:text-[#f5ede4]"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -302,7 +302,7 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
 
             <form onSubmit={handleSubmit} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-medium text-[#c4b5a5] mb-1">
                   Tytuł projektu
                 </label>
                 <input
@@ -310,20 +310,20 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
                   placeholder="np. Apartament Modern Classic w Krakowie"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-slate-800 rounded-xl border border-slate-700 text-white text-xs focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2 bg-[#140f0c] rounded-xl border border-[#2e231c] text-[#f5ede4] text-xs focus:outline-none focus:border-[#d99b5a]"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-medium text-[#c4b5a5] mb-1">
                     Kategoria
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-800 rounded-xl border border-slate-700 text-white text-xs focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3 py-2 bg-[#140f0c] rounded-xl border border-[#2e231c] text-[#f5ede4] text-xs focus:outline-none focus:border-[#d99b5a]"
                   >
                     <option value="interiors">Wnętrza</option>
                     <option value="architecture">Architektura</option>
@@ -335,20 +335,20 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  <label className="block text-xs font-medium text-[#c4b5a5] mb-1">
                     Rok realizacji
                   </label>
                   <input
                     type="text"
                     value={year}
                     onChange={(e) => setYear(e.target.value)}
-                    className="w-full px-3.5 py-2 bg-slate-800 rounded-xl border border-slate-700 text-white text-xs focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2 bg-[#140f0c] rounded-xl border border-[#2e231c] text-[#f5ede4] text-xs focus:outline-none focus:border-[#d99b5a]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-medium text-[#c4b5a5] mb-1">
                   Adres URL zdjęcia / wizualizacji
                 </label>
                 <input
@@ -356,16 +356,16 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
                   placeholder="https://images.unsplash.com/... lub bezpośredni link"
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-slate-800 rounded-xl border border-slate-700 text-white text-xs focus:outline-none focus:border-indigo-500 font-mono"
+                  className="w-full px-3.5 py-2 bg-[#140f0c] rounded-xl border border-[#2e231c] text-[#f5ede4] text-xs focus:outline-none focus:border-[#d99b5a] font-mono"
                   required
                 />
-                <p className="text-[10px] text-slate-500 mt-1">
+                <p className="text-[10px] text-[#7a6b5e] mt-1">
                   Możesz użyć dowolnego linku ze strony, Dysku Google, Unsplash lub Twojego hostingu.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-medium text-[#c4b5a5] mb-1">
                   Klient / Miasto / Inwestycja
                 </label>
                 <input
@@ -373,12 +373,12 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
                   placeholder="np. Biuro Projektowe • Warszawa"
                   value={client}
                   onChange={(e) => setClient(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-slate-800 rounded-xl border border-slate-700 text-white text-xs focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2 bg-[#140f0c] rounded-xl border border-[#2e231c] text-[#f5ede4] text-xs focus:outline-none focus:border-[#d99b5a]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-medium text-[#c4b5a5] mb-1">
                   Opis realizacji
                 </label>
                 <textarea
@@ -386,12 +386,12 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
                   placeholder="Szczegóły: oświetlenie, materiały, stylistyka..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-slate-800 rounded-xl border border-slate-700 text-white text-xs focus:outline-none focus:border-indigo-500 resize-none"
+                  className="w-full px-3.5 py-2 bg-[#140f0c] rounded-xl border border-[#2e231c] text-[#f5ede4] text-xs focus:outline-none focus:border-[#d99b5a] resize-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-medium text-[#c4b5a5] mb-1">
                   Tagi (oddzielone przecinkami)
                 </label>
                 <input
@@ -399,21 +399,21 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
                   placeholder="np. 4K Render, Corona Renderer, 3ds Max"
                   value={tagsStr}
                   onChange={(e) => setTagsStr(e.target.value)}
-                  className="w-full px-3.5 py-2 bg-slate-800 rounded-xl border border-slate-700 text-white text-xs focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2 bg-[#140f0c] rounded-xl border border-[#2e231c] text-[#f5ede4] text-xs focus:outline-none focus:border-[#d99b5a]"
                 />
               </div>
 
-              <div className="pt-3 border-t border-slate-800 flex justify-end gap-2">
+              <div className="pt-3 border-t border-[#2e231c] flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs font-medium"
+                  className="px-4 py-2 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] text-xs font-medium"
                 >
                   Anuluj
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all active:scale-95"
+                  className="px-5 py-2 rounded-xl bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md transition-all active:scale-95"
                 >
                   {editingProject ? 'Zapisz zmiany' : 'Dodaj do portfolio'}
                 </button>

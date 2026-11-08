@@ -86,13 +86,13 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Month Navigator Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/80 p-5 rounded-3xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-panel p-6 rounded-3xl border border-[#2b211a] shadow-2xl">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-emerald-400" />
+          <h2 className="text-xl font-light text-[#f5ede4] flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-[#7ec29a]" />
             Finanse & Koszty — JC Studio
           </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-[#9e8f82] mt-0.5 font-light">
             Zarobki ze zleceń, koszty ZUS/podatków oraz dochód netto
           </p>
         </div>
@@ -100,26 +100,26 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrevMonth}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+            className="p-2 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="px-4 py-2 rounded-xl bg-slate-950 font-bold text-sm text-indigo-300 border border-slate-800 min-w-[170px] text-center">
+          <span className="px-5 py-2 rounded-full bg-[#1a1410] font-mono font-medium text-xs text-[#f5ede4] border border-[#2e231c] min-w-[170px] text-center shadow-inner">
             {MONTH_NAMES[currentMonth]} {currentYear}
           </span>
           <button
             onClick={handleNextMonth}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+            className="p-2 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
 
           <button
             onClick={() => window.print()}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium ml-2 transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#251b14] hover:bg-[#322319] text-[#9e8f82] hover:text-[#f5ede4] border border-[#382b20] text-xs font-medium ml-2 transition-colors"
             title="Drukuj raport miesięczny"
           >
-            <Printer className="w-4 h-4" />
+            <Printer className="w-3.5 h-3.5" />
             <span>Drukuj / PDF</span>
           </button>
         </div>
@@ -128,65 +128,61 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Zarobki (Opłacone) */}
-        <div className="bg-slate-900/90 border border-emerald-500/20 rounded-2xl p-4 shadow-lg flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs text-emerald-400 font-medium">
+        <div className="glass-panel border border-[#7ec29a]/30 rounded-3xl p-5 shadow-2xl flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs text-[#7ec29a] font-medium">
             <span>Zarobiono (Opłacone)</span>
             <TrendingUp className="w-4 h-4" />
           </div>
-          <div className="mt-2 text-2xl font-extrabold text-white">
+          <div className="mt-3 text-2xl sm:text-3xl font-light text-[#f5ede4] font-mono">
             {earnings.toLocaleString('pl-PL')} zł
           </div>
-          <div className="mt-1 text-[11px] text-slate-400">
+          <div className="mt-1 text-[11px] text-[#9e8f82]">
             {paidTasks.length} z {monthTasks.length} zleceń opłacone
           </div>
         </div>
 
         {/* W toku / Do opłacenia */}
-        <div className="bg-slate-900/90 border border-indigo-500/20 rounded-2xl p-4 shadow-lg flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs text-indigo-400 font-medium">
+        <div className="glass-panel border border-[#d99b5a]/30 rounded-3xl p-5 shadow-2xl flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs text-[#d99b5a] font-medium">
             <span>Oczekujące płatności</span>
             <FileText className="w-4 h-4" />
           </div>
-          <div className="mt-2 text-2xl font-extrabold text-white">
+          <div className="mt-3 text-2xl sm:text-3xl font-light text-[#f5ede4] font-mono">
             {pendingValue.toLocaleString('pl-PL')} zł
           </div>
-          <div className="mt-1 text-[11px] text-slate-400">
+          <div className="mt-1 text-[11px] text-[#9e8f82]">
             W toku lub do rozliczenia
           </div>
         </div>
 
         {/* Koszty miesięczne */}
-        <div className="bg-slate-900/90 border border-rose-500/20 rounded-2xl p-4 shadow-lg flex flex-col justify-between">
-          <div className="flex items-center justify-between text-xs text-rose-400 font-medium">
+        <div className="glass-panel border border-[#e07a68]/30 rounded-3xl p-5 shadow-2xl flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs text-[#e07a68] font-medium">
             <span>Koszty (ZUS + Podatek)</span>
             <TrendingDown className="w-4 h-4" />
           </div>
-          <div className="mt-2 text-2xl font-extrabold text-white">
+          <div className="mt-3 text-2xl sm:text-3xl font-light text-[#e07a68] font-mono">
             {totalCosts.toLocaleString('pl-PL')} zł
           </div>
-          <div className="mt-1 text-[11px] text-slate-400">
+          <div className="mt-1 text-[11px] text-[#9e8f82]">
             ZUS: {currentZus} zł | Podatek: {currentTax} zł
           </div>
         </div>
 
         {/* Dochód na czysto */}
-        <div className={`rounded-2xl p-4 shadow-lg flex flex-col justify-between border ${
-          netProfit >= 0
-            ? 'bg-emerald-950/30 border-emerald-500/30'
-            : 'bg-rose-950/30 border-rose-500/30'
-        }`}>
-          <div className="flex items-center justify-between text-xs font-semibold">
-            <span className={netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
-              Na czysto (Dochód)
+        <div className="glass-panel rounded-3xl p-5 shadow-2xl flex flex-col justify-between border border-[#2b211a]">
+          <div className="flex items-center justify-between text-xs font-medium">
+            <span className={netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'}>
+              Na czysto (Zysk)
             </span>
-            <span className="text-lg">💰</span>
+            <span className="text-base">💰</span>
           </div>
-          <div className={`mt-2 text-2xl font-black ${
-            netProfit >= 0 ? 'text-emerald-300' : 'text-rose-400'
+          <div className={`mt-3 text-2xl sm:text-3xl font-semibold font-mono ${
+            netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'
           }`}>
             {netProfit.toLocaleString('pl-PL')} zł
           </div>
-          <div className="mt-1 text-[11px] text-slate-400">
+          <div className="mt-1 text-[11px] text-[#9e8f82]">
             Po odliczeniu wszystkich kosztów
           </div>
         </div>
@@ -195,19 +191,19 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
       {/* Costs Configuration Form & Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Costs Input Box */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl md:col-span-1">
-          <h3 className="font-bold text-white text-sm mb-1 flex items-center gap-2">
-            <Receipt className="w-4 h-4 text-indigo-400" />
+        <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-2xl md:col-span-1">
+          <h3 className="font-medium text-[#f5ede4] text-sm mb-1 flex items-center gap-2">
+            <Receipt className="w-4 h-4 text-[#d99b5a]" />
             Koszty w tym miesiącu
           </h3>
-          <p className="text-xs text-slate-400 mb-4">
+          <p className="text-xs text-[#9e8f82] mb-4 font-light">
             Podaj stałe opłaty za ZUS i podatek
           </p>
 
-          <form onSubmit={handleSaveCosts} className="space-y-3.5">
+          <form onSubmit={handleSaveCosts} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-slate-400" />
+              <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1 flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-[#7a6b5e]" />
                 ZUS (zł)
               </label>
               <input
@@ -215,13 +211,13 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
                 min="0"
                 value={zusInput}
                 onChange={(e) => setZusInput(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800/80 rounded-xl border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 font-mono"
+                className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
-                <Receipt className="w-3.5 h-3.5 text-slate-400" />
+              <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1 flex items-center gap-1.5">
+                <Receipt className="w-3.5 h-3.5 text-[#7a6b5e]" />
                 Podatek (zł)
               </label>
               <input
@@ -229,13 +225,13 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
                 min="0"
                 value={taxInput}
                 onChange={(e) => setTaxInput(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-800/80 rounded-xl border border-slate-700 text-white text-sm focus:outline-none focus:border-indigo-500 font-mono"
+                className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm font-mono"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-lg shadow-indigo-600/20 transition-all active:scale-95"
+              className="w-full py-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-semibold shadow-md transition-all active:scale-95"
             >
               {isSavedNotice ? 'Zapisano pomyślnie ✓' : 'Zapisz koszty'}
             </button>
@@ -243,50 +239,42 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
         </div>
 
         {/* Month Orders Table */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-5 shadow-xl md:col-span-2">
-          <h3 className="font-bold text-white text-sm mb-1 flex items-center justify-between">
+        <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-2xl md:col-span-2">
+          <h3 className="font-medium text-[#f5ede4] text-sm mb-1 flex items-center justify-between">
             <span>Zlecenia w miesiącu: {MONTH_NAMES[currentMonth]} {currentYear}</span>
-            <span className="text-xs text-slate-400 font-normal">
-              Łączna wartość: <strong>{totalValue.toLocaleString('pl-PL')} zł</strong>
+            <span className="text-xs text-[#9e8f82] font-light">
+              Łączna wartość: <strong className="text-[#f5ede4] font-mono">{totalValue.toLocaleString('pl-PL')} zł</strong>
             </span>
           </h3>
-          <p className="text-xs text-slate-400 mb-4">
-            Lista wycenionych prac i ich status rozliczenia
+          <p className="text-xs text-[#9e8f82] mb-4 font-light">
+            Lista zleceń powiązanych z tym okresem rozliczeniowym
           </p>
 
-          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
             {monthTasks.length === 0 ? (
-              <div className="py-12 text-center text-xs text-slate-500">
-                Brak zarejestrowanych zleceń w wybranym miesiącu.
+              <div className="h-32 flex flex-col items-center justify-center border border-dashed border-[#2e231c] rounded-2xl text-xs text-[#7a6b5e] text-center p-3">
+                Brak zleceń w wybranym miesiącu
               </div>
             ) : (
               monthTasks.map((t) => (
                 <div
                   key={t.id}
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-950/40 border border-slate-800/80 hover:border-slate-700 transition-colors text-xs"
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-[#140f0c]/60 border border-[#251b14] hover:border-[#382b20] transition-colors"
                 >
-                  <div className="min-w-0 flex-1 pr-3">
-                    <div className="font-semibold text-slate-200 truncate">{t.title}</div>
-                    <div className="text-[11px] text-slate-400 mt-0.5">
-                      {t.dueDate ? `Termin: ${t.dueDate}` : 'Bez terminu'}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 flex-shrink-0">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${
-                        t.status === 'paid'
-                          ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
-                          : t.status === 'done'
-                          ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                          : 'bg-amber-500/10 text-amber-300 border-amber-500/30'
-                      }`}
-                    >
-                      {t.status === 'paid' ? 'Opłacone ✓' : t.status === 'done' ? 'Gotowe' : 'W toku'}
+                  <div>
+                    <span className="text-sm font-medium text-[#f5ede4] block">
+                      {t.title}
                     </span>
-
-                    <span className="font-mono font-bold text-white min-w-[70px] text-right">
-                      {t.price !== undefined ? `${t.price.toLocaleString('pl-PL')} zł` : '—'}
+                    <span className="text-[11px] text-[#9e8f82]">
+                      Termin: {t.dueDate || 'brak'} • Status: {t.status === 'paid' ? 'Opłacone' : t.status === 'done' ? 'Gotowe' : 'W toku'}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-mono font-medium text-[#f5ede4] block">
+                      {t.price ? `${t.price.toLocaleString('pl-PL')} zł` : '—'}
+                    </span>
+                    <span className={`text-[10px] font-mono uppercase ${t.status === 'paid' ? 'text-[#7ec29a]' : 'text-[#d99b5a]'}`}>
+                      {t.status === 'paid' ? 'Opłacone' : 'Oczekuje'}
                     </span>
                   </div>
                 </div>

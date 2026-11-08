@@ -264,13 +264,13 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
   return (
     <div className="mb-6 relative">
       {/* Main AI Bar */}
-      <div className="bg-slate-900/90 border border-indigo-500/30 rounded-2xl p-2.5 sm:p-3 shadow-xl backdrop-blur-md flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+      <div className="glass-panel border border-[#2b211a] rounded-3xl p-3 sm:p-3.5 shadow-2xl flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
         {/* Left AI Badge / Voice Status */}
         <div className="flex items-center gap-2 px-1">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/25">
+          <div className="w-8 h-8 rounded-xl bg-[#251b14] border border-[#382b20] flex items-center justify-center text-[#d99b5a] shadow-inner">
             <Sparkles className="w-4 h-4" />
           </div>
-          <span className="text-xs font-bold text-white hidden md:inline">
+          <span className="text-xs font-medium text-[#f5ede4] hidden md:inline">
             Asystent JC Studio
           </span>
         </div>
@@ -290,17 +290,17 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               disabled={isLoading}
-              className="w-full pl-3.5 pr-9 py-2 bg-slate-950/60 rounded-xl border border-slate-800 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full pl-4 pr-10 py-2.5 rounded-2xl glass-input text-xs sm:text-sm placeholder-[#7a6b5e] transition-all"
             />
 
             {/* Mic Button */}
             <button
               type="button"
               onClick={toggleMic}
-              className={`absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-all ${
+              className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-xl transition-all ${
                 isListening
-                  ? 'bg-rose-500 text-white animate-pulse'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  ? 'bg-[#e07a68] text-white animate-pulse'
+                  : 'text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14]'
               }`}
               title={isListening ? 'Słucham... kliknij aby zatrzymać' : 'Naciśnij i mów do mikrofonu'}
             >
@@ -312,9 +312,9 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
           <button
             type="submit"
             disabled={isLoading || !inputText.trim()}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all active:scale-95 flex-shrink-0"
+            className="px-5 py-2.5 rounded-full bg-[#f5ede4] hover:bg-white disabled:opacity-40 text-[#120e0a] text-xs font-semibold shadow-md flex items-center gap-1.5 transition-all active:scale-95 flex-shrink-0"
           >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin text-[#120e0a]" /> : <Send className="w-4 h-4 text-[#120e0a]" />}
             <span className="hidden sm:inline">Wyślij</span>
           </button>
         </form>
@@ -325,7 +325,7 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
             type="button"
             onClick={() => setVoiceEnabled(!voiceEnabled)}
             className={`p-2 rounded-xl text-xs transition-colors ${
-              voiceEnabled ? 'bg-indigo-600/20 text-indigo-300' : 'bg-slate-800 text-slate-500'
+              voiceEnabled ? 'bg-[#251b14] text-[#d99b5a] border border-[#382b20]' : 'text-[#7a6b5e] hover:bg-[#251b14]'
             }`}
             title={voiceEnabled ? 'Odpowiedzi głosowe włączone' : 'Odpowiedzi głosowe wyciszone'}
           >
@@ -335,10 +335,10 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
           <button
             type="button"
             onClick={() => setShowSettings(!showSettings)}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+            className="p-2 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-colors"
             title="Ustawienia klucza API"
           >
-            <Key className="w-4 h-4 text-amber-400" />
+            <Key className="w-4 h-4 text-[#d99b5a]" />
           </button>
         </div>
       </div>

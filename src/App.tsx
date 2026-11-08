@@ -561,7 +561,7 @@ export function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 font-sans text-slate-100">
+    <div className="flex h-screen w-screen overflow-hidden bg-[#0c0907] font-sans text-[#f5ede4] relative selection:bg-[#d99b5a]/35 selection:text-[#f5ede4]">
       <input
         type="file"
         ref={fileInputRef}
@@ -570,7 +570,7 @@ export function App() {
         className="hidden"
       />
 
-      {/* Desktop Sidebar */}
+      {/* Floating Vertical Capsule Dock (Kindra style) */}
       <Sidebar
         currentView={currentView}
         onViewChange={setCurrentView}
@@ -582,37 +582,42 @@ export function App() {
         onOpenPhoneModal={() => setIsPhoneModalOpen(true)}
         onExportData={handleExportData}
         onImportData={() => fileInputRef.current?.click()}
+        onOpenNewTaskModal={() => handleOpenNew('in_progress')}
+        onToggleSearch={() => {
+          const el = document.querySelector('input[placeholder*="Szukaj"]') as HTMLInputElement;
+          el?.focus();
+        }}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-full overflow-y-auto pb-24 md:pb-8">
+      {/* Main Content Area with offset for the floating dock */}
+      <main className="flex-1 flex flex-col h-full overflow-y-auto pb-24 md:pb-8 md:pl-[84px]">
         <div className="max-w-6xl w-full mx-auto p-3 sm:p-6 lg:p-8">
-          {/* Cloud Sync Status Indicator */}
-          <div className="flex items-center justify-between mb-3 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs">
+          {/* Cloud Sync Status Indicator Pill */}
+          <div className="flex items-center justify-between mb-4 px-4 py-2 rounded-full glass-pill text-xs">
             <div className="flex items-center gap-2">
               {isSupabaseConfigured ? (
                 cloudSynced ? (
                   <>
-                    <Cloud className="w-4 h-4 text-emerald-400" />
-                    <span className="text-emerald-300 font-medium">Chmura aktywna</span>
-                    <span className="text-slate-500 hidden sm:inline">• Synchronizacja PC & Telefon na żywo</span>
+                    <Cloud className="w-4 h-4 text-[#7ec29a]" />
+                    <span className="text-[#9ee2b9] font-medium">Chmura aktywna</span>
+                    <span className="text-[#7a6b5e] hidden sm:inline">• Synchronizacja PC & Telefon na żywo</span>
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="w-4 h-4 text-amber-400 animate-spin" />
-                    <span className="text-amber-300 font-medium">Łączenie z bazą Supabase...</span>
+                    <RefreshCw className="w-4 h-4 text-[#d99b5a] animate-spin" />
+                    <span className="text-[#f1c38e] font-medium">Łączenie z bazą Supabase...</span>
                   </>
                 )
               ) : (
                 <>
-                  <CloudOff className="w-4 h-4 text-slate-400" />
-                  <span className="text-slate-400">Pamięć lokalna (Offline)</span>
+                  <CloudOff className="w-4 h-4 text-[#7a6b5e]" />
+                  <span className="text-[#9e8f82]">Pamięć lokalna (Offline)</span>
                 </>
               )}
             </div>
 
             {isSyncing && (
-              <span className="text-[11px] text-indigo-400 animate-pulse font-medium">
+              <span className="text-[11px] text-[#d99b5a] animate-pulse font-medium">
                 Aktualizowanie...
               </span>
             )}
@@ -631,6 +636,7 @@ export function App() {
 
           <Header
             currentView={currentView}
+            onViewChange={setCurrentView}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onOpenNewTaskModal={() => handleOpenNew('in_progress')}
@@ -638,6 +644,9 @@ export function App() {
             onOpenPhoneModal={() => setIsPhoneModalOpen(true)}
             completedTodayCount={completedToday}
             totalTodayCount={todayTasks.length}
+            todayCount={todayTasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
+            totalCount={tasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
+            monthlyRevenue={monthlyPaid}
           />
 
           {/* Interactive Financial & Order Status KPI Boxes */}
@@ -658,36 +667,36 @@ export function App() {
 
           {/* Filter Pills for Task list */}
           {currentView === 'all' && (
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-2 border-b border-slate-800/60">
-              <div className="flex items-center gap-1.5 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-3 border-b border-[#2e231c]">
+              <div className="flex items-center gap-1 glass-pill p-1 rounded-full border border-[#2e231c] text-xs">
                 <button
                   onClick={() => setStatusFilter('all')}
-                  className={`px-3 py-1 rounded-lg transition-colors ${
-                    statusFilter === 'all' ? 'bg-indigo-600 text-white font-medium' : 'text-slate-400 hover:text-white'
+                  className={`px-3 py-1 rounded-full transition-all ${
+                    statusFilter === 'all' ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm' : 'text-[#9e8f82] hover:text-[#f5ede4]'
                   }`}
                 >
                   Wszystkie
                 </button>
                 <button
                   onClick={() => setStatusFilter('in_progress')}
-                  className={`px-3 py-1 rounded-lg transition-colors ${
-                    statusFilter === 'in_progress' ? 'bg-indigo-600 text-white font-medium' : 'text-slate-400 hover:text-white'
+                  className={`px-3 py-1 rounded-full transition-all ${
+                    statusFilter === 'in_progress' ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm' : 'text-[#9e8f82] hover:text-[#f5ede4]'
                   }`}
                 >
                   W toku
                 </button>
                 <button
                   onClick={() => setStatusFilter('done')}
-                  className={`px-3 py-1 rounded-lg transition-colors ${
-                    statusFilter === 'done' ? 'bg-indigo-600 text-white font-medium' : 'text-slate-400 hover:text-white'
+                  className={`px-3 py-1 rounded-full transition-all ${
+                    statusFilter === 'done' ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm' : 'text-[#9e8f82] hover:text-[#f5ede4]'
                   }`}
                 >
                   Gotowe
                 </button>
                 <button
                   onClick={() => setStatusFilter('paid')}
-                  className={`px-3 py-1 rounded-lg transition-colors ${
-                    statusFilter === 'paid' ? 'bg-indigo-600 text-white font-medium' : 'text-slate-400 hover:text-white'
+                  className={`px-3 py-1 rounded-full transition-all ${
+                    statusFilter === 'paid' ? 'bg-[#f5ede4] text-[#120e0a] font-medium shadow-sm' : 'text-[#9e8f82] hover:text-[#f5ede4]'
                   }`}
                 >
                   Opłacone
@@ -699,8 +708,8 @@ export function App() {
                   onClick={() => setSelectedCategory(null)}
                   className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
                     selectedCategory === null
-                      ? 'bg-slate-200 text-slate-950 border-white font-semibold shadow-sm'
-                      : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white hover:bg-slate-800'
+                      ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
+                      : 'glass-pill text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4] hover:bg-[#251b14]'
                   }`}
                 >
                   Wszystkie
@@ -713,8 +722,8 @@ export function App() {
                       onClick={() => setSelectedCategory(isSelected ? null : cat.id)}
                       className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
                         isSelected
-                          ? 'bg-slate-200 text-slate-950 border-white font-semibold shadow-sm'
-                          : `${cat.color} opacity-80 hover:opacity-100`
+                          ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
+                          : `${cat.color} hover:opacity-100`
                       }`}
                     >
                       {cat.name}

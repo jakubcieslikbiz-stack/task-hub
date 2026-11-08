@@ -55,33 +55,33 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
   return (
     <div className="space-y-4">
       {/* Header and Week Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 glass-panel p-5 rounded-3xl border border-[#2b211a] shadow-2xl">
         <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Clock className="w-5 h-5 text-indigo-400" />
+          <h2 className="text-lg font-medium text-[#f5ede4] flex items-center gap-2">
+            <Clock className="w-5 h-5 text-[#d99b5a]" />
             Timeline tygodnia (JC Studio)
           </h2>
-          <p className="text-xs text-slate-400">
-            Wizualny harmonogram zleceń i deadline'ów na dany tydzień
+          <p className="text-xs text-[#9e8f82] font-light">
+            Wizualny harmonogram zleceń i deadline'ów na poszczególne dni
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setWeekOffset((prev) => prev - 1)}
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+            className="p-2 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-colors"
             title="Poprzedni tydzień"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
 
-          <span className="px-3 py-1.5 rounded-xl bg-slate-950 font-medium text-xs text-indigo-300 border border-slate-800 min-w-[140px] text-center">
+          <span className="px-4 py-1.5 rounded-full bg-[#1a1410] font-mono text-xs text-[#f5ede4] border border-[#2e231c] min-w-[150px] text-center shadow-inner">
             {weekLabel}
           </span>
 
           <button
             onClick={() => setWeekOffset((prev) => prev + 1)}
-            className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+            className="p-2 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-colors"
             title="Następny tydzień"
           >
             <ChevronRight className="w-5 h-5" />
@@ -90,7 +90,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
           {weekOffset !== 0 && (
             <button
               onClick={() => setWeekOffset(0)}
-              className="text-xs text-slate-400 hover:text-white px-2 py-1 rounded-lg border border-slate-800 ml-1"
+              className="text-xs text-[#9e8f82] hover:text-[#f5ede4] px-3 py-1 rounded-full border border-[#2e231c] ml-1 transition-colors"
             >
               Bieżący
             </button>
@@ -99,26 +99,26 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
       </div>
 
       {/* Timeline Gantt Chart Table */}
-      <div className="bg-slate-900/80 rounded-3xl border border-slate-800 overflow-hidden shadow-xl">
+      <div className="glass-panel rounded-3xl border border-[#2b211a] overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
-          <div className="min-w-[700px] p-4">
+          <div className="min-w-[700px] p-5">
             {/* Header row: Days */}
-            <div className="grid grid-cols-8 gap-2 pb-3 border-b border-slate-800/80 text-center font-medium text-xs">
-              <div className="text-left pl-2 text-slate-400">Zlecenie / Zadanie</div>
+            <div className="grid grid-cols-8 gap-2 pb-3 border-b border-[#2e231c] text-center font-medium text-xs">
+              <div className="text-left pl-2 text-[#9e8f82] font-mono uppercase text-[10px]">Zlecenie / Zadanie</div>
               {days.map((d, i) => {
                 const ds = d.toISOString().split('T')[0];
                 const isToday = ds === todayStr;
                 return (
                   <div
                     key={i}
-                    className={`py-1.5 rounded-xl flex flex-col items-center justify-center ${
+                    className={`py-2 rounded-2xl flex flex-col items-center justify-center transition-all ${
                       isToday
-                        ? 'bg-indigo-600/20 text-indigo-400 font-bold border border-indigo-500/30'
-                        : 'text-slate-400'
+                        ? 'bg-[#d99b5a]/20 text-[#f1c38e] font-semibold border border-[#d99b5a]/40'
+                        : 'text-[#9e8f82]'
                     }`}
                   >
-                    <span>{DAY_NAMES[i]}</span>
-                    <span className={`text-sm mt-0.5 ${isToday ? 'text-white font-extrabold' : 'text-slate-300'}`}>
+                    <span className="text-[10px] uppercase font-mono">{DAY_NAMES[i]}</span>
+                    <span className={`text-sm mt-0.5 font-mono ${isToday ? 'text-[#f5ede4] font-bold' : 'text-[#f5ede4]'}`}>
                       {d.getDate()}
                     </span>
                   </div>
@@ -128,11 +128,11 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
 
             {/* Rows: Tasks */}
             {relevantTasks.length === 0 ? (
-              <div className="py-16 text-center text-xs text-slate-500">
+              <div className="py-16 text-center text-xs text-[#7a6b5e]">
                 Brak zaplanowanych zleceń w tym tygodniu.
               </div>
             ) : (
-              <div className="divide-y divide-slate-800/50">
+              <div className="divide-y divide-[#2e231c]/50">
                 {relevantTasks.map((task) => {
                   const start = task.startDate || task.createdAt.slice(0, 10) || task.dueDate || '';
                   const end = task.dueDate || start;
@@ -144,57 +144,45 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
                     <div
                       key={task.id}
                       onClick={() => onEditTask(task)}
-                      className="grid grid-cols-8 gap-2 py-3.5 items-center hover:bg-slate-800/40 rounded-xl transition-colors cursor-pointer group"
+                      className="grid grid-cols-8 gap-2 py-3.5 items-center hover:bg-[#251b14]/50 rounded-2xl transition-colors cursor-pointer group"
                     >
                       {/* Task Name & Price */}
                       <div className="pl-2 pr-2 truncate">
-                        <div className="text-xs font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors truncate">
+                        <div className={`text-xs font-medium truncate ${isPaid ? 'text-[#7ec29a]' : isDone ? 'text-[#7a6b5e] line-through' : 'text-[#f5ede4]'}`}>
                           {task.title}
                         </div>
-                        {task.price !== undefined && (
-                          <div className="text-[11px] text-emerald-400 font-medium">
-                            {task.price} zł
+                        {task.price && (
+                          <div className="text-[10px] font-mono text-[#7ec29a]">
+                            {task.price.toLocaleString('pl-PL')} zł
                           </div>
                         )}
                       </div>
 
-                      {/* 7 Day Cells */}
+                      {/* 7 Day Slots for Gantt Bar */}
                       {days.map((d, i) => {
-                        const ds = d.toISOString().split('T')[0];
-                        const inRange = start && end && ds >= start && ds <= end;
-                        const isStart = start === ds;
-                        const isEnd = end === ds;
-                        const isDeadline = task.dueDate === ds;
+                        const dayStr = d.toISOString().split('T')[0];
+                        const isInRange = dayStr >= start && dayStr <= end;
+                        const isStartDay = dayStr === start;
+                        const isEndDay = dayStr === end;
 
                         return (
-                          <div
-                            key={i}
-                            className="h-9 flex items-center justify-center relative"
-                          >
-                            {inRange && (
+                          <div key={i} className="h-7 flex items-center justify-center relative">
+                            {isInRange && (
                               <div
-                                className={`w-full h-6 transition-all flex items-center justify-center px-1 text-[10px] font-medium text-white shadow-sm ${
+                                className={`h-4 w-full flex items-center justify-center text-[10px] font-bold transition-all ${
                                   isPaid
-                                    ? 'bg-purple-600/80 hover:bg-purple-600'
+                                    ? 'bg-[#7ec29a] text-[#120e0a]'
                                     : isDone
-                                    ? 'bg-emerald-600/80 hover:bg-emerald-600'
-                                    : 'bg-indigo-600/80 hover:bg-indigo-600'
-                                } ${isStart && isEnd ? 'rounded-xl' : isStart ? 'rounded-l-xl' : isEnd ? 'rounded-r-xl' : ''}`}
-                                title={`${task.title} (${start} do ${end})`}
+                                    ? 'bg-[#5c4738] text-[#ebdcd0]'
+                                    : 'bg-[#f5ede4] text-[#120e0a]'
+                                } ${isStartDay ? 'rounded-l-full' : ''} ${isEndDay ? 'rounded-r-full' : ''}`}
                               >
-                                {isStart && (
-                                  <span className="truncate max-w-[50px]">
-                                    {task.title.split(' ')[0]}
+                                {isEndDay && (
+                                  <span className="truncate px-1 text-[9px] font-mono">
+                                    {isPaid ? '✓ Opłacone' : isDone ? '✓ Gotowe' : 'W toku'}
                                   </span>
                                 )}
                               </div>
-                            )}
-
-                            {isDeadline && (
-                              <span
-                                className="absolute right-1 top-1 w-2 h-2 rounded-full bg-rose-400 ring-2 ring-slate-900"
-                                title={`Termin: ${task.dueDate}`}
-                              />
                             )}
                           </div>
                         );

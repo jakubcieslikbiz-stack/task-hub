@@ -392,29 +392,29 @@ export const ImageConverterView: React.FC = () => {
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Top Banner & Features */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-950/40 via-slate-900 to-indigo-950/40 border border-purple-500/30 p-6 sm:p-7 shadow-2xl backdrop-blur-md">
+      <div className="relative overflow-hidden rounded-3xl glass-panel border border-[#2b211a] p-6 sm:p-7 shadow-2xl">
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30 mb-2.5">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30 mb-2.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#d99b5a]" />
               <span>100% Bezpieczna Konwersja Offline</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+            <h2 className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight flex items-center gap-2">
               Błyskawiczny Konwerter & Kompresor Grafiki
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+            <p className="text-xs sm:text-sm text-[#9e8f82] mt-1 max-w-xl">
               Konwertuj pliki PNG, JPG, WEBP, SVG, GIF, BMP i ICO lokalnie w przeglądarce. Zero limitów, pełna prywatność, żadnych plików wysyłanych na serwery.
             </p>
           </div>
 
           {/* Quick Badges */}
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <span className="px-3 py-1.5 rounded-full bg-[#18120e] border border-[#2e231c] text-[#c4b5a5] flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-[#d99b5a]" />
               Wklejanie ze schowka (Ctrl + V)
             </span>
-            <span className="px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 flex items-center gap-1.5">
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="px-3 py-1.5 rounded-full bg-[#18120e] border border-[#2e231c] text-[#7ec29a] flex items-center gap-1.5">
+              <Check className="w-3.5 h-3.5 text-[#7ec29a]" />
               Wielowątkowy batch
             </span>
           </div>
@@ -422,15 +422,15 @@ export const ImageConverterView: React.FC = () => {
       </div>
 
       {/* Global Control Bar */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl backdrop-blur-md space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800/60">
+      <div className="glass-panel border border-[#2b211a] rounded-3xl p-5 shadow-xl space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#2e231c]">
           <div className="flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-indigo-400" />
-            <span className="text-sm font-bold text-white">Ustawienia konwersji dla kolejki</span>
+            <Sliders className="w-4 h-4 text-[#d99b5a]" />
+            <span className="text-sm font-medium text-[#f5ede4]">Ustawienia konwersji dla kolejki</span>
           </div>
           {items.length > 0 && (
-            <span className="text-xs text-slate-400">
-              W kolejce: <strong className="text-white">{items.length}</strong> {items.length === 1 ? 'plik' : 'plików'} ({formatBytes(totalOriginalBytes)})
+            <span className="text-xs text-[#9e8f82]">
+              W kolejce: <strong className="text-[#f5ede4]">{items.length}</strong> {items.length === 1 ? 'plik' : 'plików'} ({formatBytes(totalOriginalBytes)})
             </span>
           )}
         </div>
@@ -438,8 +438,8 @@ export const ImageConverterView: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Format Docelowy */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <FileImage className="w-3.5 h-3.5 text-purple-400" />
+            <label className="block text-xs font-medium text-[#c4b5a5] mb-1.5 flex items-center gap-1.5">
+              <FileImage className="w-3.5 h-3.5 text-[#d99b5a]" />
               Format wyjściowy
             </label>
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-1.5">
@@ -447,17 +447,17 @@ export const ImageConverterView: React.FC = () => {
                 <button
                   key={fmt}
                   onClick={() => handleGlobalFormatChange(fmt)}
-                  className={`py-2 px-1.5 rounded-xl text-xs font-bold border transition-all ${
+                  className={`py-2 px-1.5 rounded-xl text-xs font-medium border transition-all ${
                     globalFormat === fmt
-                      ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-600/30'
-                      : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-700'
+                      ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] shadow-sm font-semibold'
+                      : 'bg-[#140f0c] text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4] hover:bg-[#1f1712]'
                   }`}
                 >
                   {fmt.toUpperCase()}
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5">
+            <p className="text-[11px] text-[#7a6b5e] mt-1.5">
               {FORMAT_CONFIG[globalFormat].desc}
             </p>
           </div>
@@ -465,11 +465,11 @@ export const ImageConverterView: React.FC = () => {
           {/* Quality Slider (for JPG and WEBP) */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <Sliders className="w-3.5 h-3.5 text-indigo-400" />
+              <label className="text-xs font-medium text-[#c4b5a5] flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-[#d99b5a]" />
                 Jakość kompresji
               </label>
-              <span className="text-xs font-mono font-bold text-indigo-400">
+              <span className="text-xs font-mono font-medium text-[#d99b5a]">
                 {FORMAT_CONFIG[globalFormat].supportsQuality ? `${globalQuality}%` : 'Bezstratna'}
               </span>
             </div>
@@ -481,9 +481,9 @@ export const ImageConverterView: React.FC = () => {
               disabled={!FORMAT_CONFIG[globalFormat].supportsQuality}
               value={globalQuality}
               onChange={(e) => handleGlobalQualityChange(Number(e.target.value))}
-              className="w-full accent-indigo-500 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-full accent-[#d99b5a] cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             />
-            <p className="text-[11px] text-slate-500 mt-1">
+            <p className="text-[11px] text-[#7a6b5e] mt-1">
               {FORMAT_CONFIG[globalFormat].supportsQuality
                 ? '90% = wzorowy balans wagi i ostrości dla JC Studio'
                 : 'Format PNG/BMP zapisuje obraz bez kompresji stratnej'}
@@ -492,8 +492,8 @@ export const ImageConverterView: React.FC = () => {
 
           {/* Scaling / Dimensions */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <Maximize2 className="w-3.5 h-3.5 text-emerald-400" />
+            <label className="block text-xs font-medium text-[#c4b5a5] mb-1.5 flex items-center gap-1.5">
+              <Maximize2 className="w-3.5 h-3.5 text-[#7ec29a]" />
               Skalowanie wymiarów
             </label>
             <div className="grid grid-cols-4 gap-1.5">
@@ -506,52 +506,52 @@ export const ImageConverterView: React.FC = () => {
                 <button
                   key={s.val}
                   onClick={() => handleGlobalScaleChange(s.val)}
-                  className={`py-2 px-1 rounded-xl text-xs font-bold border transition-all ${
+                  className={`py-2 px-1 rounded-xl text-xs font-medium border transition-all ${
                     globalScale === s.val
-                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/30'
-                      : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white hover:bg-slate-700'
+                      ? 'bg-[#7ec29a] text-[#120e0a] border-[#7ec29a] shadow-sm font-semibold'
+                      : 'bg-[#140f0c] text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4] hover:bg-[#1f1712]'
                   }`}
                 >
                   {s.label}
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5">
+            <p className="text-[11px] text-[#7a6b5e] mt-1.5">
               Zmniejsz wymiary w pikselach, aby zaoszczędzić jeszcze więcej MB
             </p>
           </div>
 
           {/* Tło dla JPG (White / Black) */}
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-amber-400" />
+            <label className="block text-xs font-medium text-[#c4b5a5] mb-1.5 flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-[#d99b5a]" />
               Tło dla przezroczystości (JPG)
             </label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setBgForJpg('white')}
-                className={`py-2 px-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                className={`py-2 px-2 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition-all ${
                   bgForJpg === 'white'
-                    ? 'bg-slate-700 text-white border-indigo-500 shadow-md'
-                    : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                    ? 'bg-[#251b14] text-[#f5ede4] border-[#d99b5a] shadow-sm'
+                    : 'bg-[#140f0c] text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4]'
                 }`}
               >
-                <span className="w-3 h-3 rounded-full bg-white border border-slate-400" />
+                <span className="w-3 h-3 rounded-full bg-white border border-stone-400" />
                 Białe tło
               </button>
               <button
                 onClick={() => setBgForJpg('black')}
-                className={`py-2 px-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all ${
+                className={`py-2 px-2 rounded-xl text-xs font-medium border flex items-center justify-center gap-1.5 transition-all ${
                   bgForJpg === 'black'
-                    ? 'bg-slate-700 text-white border-indigo-500 shadow-md'
-                    : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                    ? 'bg-[#251b14] text-[#f5ede4] border-[#d99b5a] shadow-sm'
+                    : 'bg-[#140f0c] text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4]'
                 }`}
               >
-                <span className="w-3 h-3 rounded-full bg-black border border-slate-600" />
+                <span className="w-3 h-3 rounded-full bg-black border border-stone-600" />
                 Czarne tło
               </button>
             </div>
-            <p className="text-[11px] text-slate-500 mt-1.5">
+            <p className="text-[11px] text-[#7a6b5e] mt-1.5">
               Zabezpiecza przed czarnym tłem po konwersji przezroczystych PNG
             </p>
           </div>
@@ -566,8 +566,8 @@ export const ImageConverterView: React.FC = () => {
         onClick={() => fileInputRef.current?.click()}
         className={`relative border-2 border-dashed rounded-3xl p-8 sm:p-12 text-center cursor-pointer transition-all duration-200 group ${
           isDragging
-            ? 'border-purple-400 bg-purple-950/20 scale-[0.99] shadow-2xl shadow-purple-500/20'
-            : 'border-slate-800 hover:border-purple-500/60 bg-slate-900/40 hover:bg-slate-900/80'
+            ? 'border-[#d99b5a] bg-[#d99b5a]/10 scale-[0.99] shadow-2xl'
+            : 'border-[#2e231c] hover:border-[#d99b5a]/50 bg-[#140f0c]/60 hover:bg-[#18120e]'
         }`}
       >
         <input
@@ -583,29 +583,29 @@ export const ImageConverterView: React.FC = () => {
         />
 
         <div className="flex flex-col items-center justify-center max-w-md mx-auto">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white mb-4 shadow-xl shadow-purple-500/25 group-hover:scale-110 transition-transform">
+          <div className="w-16 h-16 rounded-3xl bg-[#251b14] border border-[#382b20] flex items-center justify-center text-[#d99b5a] mb-4 shadow-xl group-hover:scale-110 transition-transform">
             <UploadCloud className="w-8 h-8" />
           </div>
 
-          <h3 className="text-base sm:text-lg font-bold text-white mb-1">
+          <h3 className="text-base sm:text-lg font-light text-[#f5ede4] mb-1">
             Przeciągnij i upuść pliki graficzne tutaj
           </h3>
-          <p className="text-xs sm:text-sm text-slate-400 mb-4">
+          <p className="text-xs sm:text-sm text-[#9e8f82] mb-4 font-light">
             lub kliknij, aby wybrać z dysku komputera lub telefonu
           </p>
 
-          <div className="flex flex-wrap items-center justify-center gap-1.5 text-[11px] text-slate-500">
-            <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">PNG</span>
-            <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">JPG</span>
-            <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">WEBP</span>
-            <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">SVG</span>
-            <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">GIF</span>
-            <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">BMP</span>
-            <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">ICO</span>
+          <div className="flex flex-wrap items-center justify-center gap-1.5 text-[11px] text-[#7a6b5e]">
+            <span className="px-2 py-0.5 rounded bg-[#1e1713] border border-[#2e231c]">PNG</span>
+            <span className="px-2 py-0.5 rounded bg-[#1e1713] border border-[#2e231c]">JPG</span>
+            <span className="px-2 py-0.5 rounded bg-[#1e1713] border border-[#2e231c]">WEBP</span>
+            <span className="px-2 py-0.5 rounded bg-[#1e1713] border border-[#2e231c]">SVG</span>
+            <span className="px-2 py-0.5 rounded bg-[#1e1713] border border-[#2e231c]">GIF</span>
+            <span className="px-2 py-0.5 rounded bg-[#1e1713] border border-[#2e231c]">BMP</span>
+            <span className="px-2 py-0.5 rounded bg-[#1e1713] border border-[#2e231c]">ICO</span>
           </div>
 
-          <p className="text-[11px] text-indigo-400/80 mt-3">
-            💡 Wskazówka: możesz też wcisnąć <strong>Ctrl + V</strong> w dowolnym miejscu, aby wkleić zrzut ekranu!
+          <p className="text-[11px] text-[#d99b5a]/80 mt-3 font-light">
+            💡 Wskazówka: możesz też wcisnąć <strong className="text-[#f5ede4]">Ctrl + V</strong> w dowolnym miejscu, aby wkleić zrzut ekranu!
           </p>
         </div>
       </div>
@@ -614,13 +614,13 @@ export const ImageConverterView: React.FC = () => {
       {items.length > 0 && (
         <div className="space-y-4">
           {/* Batch Actions Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 glass-panel border border-[#2b211a] rounded-2xl p-3.5 sm:p-4 shadow-lg">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-white">
+              <span className="text-xs font-medium text-[#f5ede4]">
                 Kolejka ({items.length})
               </span>
               {savingsPercent > 0 && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#7ec29a]/15 text-[#7ec29a] border border-[#7ec29a]/30">
                   ⚡ Oszczędność: -{savingsPercent}% ({formatBytes(savedBytes)})
                 </span>
               )}
@@ -630,7 +630,7 @@ export const ImageConverterView: React.FC = () => {
               <button
                 onClick={handleConvertAll}
                 disabled={isConvertingAll || items.every((it) => it.status === 'done')}
-                className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white text-xs font-semibold shadow-md shadow-purple-600/30 flex items-center gap-1.5 transition-all active:scale-95"
+                className="px-4 py-2 rounded-xl bg-[#f5ede4] hover:bg-white disabled:opacity-40 text-[#120e0a] text-xs font-medium shadow-md flex items-center gap-1.5 transition-all active:scale-95"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isConvertingAll ? 'animate-spin' : ''}`} />
                 <span>{isConvertingAll ? 'Konwertowanie...' : 'Konwertuj wszystkie'}</span>
@@ -639,7 +639,7 @@ export const ImageConverterView: React.FC = () => {
               {items.some((it) => it.status === 'done') && (
                 <button
                   onClick={handleDownloadAll}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/30 flex items-center gap-1.5 transition-all active:scale-95"
+                  className="px-4 py-2 rounded-xl bg-[#7ec29a] hover:bg-[#9ee2b9] text-[#120e0a] text-xs font-medium shadow-md flex items-center gap-1.5 transition-all active:scale-95"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Pobierz wszystkie</span>
@@ -648,7 +648,7 @@ export const ImageConverterView: React.FC = () => {
 
               <button
                 onClick={handleClearAll}
-                className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                className="p-2 rounded-xl text-[#9e8f82] hover:text-[#e07a68] hover:bg-[#251b14] transition-colors"
                 title="Wyczyść całą listę"
               >
                 <Trash2 className="w-4 h-4" />
@@ -672,10 +672,10 @@ export const ImageConverterView: React.FC = () => {
                   key={item.id}
                   className={`flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 rounded-2xl border transition-all ${
                     isDone
-                      ? 'bg-slate-900/90 border-emerald-500/30'
+                      ? 'glass-panel border-[#7ec29a]/30'
                       : isError
-                      ? 'bg-rose-950/20 border-rose-500/30'
-                      : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+                      ? 'bg-[#e07a68]/10 border-[#e07a68]/30'
+                      : 'glass-panel border-[#2b211a] hover:border-[#382b20]'
                   }`}
                 >
                   {/* Left: Thumbnail & Info */}
@@ -687,29 +687,29 @@ export const ImageConverterView: React.FC = () => {
                           title: item.originalName,
                         })
                       }
-                      className="w-14 h-14 rounded-xl bg-slate-800/80 border border-slate-700 overflow-hidden flex-shrink-0 cursor-pointer group relative flex items-center justify-center"
+                      className="w-14 h-14 rounded-xl bg-[#140f0c] border border-[#2e231c] overflow-hidden flex-shrink-0 cursor-pointer group relative flex items-center justify-center"
                     >
                       <img
                         src={item.convertedUrl || item.previewUrl}
                         alt={item.originalName}
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                        <Eye className="w-4 h-4 text-white" />
+                      <div className="absolute inset-0 bg-[#0c0907]/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <Eye className="w-4 h-4 text-[#f5ede4]" />
                       </div>
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-semibold text-white truncate" title={item.originalName}>
+                        <h4 className="text-sm font-medium text-[#f5ede4] truncate" title={item.originalName}>
                           {item.originalName}
                         </h4>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 border border-slate-700 text-slate-300">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#1e1713] border border-[#2e231c] text-[#9e8f82]">
                           {item.originalFormat}
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-400">
+                      <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-[#9e8f82]">
                         <span>{formatBytes(item.originalSize)}</span>
                         {item.width > 0 && (
                           <>
@@ -723,7 +723,7 @@ export const ImageConverterView: React.FC = () => {
 
                   {/* Middle: Target Format & Arrow */}
                   <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
-                    <ArrowRight className="w-4 h-4 text-slate-600 hidden md:block" />
+                    <ArrowRight className="w-4 h-4 text-[#7a6b5e] hidden md:block" />
 
                     <div className="flex items-center gap-2">
                       <select
@@ -736,10 +736,10 @@ export const ImageConverterView: React.FC = () => {
                             )
                           );
                         }}
-                        className="px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-semibold focus:outline-none focus:border-purple-500 cursor-pointer"
+                        className="px-3 py-1.5 rounded-xl bg-[#140f0c] border border-[#2e231c] text-[#f5ede4] text-xs font-medium focus:outline-none focus:border-[#d99b5a] cursor-pointer"
                       >
                         {(Object.keys(FORMAT_CONFIG) as TargetFormat[]).map((fmt) => (
-                          <option key={fmt} value={fmt} className="bg-slate-900 text-white">
+                          <option key={fmt} value={fmt} className="bg-[#140f0c] text-[#f5ede4]">
                             {fmt.toUpperCase()}
                           </option>
                         ))}
@@ -748,11 +748,11 @@ export const ImageConverterView: React.FC = () => {
                       {/* Result size & reduction */}
                       {isDone && item.convertedSize && (
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20">
+                          <span className="text-xs font-mono font-medium text-[#7ec29a] bg-[#7ec29a]/10 px-2 py-1 rounded-lg border border-[#7ec29a]/20">
                             {formatBytes(item.convertedSize)}
                           </span>
                           {reduction > 0 && (
-                            <span className="text-[11px] font-bold text-emerald-400">
+                            <span className="text-[11px] font-medium text-[#7ec29a]">
                               -{reduction}%
                             </span>
                           )}
@@ -760,14 +760,14 @@ export const ImageConverterView: React.FC = () => {
                       )}
 
                       {isConverting && (
-                        <span className="text-xs text-purple-400 flex items-center gap-1.5 animate-pulse">
+                        <span className="text-xs text-[#d99b5a] flex items-center gap-1.5 animate-pulse">
                           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                           Konwertowanie...
                         </span>
                       )}
 
                       {isError && (
-                        <span className="text-xs text-rose-400 flex items-center gap-1" title={item.errorMessage}>
+                        <span className="text-xs text-[#e07a68] flex items-center gap-1" title={item.errorMessage}>
                           <AlertCircle className="w-3.5 h-3.5" />
                           Błąd
                         </span>
@@ -779,7 +779,7 @@ export const ImageConverterView: React.FC = () => {
                       {isDone ? (
                         <button
                           onClick={() => handleDownloadItem(item)}
-                          className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 flex items-center gap-1 transition-all active:scale-95"
+                          className="px-3 py-1.5 rounded-xl bg-[#7ec29a] hover:bg-[#9ee2b9] text-[#120e0a] text-xs font-medium shadow-sm flex items-center gap-1 transition-all active:scale-95"
                           title="Pobierz skonwertowany plik"
                         >
                           <Download className="w-3.5 h-3.5" />
@@ -789,7 +789,7 @@ export const ImageConverterView: React.FC = () => {
                         <button
                           onClick={() => handleConvertItem(item.id)}
                           disabled={isConverting}
-                          className="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-40 text-white text-xs font-semibold shadow-md shadow-purple-600/20 flex items-center gap-1 transition-all active:scale-95"
+                          className="px-3 py-1.5 rounded-xl bg-[#f5ede4] hover:bg-white disabled:opacity-40 text-[#120e0a] text-xs font-medium shadow-sm flex items-center gap-1 transition-all active:scale-95"
                         >
                           <RefreshCw className={`w-3.5 h-3.5 ${isConverting ? 'animate-spin' : ''}`} />
                           <span>Konwertuj</span>
@@ -798,7 +798,7 @@ export const ImageConverterView: React.FC = () => {
 
                       <button
                         onClick={() => handleRemoveItem(item.id)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                        className="p-1.5 rounded-lg text-[#9e8f82] hover:text-[#e07a68] hover:bg-[#251b14] transition-colors"
                         title="Usuń z listy"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -816,17 +816,17 @@ export const ImageConverterView: React.FC = () => {
       {previewModalUrl && (
         <div
           onClick={() => setPreviewModalUrl(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-2xl flex flex-col items-center"
+            className="max-w-4xl max-h-[90vh] bg-[#18120e] border border-[#2e231c] rounded-3xl p-4 shadow-2xl flex flex-col items-center"
           >
-            <div className="w-full flex items-center justify-between pb-3 border-b border-slate-800 text-sm font-semibold text-white">
+            <div className="w-full flex items-center justify-between pb-3 border-b border-[#2e231c] text-sm font-medium text-[#f5ede4]">
               <span className="truncate">{previewModalUrl.title}</span>
               <button
                 onClick={() => setPreviewModalUrl(null)}
-                className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white"
+                className="p-1 rounded-lg hover:bg-[#251b14] text-[#9e8f82] hover:text-[#f5ede4]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -835,7 +835,7 @@ export const ImageConverterView: React.FC = () => {
               <img
                 src={previewModalUrl.url}
                 alt="Podgląd"
-                className="max-w-full max-h-[70vh] rounded-xl object-contain border border-slate-800"
+                className="max-w-full max-h-[70vh] rounded-xl object-contain border border-[#2e231c]"
               />
             </div>
           </div>
