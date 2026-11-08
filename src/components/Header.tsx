@@ -147,14 +147,6 @@ export const Header: React.FC<HeaderProps> = ({
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
             <span className="hidden sm:inline">Nowe zlecenie</span>
           </button>
-
-          {/* User Avatar Circle */}
-          <div
-            title="Jakub Cieślik • JC Studio"
-            className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#3d2f24] to-[#c88d51] border border-[#f5ede4]/20 flex items-center justify-center text-[#f5ede4] text-xs font-bold tracking-tight shadow-md flex-shrink-0"
-          >
-            JC
-          </div>
         </div>
       </div>
 
