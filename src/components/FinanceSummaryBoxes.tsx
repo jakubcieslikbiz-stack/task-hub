@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { Task, MonthlyCosts } from '../types';
 import {
   Clock,
@@ -6,7 +6,9 @@ import {
   Wallet,
   Settings2,
   TrendingUp,
-  Layers
+  Layers,
+  ZoomIn,
+  MoveHorizontal
 } from 'lucide-react';
 
 interface FinanceSummaryBoxesProps {
@@ -30,6 +32,8 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   const [tempZus, setTempZus] = useState(costs.zus.toString());
   const [tempTax, setTempTax] = useState(costs.tax.toString());
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [chartZoom, setChartZoom] = useState<'1x' | '1.5x' | '2x'>('1.5x');
+  const chartScrollRef = useRef<HTMLDivElement>(null);
 
   const now = new Date();
   const curYear = now.getFullYear();
@@ -175,12 +179,12 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   const timelineData = getTimelinePoints();
   const maxVal = Math.max(...timelineData.map((d) => d.val), 2000);
 
-  // SVG Chart Dimensions
-  const svgWidth = 720;
-  const svgHeight = 110;
-  const padX = 45;
-  const padTop = 15;
-  const padBottom = 25;
+  // SVG Chart Dimensions (Expanded for mobile scrolling & crisp zoom)
+  const svgWidth = 880;
+  const svgHeight = 135;
+  const padX = 48;
+  const padTop = 18;
+  const padBottom = 26;
   const plotW = svgWidth - padX * 2;
   const plotH = svgHeight - padTop - padBottom;
 
@@ -189,6 +193,22 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
     const y = padTop + plotH - (pt.val / maxVal) * plotH;
     return { x, y, pt };
   });
+
+  // Auto-center chart on today on mount & when zoom changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (chartScrollRef.current) {
+        const todayIdx = coords.findIndex((c) => c.pt.isToday);
+        if (todayIdx !== -1) {
+          const container = chartScrollRef.current;
+          const ratio = coords[todayIdx].x / svgWidth;
+          const scrollPos = ratio * container.scrollWidth - container.clientWidth / 2;
+          container.scrollTo({ left: Math.max(0, scrollPos), behavior: 'smooth' });
+        }
+      }
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [chartZoom]);
 
   // Construct SVG Path
   const linePathD = coords
@@ -290,173 +310,227 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           </div>
         </div>
 
-        {/* Interactive Dynamic SVG Line Chart */}
-        <div className="relative pt-3 select-none">
-          {/* Floating Tooltip */}
-          {hoveredCoord && (
+        {/* Interactive Dynamic SVG Line Chart (Scrollable & Zoomable on Mobile) */}
+        <div className="pt-3 space-y-2 select-none">
+          {/* Zoom Controls & Mobile Swipe Hint Bar */}
+          <div className="flex items-center justify-between text-xs px-1">
+            <div className="flex items-center gap-1.5 text-[#9e8f82] text-[11px] font-mono">
+              <MoveHorizontal className="w-3.5 h-3.5 text-[#d99b5a] animate-pulse" />
+              <span className="hidden sm:inline">Przesuwaj wykres w poziomie:</span>
+              <span className="sm:hidden">Przesuń w poziomie:</span>
+              <span className="text-[10px] text-[#7a6b5e] hidden xs:inline">
+                (od 1 do {daysInMonth} {monthNamePolish.slice(0, 3)})
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1 bg-[#140f0c] border border-[#2e231c] px-2 py-0.5 rounded-full text-[11px] font-mono">
+              <ZoomIn className="w-3 h-3 text-[#d99b5a]" />
+              <span className="text-[#7a6b5e] text-[10px] mr-0.5 hidden xs:inline">Zoom:</span>
+              {(['1x', '1.5x', '2x'] as const).map((z) => (
+                <button
+                  key={z}
+                  onClick={() => setChartZoom(z)}
+                  className={`px-2 py-0.5 rounded-full transition-all ${
+                    chartZoom === z
+                      ? 'bg-[#d99b5a]/25 text-[#f1c38e] font-semibold border border-[#d99b5a]/40 shadow-sm'
+                      : 'text-[#7a6b5e] hover:text-[#f5ede4]'
+                  }`}
+                >
+                  {z}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Horizontally Scrollable Chart Track */}
+          <div
+            ref={chartScrollRef}
+            className="overflow-x-auto scrollbar-thin scrollbar-thumb-[#3d2f24] scrollbar-track-transparent rounded-2xl bg-[#140f0c]/50 border border-[#261d17] p-2.5 touch-pan-x"
+          >
             <div
-              className="absolute pointer-events-none -top-3 z-30 px-3 py-1.5 rounded-xl bg-[#1e1713] text-[#f5ede4] text-xs border border-[#3d2f24] shadow-2xl transition-all font-mono"
-              style={{
-                left: `${Math.min(Math.max(hoveredCoord.x - 50, 10), 600)}px`,
-              }}
+              className={`relative py-1 transition-all duration-200 ${
+                chartZoom === '1x'
+                  ? 'min-w-[740px] lg:min-w-full'
+                  : chartZoom === '1.5x'
+                  ? 'min-w-[1050px]'
+                  : 'min-w-[1450px]'
+              }`}
+              style={{ height: '175px' }}
             >
-              <div className="text-[10px] text-[#9e8f82]">
-                {hoveredCoord.pt.label}
-                {hoveredCoord.pt.isToday && ' • Dziś'}
-              </div>
-              <div className="font-semibold text-[#f5ede4]">
-                {hoveredCoord.pt.val.toLocaleString('pl-PL')} zł
-              </div>
-              {hoveredCoord.pt.tasks.length > 0 && (
-                <div className="text-[10px] text-[#d99b5a] truncate max-w-[220px]">
-                  {hoveredCoord.pt.tasks.map((t) => t.title).join(', ')}
+              {/* Floating Tooltip */}
+              {hoveredCoord && (
+                <div
+                  className="absolute pointer-events-none -top-2 z-30 px-3 py-1.5 rounded-xl bg-[#1e1713] text-[#f5ede4] text-xs border border-[#3d2f24] shadow-2xl transition-all font-mono whitespace-nowrap"
+                  style={{
+                    left: `${(hoveredCoord.x / svgWidth) * 100}%`,
+                    transform: 'translateX(-50%)',
+                  }}
+                >
+                  <div className="text-[10px] text-[#9e8f82]">
+                    {hoveredCoord.pt.label}
+                    {hoveredCoord.pt.isToday && ' • Dziś ✨'}
+                  </div>
+                  <div className="font-semibold text-[#f5ede4]">
+                    {hoveredCoord.pt.val.toLocaleString('pl-PL')} zł
+                  </div>
+                  {hoveredCoord.pt.tasks.length > 0 && (
+                    <div className="text-[10px] text-[#d99b5a] truncate max-w-[220px]">
+                      {hoveredCoord.pt.tasks.map((t) => t.title).join(', ')}
+                    </div>
+                  )}
                 </div>
               )}
+
+              <svg
+                viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+                className="w-full h-full overflow-visible cursor-crosshair"
+                onMouseLeave={() => setHoveredIndex(null)}
+              >
+                <defs>
+                  <linearGradient id="cashflowGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f5ede4" stopOpacity="0.18" />
+                    <stop offset="100%" stopColor="#f5ede4" stopOpacity="0.0" />
+                  </linearGradient>
+                </defs>
+
+                {/* Horizontal Grid lines */}
+                <line
+                  x1={padX}
+                  y1={padTop}
+                  x2={svgWidth - padX}
+                  y2={padTop}
+                  stroke="#261d17"
+                  strokeDasharray="3 3"
+                />
+                <text
+                  x={padX - 8}
+                  y={padTop + 3}
+                  textAnchor="end"
+                  className="fill-[#7a6b5e] text-[9px] font-mono"
+                >
+                  {maxVal.toLocaleString('pl-PL')} zł
+                </text>
+
+                <line
+                  x1={padX}
+                  y1={padTop + plotH / 2}
+                  x2={svgWidth - padX}
+                  y2={padTop + plotH / 2}
+                  stroke="#261d17"
+                  strokeDasharray="3 3"
+                />
+                <text
+                  x={padX - 8}
+                  y={padTop + plotH / 2 + 3}
+                  textAnchor="end"
+                  className="fill-[#7a6b5e] text-[9px] font-mono"
+                >
+                  {(maxVal / 2).toLocaleString('pl-PL')} zł
+                </text>
+
+                <line
+                  x1={padX}
+                  y1={padTop + plotH}
+                  x2={svgWidth - padX}
+                  y2={padTop + plotH}
+                  stroke="#382b20"
+                />
+                <text
+                  x={padX - 8}
+                  y={padTop + plotH + 3}
+                  textAnchor="end"
+                  className="fill-[#7a6b5e] text-[9px] font-mono"
+                >
+                  0 zł
+                </text>
+
+                {/* Area gradient under line */}
+                <path d={areaPathD} fill="url(#cashflowGradient)" />
+
+                {/* Main Dynamic Line */}
+                <path
+                  d={linePathD}
+                  fill="none"
+                  stroke="#f5ede4"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="transition-all duration-300"
+                />
+
+                {/* Vertical hover indicator line */}
+                {hoveredCoord && (
+                  <line
+                    x1={hoveredCoord.x}
+                    y1={padTop}
+                    x2={hoveredCoord.x}
+                    y2={padTop + plotH}
+                    stroke="#d99b5a"
+                    strokeWidth="1.5"
+                    strokeDasharray="2 2"
+                  />
+                )}
+
+                {/* Interactive Data points */}
+                {coords.map((c, i) => {
+                  const isHovered = hoveredIndex === i;
+                  const hasValue = c.pt.val > 0;
+
+                  return (
+                    <g key={i}>
+                      {/* Invisible wide hover target area */}
+                      <rect
+                        x={c.x - plotW / (coords.length * 2)}
+                        y={0}
+                        width={plotW / coords.length}
+                        height={svgHeight}
+                        fill="transparent"
+                        onMouseEnter={() => setHoveredIndex(i)}
+                        onTouchStart={() => setHoveredIndex(i)}
+                        onClick={() => setHoveredIndex(i)}
+                      />
+
+                      {/* Dot */}
+                      <circle
+                        cx={c.x}
+                        cy={c.y}
+                        r={isHovered ? 5.5 : hasValue ? 3.5 : 2}
+                        className={`transition-all duration-150 ${
+                          isHovered
+                            ? 'fill-[#f5ede4] stroke-[#d99b5a] stroke-2 shadow-lg'
+                            : hasValue
+                            ? 'fill-[#f5ede4]'
+                            : 'fill-[#3d2f24]'
+                        }`}
+                      />
+
+                      {/* X-axis date labels */}
+                      <text
+                        x={c.x}
+                        y={svgHeight - 6}
+                        textAnchor="middle"
+                        className={`text-[9px] font-mono transition-colors ${
+                          isHovered
+                            ? 'fill-[#f5ede4] font-bold'
+                            : c.pt.isToday
+                            ? 'fill-[#d99b5a] font-semibold'
+                            : 'fill-[#7a6b5e]'
+                        }`}
+                      >
+                        {chartZoom === '1x'
+                          ? i % 3 === 0 || c.pt.isToday || i === coords.length - 1
+                            ? c.pt.label
+                            : ''
+                          : i % 2 === 0 || c.pt.isToday || i === coords.length - 1
+                          ? c.pt.label
+                          : ''}
+                      </text>
+                    </g>
+                  );
+                })}
+              </svg>
             </div>
-          )}
-
-          <svg
-            viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-            className="w-full h-36 overflow-visible cursor-crosshair"
-            onMouseLeave={() => setHoveredIndex(null)}
-          >
-            <defs>
-              <linearGradient id="cashflowGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#f5ede4" stopOpacity="0.18" />
-                <stop offset="100%" stopColor="#f5ede4" stopOpacity="0.0" />
-              </linearGradient>
-            </defs>
-
-            {/* Horizontal Grid lines */}
-            <line
-              x1={padX}
-              y1={padTop}
-              x2={svgWidth - padX}
-              y2={padTop}
-              stroke="#261d17"
-              strokeDasharray="3 3"
-            />
-            <text
-              x={padX - 8}
-              y={padTop + 3}
-              textAnchor="end"
-              className="fill-[#7a6b5e] text-[9px] font-mono"
-            >
-              {maxVal.toLocaleString('pl-PL')} zł
-            </text>
-
-            <line
-              x1={padX}
-              y1={padTop + plotH / 2}
-              x2={svgWidth - padX}
-              y2={padTop + plotH / 2}
-              stroke="#261d17"
-              strokeDasharray="3 3"
-            />
-            <text
-              x={padX - 8}
-              y={padTop + plotH / 2 + 3}
-              textAnchor="end"
-              className="fill-[#7a6b5e] text-[9px] font-mono"
-            >
-              {(maxVal / 2).toLocaleString('pl-PL')} zł
-            </text>
-
-            <line
-              x1={padX}
-              y1={padTop + plotH}
-              x2={svgWidth - padX}
-              y2={padTop + plotH}
-              stroke="#382b20"
-            />
-            <text
-              x={padX - 8}
-              y={padTop + plotH + 3}
-              textAnchor="end"
-              className="fill-[#7a6b5e] text-[9px] font-mono"
-            >
-              0 zł
-            </text>
-
-            {/* Area gradient under line */}
-            <path d={areaPathD} fill="url(#cashflowGradient)" />
-
-            {/* Main Dynamic Line */}
-            <path
-              d={linePathD}
-              fill="none"
-              stroke="#f5ede4"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="transition-all duration-300"
-            />
-
-            {/* Vertical hover indicator line */}
-            {hoveredCoord && (
-              <line
-                x1={hoveredCoord.x}
-                y1={padTop}
-                x2={hoveredCoord.x}
-                y2={padTop + plotH}
-                stroke="#d99b5a"
-                strokeWidth="1.5"
-                strokeDasharray="2 2"
-              />
-            )}
-
-            {/* Interactive Data points */}
-            {coords.map((c, i) => {
-              const isHovered = hoveredIndex === i;
-              const hasValue = c.pt.val > 0;
-
-              return (
-                <g key={i}>
-                  {/* Invisible wide hover target area */}
-                  <rect
-                    x={c.x - plotW / (coords.length * 2)}
-                    y={0}
-                    width={plotW / coords.length}
-                    height={svgHeight}
-                    fill="transparent"
-                    onMouseEnter={() => setHoveredIndex(i)}
-                  />
-
-                  {/* Dot */}
-                  <circle
-                    cx={c.x}
-                    cy={c.y}
-                    r={isHovered ? 5.5 : hasValue ? 3.5 : 2}
-                    className={`transition-all duration-150 ${
-                      isHovered
-                        ? 'fill-[#f5ede4] stroke-[#d99b5a] stroke-2 shadow-lg'
-                        : hasValue
-                        ? 'fill-[#f5ede4]'
-                        : 'fill-[#3d2f24]'
-                    }`}
-                  />
-
-                  {/* X-axis date labels */}
-                  <text
-                    x={c.x}
-                    y={svgHeight - 6}
-                    textAnchor="middle"
-                    className={`text-[9px] font-mono transition-colors ${
-                      isHovered
-                        ? 'fill-[#f5ede4] font-bold'
-                        : c.pt.isToday
-                        ? 'fill-[#d99b5a] font-semibold'
-                        : 'fill-[#7a6b5e]'
-                    }`}
-                  >
-                    {i % 4 === 0 || c.pt.isToday || i === coords.length - 1
-                      ? c.pt.label
-                      : ''}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
+          </div>
         </div>
 
         {/* Card Footer */}
