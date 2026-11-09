@@ -58,9 +58,28 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(158, 143, 130, 0.22);
+  background: rgba(158, 143, 130, 0.25);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(217, 155, 90, 0.45);
+}
+
+/* Mobile iPhone Notch / Dynamic Island Safe Top Margin */
+.pt-mobile-safe {
+  padding-top: max(calc(env(safe-area-inset-top, 0px) + 0.85rem), 3.25rem);
+}
+@media (min-width: 640px) {
+  .pt-mobile-safe {
+    padding-top: 1.5rem;
+  }
+}
+
+.top-mobile-safe {
+  top: max(calc(env(safe-area-inset-top, 0px) + 0.75rem), 1.25rem);
+}
+@media (min-width: 768px) {
+  .top-mobile-safe {
+    top: 0.75rem;
+  }
 }

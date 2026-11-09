@@ -71,7 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed left-3 top-3 bottom-3 z-50 flex flex-col justify-between items-center py-4 px-2.5 w-[66px] glass-panel rounded-full select-none shadow-2xl transition-all duration-300 ${
+        className={`fixed left-3 top-mobile-safe bottom-3 z-50 flex flex-col justify-between items-center py-4 px-2.5 w-[66px] glass-panel rounded-full select-none shadow-2xl transition-all duration-300 ${
           mobileOpen
             ? 'translate-x-0 opacity-100 flex'
             : '-translate-x-28 opacity-0 pointer-events-none md:pointer-events-auto md:translate-x-0 md:opacity-100 hidden md:flex'

@@ -607,9 +607,9 @@ export function App() {
         onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
-      {/* Main Content Area with offset for the floating dock */}
+      {/* Main Content Area with offset for the floating dock & iPhone notch */}
       <main className="flex-1 flex flex-col h-full overflow-y-auto pb-24 md:pb-8 md:pl-[84px]">
-        <div className="max-w-6xl w-full mx-auto p-3 sm:p-6 lg:p-8">
+        <div className="max-w-6xl w-full mx-auto px-3 sm:px-6 lg:px-8 pb-3 sm:pb-6 lg:pb-8 pt-mobile-safe">
           {/* Cloud Sync Status Indicator Pill */}
           <div className="flex items-center justify-between mb-4 px-4 py-2 rounded-full glass-pill text-xs">
             <div className="flex items-center gap-2">
