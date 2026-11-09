@@ -5,7 +5,6 @@ import {
   DollarSign,
   Wallet,
   Settings2,
-  TrendingUp,
   Layers,
   ZoomIn,
   MoveHorizontal
@@ -570,12 +569,12 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           }`}
         >
           <div className="flex items-center justify-between text-xs text-[#d99b5a] font-medium mb-1">
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
+            <span className="flex items-center gap-1.5 truncate">
+              <Clock className="w-3.5 h-3.5 shrink-0" />
               W toku
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30">
-              {inProgressTasks.length} {inProgressTasks.length === 1 ? 'zlecenie' : 'zleceń'}
+            <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30">
+              {inProgressTasks.length}
             </span>
           </div>
           <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono">
@@ -597,12 +596,12 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           }`}
         >
           <div className="flex items-center justify-between text-xs text-[#7ec29a] font-medium mb-1">
-            <span className="flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5" />
-              Gotowe (Oddane)
+            <span className="flex items-center gap-1.5 truncate">
+              <Layers className="w-3.5 h-3.5 shrink-0" />
+              Gotowe
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30">
-              {doneTasks.length} {doneTasks.length === 1 ? 'zlecenie' : 'zleceń'}
+            <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30">
+              {doneTasks.length}
             </span>
           </div>
           <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono">
@@ -624,12 +623,12 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           }`}
         >
           <div className="flex items-center justify-between text-xs text-[#f5ede4] font-medium mb-1">
-            <span className="flex items-center gap-1.5">
-              <DollarSign className="w-3.5 h-3.5" />
+            <span className="flex items-center gap-1.5 truncate">
+              <DollarSign className="w-3.5 h-3.5 shrink-0" />
               Opłacone
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#f5ede4]/15 text-[#f5ede4] border border-[#f5ede4]/30">
-              {paidTasks.length} {paidTasks.length === 1 ? 'zlecenie' : 'zleceń'}
+            <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#f5ede4]/15 text-[#f5ede4] border border-[#f5ede4]/30">
+              {paidTasks.length}
             </span>
           </div>
           <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono">
@@ -647,12 +646,12 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           className="cursor-pointer glass-panel hover:border-[#3d2f24] rounded-2xl p-4 transition-all duration-200 border shadow-lg relative group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between text-xs font-medium mb-1">
-            <span className={`flex items-center gap-1.5 ${netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'}`}>
-              <Wallet className="w-3.5 h-3.5" />
+            <span className={`flex items-center gap-1.5 truncate ${netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'}`}>
+              <Wallet className="w-3.5 h-3.5 shrink-0" />
               Zysk netto
             </span>
-            <span className="text-[10px] text-[#9e8f82] group-hover:text-[#f5ede4] transition-colors">
-              pełny panel →
+            <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30" title="Łącznie zleceń w miesiącu">
+              {currentMonthTasks.length}
             </span>
           </div>
 
@@ -666,10 +665,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
 
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">
             <span>Koszty: {totalCosts} zł</span>
-            <span className="text-[10px] text-[#d99b5a] flex items-center gap-0.5">
-              <TrendingUp className="w-3 h-3" />
-              Zysk
-            </span>
+            <span className="text-[10px] text-[#d99b5a] group-hover:underline">panel →</span>
           </div>
         </div>
       </div>
