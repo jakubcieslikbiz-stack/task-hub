@@ -10,6 +10,7 @@ import { TaskTable } from './components/TaskTable';
 import { TimelineView } from './components/TimelineView';
 import { FinancesView } from './components/FinancesView';
 import { ImageConverterView } from './components/ImageConverterView';
+import { DwgConverterView } from './components/DwgConverterView';
 import { EmailOfferDrafterView } from './components/EmailOfferDrafterView';
 import { PublicPortfolioView } from './components/PublicPortfolioView';
 import { PortfolioManagerView } from './components/PortfolioManagerView';
@@ -661,6 +662,8 @@ export function App() {
             <EmailOfferDrafterView apiKey={apiKey} />
           ) : currentView === 'converter' ? (
             <ImageConverterView />
+          ) : currentView === 'dwg_converter' ? (
+            <DwgConverterView />
           ) : currentView === 'finances' ? (
             <FinancesView
               tasks={tasks}

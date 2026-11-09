@@ -33,6 +33,7 @@ export type ViewMode =
   | 'timeline'
   | 'finances'
   | 'converter'
+  | 'dwg_converter'
   | 'offers'
   | 'portfolio_manager';
 

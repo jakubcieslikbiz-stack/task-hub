@@ -11,6 +11,7 @@ import {
   Clock,
   DollarSign,
   Image as ImageIcon,
+  DraftingCompass,
   MailCheck,
   Globe,
   Plus,
@@ -209,6 +210,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <ImageIcon className="w-4 h-4" />
           <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
             Konwerter Grafiki
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            onViewChange('dwg_converter');
+            onSelectCategory(null);
+          }}
+          title="Konwerter DWG & DXF → PDF"
+          className={`group relative p-2.5 rounded-full transition-all ${
+            currentView === 'dwg_converter'
+              ? 'bg-[#2a1e16] text-[#d99b5a] border border-[#d99b5a]/50 shadow-[0_0_15px_rgba(217,155,90,0.2)]'
+              : 'text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#221a14]/60'
+          }`}
+        >
+          <DraftingCompass className="w-4 h-4" />
+          <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Konwerter DWG → PDF
           </span>
         </button>
 
