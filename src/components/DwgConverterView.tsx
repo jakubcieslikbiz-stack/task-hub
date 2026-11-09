@@ -153,15 +153,36 @@ export const DwgConverterView: React.FC = () => {
     });
   };
 
-  // Viewport interactions (Zoom & Pan)
+  // Viewport interactions (Zoom & Pan with cursor-anchoring)
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
-    setZoom((prev) => Math.min(Math.max(0.1, prev * zoomFactor), 15));
+    const rect = viewportRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    // Mouse coordinates relative to viewport center
+    const mouseX = e.clientX - (rect.left + rect.width / 2);
+    const mouseY = e.clientY - (rect.top + rect.height / 2);
+
+    const zoomFactor = e.deltaY < 0 ? 1.25 : 0.8;
+
+    setZoom((prevZoom) => {
+      // Allow up to 200x zoom (20,000%) for inspection of tiny architectural details
+      const newZoom = Math.min(Math.max(0.02, prevZoom * zoomFactor), 200);
+      if (newZoom === prevZoom) return prevZoom;
+
+      // Adjust pan so the exact point under cursor stays in place
+      setPan((prevPan) => ({
+        x: mouseX - ((mouseX - prevPan.x) / prevZoom) * newZoom,
+        y: mouseY - ((mouseY - prevPan.y) / prevZoom) * newZoom,
+      }));
+
+      return newZoom;
+    });
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button === 0 || e.button === 1) {
+    // 0 = Left click, 1 = Middle click (scroll wheel), 2 = Right click
+    if (e.button === 0 || e.button === 1 || e.button === 2) {
       setIsPanning(true);
       setStartPan({ x: e.clientX - pan.x, y: e.clientY - pan.y });
     }
@@ -175,6 +196,24 @@ export const DwgConverterView: React.FC = () => {
 
   const handleMouseUp = () => {
     setIsPanning(false);
+  };
+
+  // Double click zooms 2.5x directly toward cursor point
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    const rect = viewportRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const mouseX = e.clientX - (rect.left + rect.width / 2);
+    const mouseY = e.clientY - (rect.top + rect.height / 2);
+
+    setZoom((prevZoom) => {
+      const newZoom = Math.min(prevZoom * 2.5, 200);
+      setPan((prevPan) => ({
+        x: mouseX - ((mouseX - prevPan.x) / prevZoom) * newZoom,
+        y: mouseY - ((mouseY - prevPan.y) / prevZoom) * newZoom,
+      }));
+      return newZoom;
+    });
   };
 
   const resetView = () => {
@@ -485,6 +524,8 @@ export const DwgConverterView: React.FC = () => {
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
                   onMouseLeave={handleMouseUp}
+                  onDoubleClick={handleDoubleClick}
+                  onContextMenu={(e) => e.preventDefault()}
                   className={`relative flex-1 w-full h-full cursor-grab active:cursor-grabbing overflow-hidden flex items-center justify-center select-none ${
                     previewBg === 'paper'
                       ? 'bg-[#ffffff]'
@@ -583,22 +624,56 @@ export const DwgConverterView: React.FC = () => {
                   {/* Right: Zoom controls & Reset */}
                   <div className="pointer-events-auto flex items-center gap-1 bg-[#0c0907]/80 backdrop-blur-md border border-[#2e231c] p-1 rounded-xl">
                     <button
-                      onClick={() => setZoom((z) => Math.max(0.1, z * 0.85))}
+                      onClick={() => setZoom((z) => Math.max(0.02, z * 0.75))}
                       title="Oddal (Kółko myszy w dół)"
                       className="p-1.5 rounded-lg text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#221812] transition-colors"
                     >
                       <ZoomOut className="w-3.5 h-3.5" />
                     </button>
-                    <span className="text-[11px] font-mono text-[#f5ede4] px-2 min-w-[50px] text-center">
-                      {Math.round(zoom * 100)}%
+                    <span className="text-[11px] font-mono text-[#f5ede4] px-2 min-w-[55px] text-center">
+                      {zoom >= 100 ? `${(zoom * 100).toLocaleString('pl-PL')}%` : `${Math.round(zoom * 100)}%`}
                     </span>
                     <button
-                      onClick={() => setZoom((z) => Math.min(15, z * 1.15))}
+                      onClick={() => setZoom((z) => Math.min(200, z * 1.35))}
                       title="Przybliż (Kółko myszy w górę)"
                       className="p-1.5 rounded-lg text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#221812] transition-colors"
                     >
                       <ZoomIn className="w-3.5 h-3.5" />
                     </button>
+
+                    {/* Quick zoom presets */}
+                    <div className="w-[1px] h-4 bg-[#2e231c] mx-0.5" />
+                    <button
+                      onClick={() => {
+                        setZoom(5);
+                        setPan({ x: 0, y: 0 });
+                      }}
+                      title="Przybliżenie 500%"
+                      className="px-1.5 py-0.5 rounded text-[10px] font-mono text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#221812] transition-colors"
+                    >
+                      5x
+                    </button>
+                    <button
+                      onClick={() => {
+                        setZoom(20);
+                        setPan({ x: 0, y: 0 });
+                      }}
+                      title="Przybliżenie 2000%"
+                      className="px-1.5 py-0.5 rounded text-[10px] font-mono text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#221812] transition-colors"
+                    >
+                      20x
+                    </button>
+                    <button
+                      onClick={() => {
+                        setZoom(50);
+                        setPan({ x: 0, y: 0 });
+                      }}
+                      title="Maksymalny detal 5000%"
+                      className="px-1.5 py-0.5 rounded text-[10px] font-mono text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#221812] transition-colors"
+                    >
+                      50x
+                    </button>
+
                     <div className="w-[1px] h-4 bg-[#2e231c] mx-0.5" />
                     <button
                       onClick={resetView}
