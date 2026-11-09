@@ -53,6 +53,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 }) => {
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
+  const [emailSentStatus, setEmailSentStatus] = useState<Record<string, boolean>>({});
 
   const toggleRowExpanded = (id: string) => {
     setExpandedRowId((prev) => (prev === id ? null : id));
@@ -90,7 +91,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 
   const handleQuickSendEmail = async (task: Task) => {
     setSendingEmailId(task.id);
-    await sendTaskReminderEmail({
+    const res = await sendTaskReminderEmail({
       title: task.title,
       dueDate: task.dueDate,
       price: task.price,
@@ -101,6 +102,14 @@ export const TaskTable: React.FC<TaskTableProps> = ({
       subtasks: task.subtasks.map((s) => s.title),
     });
     setSendingEmailId(null);
+    if (res.success) {
+      setEmailSentStatus((prev) => ({ ...prev, [task.id]: true }));
+      setTimeout(() => {
+        setEmailSentStatus((prev) => ({ ...prev, [task.id]: false }));
+      }, 3500);
+    } else {
+      alert(`Błąd wysyłki e-mail: ${res.error || 'Nieznany błąd'}`);
+    }
   };
 
   if (tasks.length === 0) {
@@ -296,20 +305,32 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                     {/* AKCJE */}
                     <td className="py-3.5 pl-4 pr-6 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
-                        {task.remindByEmail && (
-                          <button
-                            onClick={() => handleQuickSendEmail(task)}
-                            disabled={sendingEmailId === task.id}
-                            title="Wyślij przypomnienie e-mail"
-                            className="p-1.5 rounded-lg text-[#9e8f82] hover:text-[#7ec29a] hover:bg-[#251b14] transition-all disabled:opacity-50"
-                          >
-                            {sendingEmailId === task.id ? (
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            ) : (
-                              <Mail className="w-3.5 h-3.5" />
-                            )}
-                          </button>
-                        )}
+                        {/* Ikona koperty - zawsze dostępna przy każdym zleceniu */}
+                        <button
+                          onClick={() => handleQuickSendEmail(task)}
+                          disabled={sendingEmailId === task.id}
+                          title={
+                            emailSentStatus[task.id]
+                              ? 'Wysłano przypomnienie e-mail!'
+                              : 'Wyślij przypomnienie e-mail w razie czego'
+                          }
+                          className={`p-1.5 rounded-lg transition-all active:scale-90 disabled:opacity-50 ${
+                            emailSentStatus[task.id]
+                              ? 'bg-[#7ec29a]/20 text-[#7ec29a]'
+                              : task.remindByEmail
+                              ? 'text-[#d99b5a] hover:text-[#7ec29a] hover:bg-[#251b14]'
+                              : 'text-[#9e8f82] hover:text-[#7ec29a] hover:bg-[#251b14]'
+                          }`}
+                        >
+                          {sendingEmailId === task.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#d99b5a]" />
+                          ) : emailSentStatus[task.id] ? (
+                            <Check className="w-3.5 h-3.5 text-[#7ec29a]" />
+                          ) : (
+                            <Mail className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+
                         <button
                           onClick={() => onEdit(task)}
                           title="Edytuj zlecenie"
