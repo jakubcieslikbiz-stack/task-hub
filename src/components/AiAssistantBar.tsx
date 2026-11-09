@@ -277,15 +277,15 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
   };
 
   return (
-    <div className="mb-6 relative">
-      {/* Main AI Bar */}
-      <div className="glass-panel border border-[#2b211a] rounded-3xl p-3 sm:p-3.5 shadow-2xl flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-        {/* Left AI Badge / Voice Status */}
-        <div className="flex items-center gap-2 px-1">
-          <div className="w-8 h-8 rounded-xl bg-[#251b14] border border-[#382b20] flex items-center justify-center text-[#d99b5a] shadow-inner">
-            <Sparkles className="w-4 h-4" />
+    <div className="mb-4 sm:mb-6 relative">
+      {/* Main AI Bar - single sleek row on mobile & desktop */}
+      <div className="glass-panel border border-[#2b211a] rounded-2xl sm:rounded-3xl p-1.5 sm:p-2.5 shadow-xl flex items-center gap-1.5 sm:gap-3">
+        {/* Left AI Badge */}
+        <div className="flex items-center gap-2 pl-1 sm:pl-1.5 flex-shrink-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-[#251b14] border border-[#382b20] flex items-center justify-center text-[#d99b5a] shadow-inner">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </div>
-          <span className="text-xs font-medium text-[#f5ede4] hidden md:inline">
+          <span className="text-xs font-medium text-[#f5ede4] hidden lg:inline whitespace-nowrap">
             Asystent JC Studio
           </span>
         </div>
@@ -296,30 +296,34 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
             e.preventDefault();
             handleExecute(inputText);
           }}
-          className="flex-1 flex items-center gap-2 w-full"
+          className="flex-1 flex items-center gap-1.5 sm:gap-2 min-w-0"
         >
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-0">
             <input
               type="text"
-              placeholder="Powiedz lub napisz: np. Dodaj projekt Wizualizacja za 2500 zł do piątku..."
+              placeholder="Polecenie AI: np. Dodaj fryzjer za tydzień..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               disabled={isLoading}
-              className="w-full pl-4 pr-10 py-2.5 rounded-2xl glass-input text-xs sm:text-sm placeholder-[#7a6b5e] transition-all"
+              className="w-full pl-3 pr-8 sm:pl-4 sm:pr-9 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl glass-input text-xs sm:text-sm placeholder-[#7a6b5e] transition-all"
             />
 
             {/* Mic Button */}
             <button
               type="button"
               onClick={toggleMic}
-              className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-xl transition-all ${
+              className={`absolute right-1 sm:right-1.5 top-1/2 -translate-y-1/2 p-1 sm:p-1.5 rounded-lg transition-all ${
                 isListening
                   ? 'bg-[#e07a68] text-white animate-pulse'
                   : 'text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14]'
               }`}
               title={isListening ? 'Słucham... kliknij aby zatrzymać' : 'Naciśnij i mów do mikrofonu'}
             >
-              {isListening ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+              {isListening ? (
+                <Mic className="w-3.5 h-3.5 text-white" />
+              ) : (
+                <MicOff className="w-3.5 h-3.5 text-[#9e8f82]" />
+              )}
             </button>
           </div>
 
@@ -327,33 +331,44 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
           <button
             type="submit"
             disabled={isLoading || !inputText.trim()}
-            className="px-5 py-2.5 rounded-full bg-[#f5ede4] hover:bg-white disabled:opacity-40 text-[#120e0a] text-xs font-semibold shadow-md flex items-center gap-1.5 transition-all active:scale-95 flex-shrink-0"
+            className="p-2 sm:px-4 sm:py-2.5 rounded-xl sm:rounded-full bg-[#f5ede4] hover:bg-white disabled:opacity-40 text-[#120e0a] text-xs font-semibold shadow-md flex items-center justify-center gap-1.5 transition-all active:scale-95 flex-shrink-0"
+            title="Wyślij polecenie"
           >
-            {isLoading ? <Loader2 className="w-4 h-4 animate-spin text-[#120e0a]" /> : <Send className="w-4 h-4 text-[#120e0a]" />}
-            <span className="hidden sm:inline">Wyślij</span>
+            {isLoading ? (
+              <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin text-[#120e0a]" />
+            ) : (
+              <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#120e0a]" />
+            )}
+            <span className="hidden md:inline">Wyślij</span>
           </button>
         </form>
 
         {/* Right utility buttons: Sound & Settings */}
-        <div className="flex items-center gap-1.5 self-end sm:self-center">
+        <div className="flex items-center gap-0.5 sm:gap-1.5 flex-shrink-0 pr-0.5 sm:pr-1">
           <button
             type="button"
             onClick={() => setVoiceEnabled(!voiceEnabled)}
-            className={`p-2 rounded-xl text-xs transition-colors ${
-              voiceEnabled ? 'bg-[#251b14] text-[#d99b5a] border border-[#382b20]' : 'text-[#7a6b5e] hover:bg-[#251b14]'
+            className={`p-1.5 sm:p-2 rounded-xl text-xs transition-colors ${
+              voiceEnabled
+                ? 'bg-[#251b14] text-[#d99b5a] border border-[#382b20]'
+                : 'text-[#7a6b5e] hover:bg-[#251b14]'
             }`}
             title={voiceEnabled ? 'Odpowiedzi głosowe włączone' : 'Odpowiedzi głosowe wyciszone'}
           >
-            {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            {voiceEnabled ? (
+              <Volume2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            ) : (
+              <VolumeX className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            )}
           </button>
 
           <button
             type="button"
             onClick={() => setShowSettings(!showSettings)}
-            className="p-2 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-colors"
+            className="p-1.5 sm:p-2 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-colors"
             title="Ustawienia klucza API"
           >
-            <Key className="w-4 h-4 text-[#d99b5a]" />
+            <Key className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#d99b5a]" />
           </button>
         </div>
       </div>
