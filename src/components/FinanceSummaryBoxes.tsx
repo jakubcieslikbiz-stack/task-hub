@@ -29,31 +29,15 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   const [showCostSettings, setShowCostSettings] = useState(false);
   const [tempZus, setTempZus] = useState(costs.zus.toString());
   const [tempTax, setTempTax] = useState(costs.tax.toString());
-  const [chartMode, setChartMode] = useState<'daily' | 'cumulative'>('daily');
-  const [timeRange, setTimeRange] = useState<'10d' | 'month'>('10d');
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // Calculations
-  const inProgressTasks = tasks.filter((t) => t.status === 'in_progress');
-  const inProgressValue = inProgressTasks.reduce((sum, t) => sum + (t.price || 0), 0);
-
-  const doneTasks = tasks.filter((t) => t.status === 'done');
-  const doneValue = doneTasks.reduce((sum, t) => sum + (t.price || 0), 0);
-
-  const paidTasks = tasks.filter((t) => t.status === 'paid');
-  const paidValue = paidTasks.reduce((sum, t) => sum + (t.price || 0), 0);
-
-  const totalCosts = (costs.zus || 0) + (costs.tax || 0);
-  const netProfit = paidValue - totalCosts;
-
-  const handleSaveCosts = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSaveCosts({
-      zus: Number(tempZus) || 0,
-      tax: Number(tempTax) || 0,
-    });
-    setShowCostSettings(false);
-  };
+  const now = new Date();
+  const curYear = now.getFullYear();
+  const curMonth = now.getMonth();
+  const curDate = now.getDate();
+  const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+  const currentYm = `${curYear}-${String(curMonth + 1).padStart(2, '0')}`;
+  const monthNamePolish = now.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
 
   // Helper to format Date to local YYYY-MM-DD (avoiding UTC timezone shift)
   const toLocalDateStr = (d: Date): string => {
@@ -110,101 +94,82 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
     return '';
   };
 
-  // Build Real Timeline Data Points from tasks
-  const getTimelinePoints = () => {
-    const now = new Date();
-    const curYear = now.getFullYear();
-    const curMonth = now.getMonth();
-    const curDate = now.getDate();
+  // Strictly filter tasks belonging to the CURRENT MONTH (od 1 do ostatniego dnia)
+  const currentMonthTasks = tasks.filter((t) => {
+    const cashDate = getTaskCashFlowDate(t);
+    if (cashDate && cashDate.startsWith(currentYm)) return true;
+    const createdYm = t.createdAt ? t.createdAt.slice(0, 7) : '';
+    const dueYm = t.dueDate ? t.dueDate.slice(0, 7) : '';
+    const startYm = t.startDate ? t.startDate.slice(0, 7) : '';
+    return createdYm === currentYm || dueYm === currentYm || startYm === currentYm;
+  });
 
+  // Calculations for CURRENT MONTH
+  const inProgressTasks = currentMonthTasks.filter((t) => t.status === 'in_progress' || t.status === 'todo');
+  const inProgressValue = inProgressTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+
+  const doneTasks = currentMonthTasks.filter((t) => t.status === 'done');
+  const doneValue = doneTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+
+  const paidTasks = currentMonthTasks.filter((t) => t.status === 'paid');
+  const paidValue = paidTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+
+  const totalCosts = (costs.zus || 0) + (costs.tax || 0);
+  const netProfit = paidValue - totalCosts;
+
+  const handleSaveCosts = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSaveCosts({
+      zus: Number(tempZus) || 0,
+      tax: Number(tempTax) || 0,
+    });
+    setShowCostSettings(false);
+  };
+
+  // Build Real Timeline Data Points for the CURRENT MONTH (1 to daysInMonth)
+  const getTimelinePoints = () => {
     const rawPoints: {
       dateStr: string;
       label: string;
-      dailyVal: number;
+      val: number;
       tasks: Task[];
       isToday: boolean;
     }[] = [];
 
-    if (timeRange === 'month') {
-      const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
-      for (let day = 1; day <= daysInMonth; day++) {
-        const d = new Date(curYear, curMonth, day);
-        const dateStr = toLocalDateStr(d);
-        const label = `${day} ${d.toLocaleDateString('pl-PL', { month: 'short' })}`;
-        const isToday = day === curDate;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(curYear, curMonth, day);
+      const dateStr = toLocalDateStr(d);
+      const label = `${day} ${d.toLocaleDateString('pl-PL', { month: 'short' })}`;
+      const isToday = day === curDate;
 
-        const dayTasks = tasks.filter((t) => {
-          const taskDate = getTaskCashFlowDate(t);
-          return taskDate === dateStr;
-        });
+      const dayTasks = currentMonthTasks.filter((t) => {
+        const taskDate = getTaskCashFlowDate(t);
+        return taskDate === dateStr;
+      });
 
-        let dailyVal = 0;
-        if (statusFilter === 'paid') {
-          dailyVal = dayTasks
-            .filter((t) => t.status === 'paid')
-            .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
-        } else if (statusFilter === 'in_progress') {
-          dailyVal = dayTasks
-            .filter((t) => t.status === 'in_progress' || t.status === 'todo')
-            .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
-        } else {
-          dailyVal = dayTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
-        }
-
-        rawPoints.push({
-          dateStr,
-          label,
-          dailyVal,
-          tasks: dayTasks,
-          isToday,
-        });
+      let dailyVal = 0;
+      if (statusFilter === 'paid') {
+        dailyVal = dayTasks
+          .filter((t) => t.status === 'paid')
+          .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+      } else if (statusFilter === 'in_progress') {
+        dailyVal = dayTasks
+          .filter((t) => t.status === 'in_progress' || t.status === 'todo')
+          .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+      } else {
+        dailyVal = dayTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
       }
-    } else {
-      // 10 days ending today
-      const numDays = 10;
-      for (let i = numDays - 1; i >= 0; i--) {
-        const d = new Date(curYear, curMonth, curDate - i);
-        const dateStr = toLocalDateStr(d);
-        const label = `${d.getDate()} ${d.toLocaleDateString('pl-PL', { month: 'short' })}`;
-        const isToday = i === 0;
 
-        const dayTasks = tasks.filter((t) => {
-          const taskDate = getTaskCashFlowDate(t);
-          return taskDate === dateStr;
-        });
-
-        let dailyVal = 0;
-        if (statusFilter === 'paid') {
-          dailyVal = dayTasks
-            .filter((t) => t.status === 'paid')
-            .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
-        } else if (statusFilter === 'in_progress') {
-          dailyVal = dayTasks
-            .filter((t) => t.status === 'in_progress' || t.status === 'todo')
-            .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
-        } else {
-          dailyVal = dayTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
-        }
-
-        rawPoints.push({
-          dateStr,
-          label,
-          dailyVal,
-          tasks: dayTasks,
-          isToday,
-        });
-      }
+      rawPoints.push({
+        dateStr,
+        label,
+        val: dailyVal,
+        tasks: dayTasks,
+        isToday,
+      });
     }
 
-    // Apply cumulative mode if selected
-    let runningSum = 0;
-    return rawPoints.map((pt) => {
-      runningSum += pt.dailyVal;
-      return {
-        ...pt,
-        val: chartMode === 'cumulative' ? runningSum : pt.dailyVal,
-      };
-    });
+    return rawPoints;
   };
 
   const timelineData = getTimelinePoints();
@@ -244,63 +209,18 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         {/* Card Header & Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2e231c]">
           <div>
-            <span className="text-xs font-mono uppercase tracking-wider text-[#9e8f82] block">
-              Cash flow & Rozliczenia
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-mono uppercase tracking-wider text-[#d99b5a] flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#d99b5a] animate-pulse" />
+                Aktualny miesiąc: {monthNamePolish} (1 – {daysInMonth})
+              </span>
+            </div>
             <h3 className="text-base font-light text-[#f5ede4] tracking-tight mt-0.5">
-              Rzeczywiste przepływy finansowe JC Studio
+              Rzeczywiste przepływy dzienne JC Studio
             </h3>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Chart mode toggle (Daily vs Cumulative) */}
-            <div className="flex items-center gap-1 bg-[#140f0c] border border-[#2e231c] p-1 rounded-full text-[11px]">
-              <button
-                onClick={() => setChartMode('daily')}
-                className={`px-3 py-1 rounded-full transition-all ${
-                  chartMode === 'daily'
-                    ? 'bg-[#251b14] text-[#f5ede4] font-medium border border-[#382b20]'
-                    : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                }`}
-              >
-                Przepływy dzienne
-              </button>
-              <button
-                onClick={() => setChartMode('cumulative')}
-                className={`px-3 py-1 rounded-full transition-all ${
-                  chartMode === 'cumulative'
-                    ? 'bg-[#251b14] text-[#f5ede4] font-medium border border-[#382b20]'
-                    : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                }`}
-              >
-                Trend narastająco
-              </button>
-            </div>
-
-            {/* Time range toggle (10 Days vs Full Month) */}
-            <div className="flex items-center gap-1 bg-[#140f0c] border border-[#2e231c] p-1 rounded-full text-[11px]">
-              <button
-                onClick={() => setTimeRange('10d')}
-                className={`px-3 py-1 rounded-full transition-all ${
-                  timeRange === '10d'
-                    ? 'bg-[#251b14] text-[#f5ede4] font-medium border border-[#382b20]'
-                    : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                }`}
-              >
-                10 dni
-              </button>
-              <button
-                onClick={() => setTimeRange('month')}
-                className={`px-3 py-1 rounded-full transition-all ${
-                  timeRange === 'month'
-                    ? 'bg-[#251b14] text-[#f5ede4] font-medium border border-[#382b20]'
-                    : 'text-[#9e8f82] hover:text-[#f5ede4]'
-                }`}
-              >
-                Ten miesiąc
-              </button>
-            </div>
-
+          <div className="flex items-center gap-2">
             {/* Status Filter buttons */}
             <div className="flex items-center gap-1 bg-[#140f0c] border border-[#2e231c] p-1 rounded-full text-[11px]">
               <button
@@ -529,11 +449,9 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
                         : 'fill-[#7a6b5e]'
                     }`}
                   >
-                    {timeRange === 'month'
-                      ? i % 3 === 0 || c.pt.isToday || i === coords.length - 1
-                        ? c.pt.label
-                        : ''
-                      : c.pt.label}
+                    {i % 4 === 0 || c.pt.isToday || i === coords.length - 1
+                      ? c.pt.label
+                      : ''}
                   </text>
                 </g>
               );

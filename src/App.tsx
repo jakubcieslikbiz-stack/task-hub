@@ -23,6 +23,7 @@ import { ConnectPhoneModal } from './components/ConnectPhoneModal';
 import { FinanceSummaryBoxes } from './components/FinanceSummaryBoxes';
 import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { checkAndAutoGenerateReports } from './lib/monthlyReport';
 
 const DEFAULT_API_KEY = (import.meta.env.VITE_OPENAI_API_KEY as string) || '';
 
@@ -104,6 +105,23 @@ export function App() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [defaultStatusForNewTask, setDefaultStatusForNewTask] = useState<Status>('in_progress');
+  const [autoReportNotice, setAutoReportNotice] = useState<string | null>(null);
+
+  // Automated Monthly Report Generation (Runs on mount & checks periodically for 23:50 on last day of month)
+  useEffect(() => {
+    const runCheck = () => {
+      const { generated } = checkAndAutoGenerateReports(tasks, costs);
+      if (generated) {
+        setAutoReportNotice(
+          `Wygenerowano automatyczny raport miesięczny za ${generated.monthName} o godz. 23:50! 📑`
+        );
+      }
+    };
+
+    runCheck();
+    const interval = setInterval(runCheck, 30000);
+    return () => clearInterval(interval);
+  }, [tasks, costs]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isInitialRemoteLoad = useRef(true);
@@ -640,6 +658,34 @@ export function App() {
               </span>
             )}
           </div>
+
+          {/* Automated Monthly Report Alert Banner */}
+          {autoReportNotice && (
+            <div className="mb-4 p-4 rounded-2xl bg-[#d99b5a]/15 border border-[#d99b5a]/40 text-[#f5ede4] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xl animate-in fade-in duration-300">
+              <div className="flex items-center gap-2.5 text-xs">
+                <span className="text-lg">📑</span>
+                <span className="font-medium text-[#f5ede4]">{autoReportNotice}</span>
+              </div>
+              <div className="flex items-center gap-2 self-end sm:self-auto">
+                <button
+                  onClick={() => {
+                    setCurrentView('finances');
+                    setAutoReportNotice(null);
+                  }}
+                  className="px-3.5 py-1.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-semibold shadow-sm transition-all active:scale-95"
+                >
+                  Zobacz w Finansach →
+                </button>
+                <button
+                  onClick={() => setAutoReportNotice(null)}
+                  className="p-1 rounded-lg text-[#9e8f82] hover:text-[#f5ede4] transition-colors"
+                  title="Zamknij powiadomienie"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* AI Voice & Text Assistant Bar (from JC Studio) */}
           <AiAssistantBar
