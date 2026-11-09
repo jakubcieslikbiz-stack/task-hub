@@ -33,10 +33,10 @@ const PRESETS = [
   {
     id: 'oferta_3d',
     title: 'Wycena & Oferta 3D',
-    desc: 'Kompleksowa oferta: zakres, ujęcia, wycena w zł, terminy i poprawek',
+    desc: 'Kompleksowa oferta: zakres, ujęcia, wycena w zł i terminy',
     icon: DollarSign,
     color: 'from-blue-600 to-indigo-600',
-    defaultPrompt: 'Wycena wizualizacji salonu z kuchnią za 2600 zł netto, 4 ujęcia 4K, czas realizacji 4 dni robocze, 2 tury poprawek w cenie, potrzebuję rzutów DWG.',
+    defaultPrompt: 'Wycena wizualizacji salonu z kuchnią za 2600 zł netto, 4 ujęcia 4K, czas realizacji 4 dni robocze, potrzebuję rzutów DWG.',
   },
   {
     id: 'szybka_odpowiedz',
@@ -81,7 +81,6 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
   const [clientMessage, setClientMessage] = useState<string>('');
   const [myNotes, setMyNotes] = useState<string>(PRESETS[0].defaultPrompt);
   const [tone, setTone] = useState<'professional' | 'friendly' | 'concise'>('professional');
-  const [includeRevisions, setIncludeRevisions] = useState<boolean>(true);
   const [includeVat, setIncludeVat] = useState<boolean>(true);
   const [senderSignature, setSenderSignature] = useState<string>('Jakub Cieślik | JC Studio');
 
@@ -189,7 +188,7 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
           clientMessage: clientMessage.trim() || undefined,
           myNotes: myNotes.trim(),
           tone,
-          includeRevisions,
+          includeRevisions: false,
           includeVat,
           senderSignature,
           adjustmentInstruction,
@@ -357,7 +356,7 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
 
               <textarea
                 rows={4}
-                placeholder="Np. Cena 2500 zł netto, termin realizacji 4 dni robocze, 2 tury poprawek w cenie, potrzebuję rzutów w DWG/PDF i listy mebli..."
+                placeholder="Np. Cena 2500 zł netto, termin realizacji 4 dni robocze, potrzebuję rzutów w DWG/PDF i listy mebli..."
                 value={myNotes}
                 onChange={(e) => setMyNotes(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-2xl bg-[#140f0c] border border-[#2e231c] text-[#f5ede4] placeholder-[#7a6b5e] text-xs focus:outline-none focus:border-[#d99b5a] resize-none font-mono"
@@ -408,18 +407,8 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
                 </div>
               </div>
 
-              {/* Checkboxes: Revisions & VAT */}
+              {/* Checkbox: VAT */}
               <div className="flex flex-wrap items-center gap-4 pt-1">
-                <label className="flex items-center gap-2 cursor-pointer text-xs text-[#c4b5a5]">
-                  <input
-                    type="checkbox"
-                    checked={includeRevisions}
-                    onChange={(e) => setIncludeRevisions(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#d99b5a] focus:ring-0 bg-[#140f0c] border-[#2e231c] cursor-pointer accent-[#d99b5a]"
-                  />
-                  <span>Zawrzyj informację: <strong className="text-[#f5ede4]">2 tury poprawek w cenie</strong></span>
-                </label>
-
                 <label className="flex items-center gap-2 cursor-pointer text-xs text-[#c4b5a5]">
                   <input
                     type="checkbox"
