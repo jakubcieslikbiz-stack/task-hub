@@ -32,6 +32,8 @@ interface SidebarProps {
   onImportData: () => void;
   onOpenNewTaskModal?: () => void;
   onToggleSearch?: () => void;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -47,11 +49,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onImportData,
   onOpenNewTaskModal,
   onToggleSearch,
+  mobileOpen = false,
+  onCloseMobile,
 }) => {
   const [showCategoryMenu, setShowCategoryMenu] = React.useState(false);
 
+  const handleNav = (view: ViewMode) => {
+    onViewChange(view);
+    onSelectCategory(null);
+    if (onCloseMobile) onCloseMobile();
+  };
+
   return (
-    <aside className="fixed left-3 top-3 bottom-3 z-40 hidden md:flex flex-col justify-between items-center py-4 px-2.5 w-[66px] glass-panel rounded-full select-none shadow-2xl">
+    <>
+      {/* Mobile Drawer Backdrop */}
+      {mobileOpen && (
+        <div
+          onClick={onCloseMobile}
+          className="fixed inset-0 z-50 bg-[#0c0907]/80 backdrop-blur-sm md:hidden animate-in fade-in duration-200"
+        />
+      )}
+
+      <aside
+        className={`fixed left-3 top-3 bottom-3 z-50 flex flex-col justify-between items-center py-4 px-2.5 w-[66px] glass-panel rounded-full select-none shadow-2xl transition-all duration-300 ${
+          mobileOpen
+            ? 'translate-x-0 opacity-100 flex'
+            : '-translate-x-28 opacity-0 pointer-events-none md:pointer-events-auto md:translate-x-0 md:opacity-100 hidden md:flex'
+        }`}
+      >
       {/* Top action icons */}
       <div className="flex flex-col items-center gap-2 w-full">
         {/* Search toggle */}
@@ -85,10 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Navigation View Icons */}
         <button
-          onClick={() => {
-            onViewChange('today');
-            onSelectCategory(null);
-          }}
+          onClick={() => handleNav('today')}
           title="Mój Dzień"
           className={`group relative p-2.5 rounded-full transition-all ${
             currentView === 'today'
@@ -106,10 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => {
-            onViewChange('all');
-            onSelectCategory(null);
-          }}
+          onClick={() => handleNav('all')}
           title="Wszystkie zlecenia"
           className={`group relative p-2.5 rounded-full transition-all ${
             currentView === 'all'
@@ -124,10 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => {
-            onViewChange('pomodoro');
-            onSelectCategory(null);
-          }}
+          onClick={() => handleNav('pomodoro')}
           title="Pomodoro Focus Timer"
           className={`group relative p-2.5 rounded-full transition-all ${
             currentView === 'pomodoro'
@@ -142,10 +158,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => {
-            onViewChange('timeline');
-            onSelectCategory(null);
-          }}
+          onClick={() => handleNav('timeline')}
           title="Timeline tygodnia"
           className={`group relative p-2.5 rounded-full transition-all ${
             currentView === 'timeline'
@@ -160,10 +173,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => {
-            onViewChange('finances');
-            onSelectCategory(null);
-          }}
+          onClick={() => handleNav('finances')}
           title="Finanse & Rozliczenia"
           className={`group relative p-2.5 rounded-full transition-all ${
             currentView === 'finances'
@@ -178,10 +188,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => {
-            onViewChange('offers');
-            onSelectCategory(null);
-          }}
+          onClick={() => handleNav('offers')}
           title="Asystent Ofert AI & E-mail"
           className={`group relative p-2.5 rounded-full transition-all ${
             currentView === 'offers'
@@ -196,10 +203,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => {
-            onViewChange('converter');
-            onSelectCategory(null);
-          }}
+          onClick={() => handleNav('converter')}
           title="Konwerter Grafiki"
           className={`group relative p-2.5 rounded-full transition-all ${
             currentView === 'converter'
@@ -214,10 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => {
-            onViewChange('dwg_converter');
-            onSelectCategory(null);
-          }}
+          onClick={() => handleNav('dwg_converter')}
           title="Konwerter DWG & DXF → PDF"
           className={`group relative p-2.5 rounded-full transition-all ${
             currentView === 'dwg_converter'
@@ -232,10 +233,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         <button
-          onClick={() => {
-            onViewChange('portfolio_manager');
-            onSelectCategory(null);
-          }}
+          onClick={() => handleNav('portfolio_manager')}
           title="Portfolio Klienta"
           className={`group relative p-2.5 rounded-full transition-all ${
             currentView === 'portfolio_manager'
@@ -342,5 +340,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
     </aside>
+    </>
   );
 };

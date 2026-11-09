@@ -3,7 +3,7 @@ import type { Task, Note, ViewMode, Status, MonthlyCosts, PortfolioProject } fro
 import { INITIAL_TASKS, INITIAL_NOTES, CATEGORIES } from './data/initialData';
 import { INITIAL_PORTFOLIO_PROJECTS } from './data/initialPortfolio';
 import { Sidebar } from './components/Sidebar';
-import { BottomNav } from './components/BottomNav';
+import { MobileQuickActions } from './components/MobileQuickActions';
 import { Header } from './components/Header';
 import { TaskCard } from './components/TaskCard';
 import { TaskTable } from './components/TaskTable';
@@ -92,6 +92,7 @@ export function App() {
 
   // Navigation and Filter state
   const [currentView, setCurrentView] = useState<ViewMode>('today');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'done' | 'paid'>('all');
@@ -585,7 +586,7 @@ export function App() {
         className="hidden"
       />
 
-      {/* Floating Vertical Capsule Dock (Kindra style) */}
+      {/* Floating Vertical Capsule Dock (Kindra style & Mobile Drawer) */}
       <Sidebar
         currentView={currentView}
         onViewChange={setCurrentView}
@@ -602,6 +603,8 @@ export function App() {
           const el = document.querySelector('input[placeholder*="Szukaj"]') as HTMLInputElement;
           el?.focus();
         }}
+        mobileOpen={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Main Content Area with offset for the floating dock */}
@@ -889,10 +892,16 @@ export function App() {
         </div>
       </main>
 
-      <BottomNav
+      {/* Mobile Floating Quick Action Capsule (FAB with Menu + Plus + Mic) */}
+      <MobileQuickActions
         currentView={currentView}
-        onViewChange={setCurrentView}
+        onOpenMobileMenu={() => setIsMobileMenuOpen((prev) => !prev)}
         onQuickAdd={() => handleOpenNew('in_progress')}
+        apiKey={apiKey}
+        onAddTask={handleAiAddTask}
+        onAddTodo={handleAiAddTodo}
+        onAddCost={handleAiAddCost}
+        onAddNoteToTask={handleAiAddNoteToTask}
       />
 
       <TaskModal
