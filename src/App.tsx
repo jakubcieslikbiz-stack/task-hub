@@ -24,7 +24,7 @@ import { FinanceSummaryBoxes } from './components/FinanceSummaryBoxes';
 import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 
-const DEFAULT_API_KEY = '';
+const DEFAULT_API_KEY = (import.meta.env.VITE_OPENAI_API_KEY as string) || '';
 
 export function App() {
   // Tasks state
@@ -69,8 +69,23 @@ export function App() {
 
   // OpenAI API Key
   const [apiKey, setApiKey] = useState<string>(() => {
-    return localStorage.getItem('openai_api_key') || DEFAULT_API_KEY;
+    const saved = localStorage.getItem('openai_api_key');
+    if (saved && saved.trim().length > 15) {
+      return saved.trim();
+    }
+    if (DEFAULT_API_KEY) {
+      localStorage.setItem('openai_api_key', DEFAULT_API_KEY);
+    }
+    return DEFAULT_API_KEY;
   });
+
+  useEffect(() => {
+    const current = localStorage.getItem('openai_api_key');
+    if (!current || current.trim().length < 15) {
+      localStorage.setItem('openai_api_key', DEFAULT_API_KEY);
+      setApiKey(DEFAULT_API_KEY);
+    }
+  }, []);
 
   const [cloudSynced, setCloudSynced] = useState<boolean>(false);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
