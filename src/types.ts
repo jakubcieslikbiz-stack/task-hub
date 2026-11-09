@@ -15,6 +15,8 @@ export interface Task {
   price?: number;        // Kwota zlecenia w PLN
   startDate?: string;    // Data rozpoczęcia (YYYY-MM-DD)
   dueDate?: string;      // Termin / Deadline (YYYY-MM-DD)
+  dueTime?: string;      // Godzina (np. "14:00")
+  reminderTime?: string; // Czas przypomnienia (np. "godzinę przed")
   category: string;
   priority: Priority;
   status: Status;        // todo | in_progress | done | paid

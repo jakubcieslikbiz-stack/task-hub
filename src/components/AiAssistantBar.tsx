@@ -27,9 +27,12 @@ interface AiAssistantBarProps {
   onSaveApiKey: (key: string) => void;
   onAddTask: (task: {
     name: string;
+    category?: string;
     price?: number;
     startDate?: string;
     endDate?: string;
+    dueTime?: string;
+    reminderTime?: string;
     remindByEmail?: boolean;
   }) => void;
   onAddTodo: (text: string) => void;
@@ -127,37 +130,49 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
             Boolean(result.remindByEmail) ||
             /przypomnij.*(mail|e-mail|poczt)|wy[sś]lij.*(mail|e-mail|poczt)/i.test(commandText);
 
+          const taskCategory = result.category || (result.price ? 'work' : 'personal');
+
           onAddTask({
-            name: result.name || 'Nowy projekt',
+            name: result.name || 'Nowe zadanie',
+            category: taskCategory,
             price: result.price,
             startDate: result.startDate,
             endDate: result.endDate,
+            dueTime: result.dueTime,
+            reminderTime: result.reminderTime,
             remindByEmail: wantsEmail,
           });
 
+          const categoryDesc = taskCategory === 'personal' ? 'sprawę osobistą' : 'zlecenie';
+          const timeDesc = result.dueTime ? ` na godz. ${result.dueTime}` : '';
+          const dateDesc = result.endDate ? ` na ${result.endDate}` : '';
+          const reminderDesc = result.reminderTime ? ` (${result.reminderTime})` : '';
+
           if (wantsEmail) {
             const emailRes = await sendTaskReminderEmail({
-              title: result.name || 'Nowy projekt',
+              title: result.name || 'Nowe zadanie',
               dueDate: result.endDate,
               price: result.price,
               priority: 'high',
+              category: taskCategory,
+              notes: `Termin: ${result.endDate || 'dzisiaj'}${timeDesc}${reminderDesc}`,
             });
             if (emailRes.success) {
-              const reply = `Dodałam projekt: "${result.name}" i wysłałam przypomnienie na Twój e-mail!`;
+              const reply = `Dodałam ${categoryDesc}: "${result.name}"${dateDesc}${timeDesc} i wysłałam przypomnienie na Twój e-mail!`;
               speakText(reply, voiceEnabled);
               setStatusMessage({
                 text: `✓ ${reply} (✉️ wysłano na ${getStoredRecipientEmail()})`,
               });
             } else {
-              const reply = `Dodałam projekt: "${result.name}", ale wystąpił problem z wysyłką e-mail.`;
+              const reply = `Dodałam ${categoryDesc}: "${result.name}", ale wystąpił problem z wysyłką e-mail.`;
               speakText(reply, voiceEnabled);
               setStatusMessage({
-                text: `✓ Dodałam projekt, błąd e-mail: ${emailRes.error}`,
+                text: `✓ Dodałam ${categoryDesc}, błąd e-mail: ${emailRes.error}`,
                 isError: true,
               });
             }
           } else {
-            const reply = `Dodałam projekt: "${result.name}"${result.price ? ` za ${result.price} zł` : ''}${result.endDate ? ` do ${result.endDate}` : ''}.`;
+            const reply = `Dodałam ${categoryDesc}: "${result.name}"${result.price ? ` za ${result.price} zł` : ''}${dateDesc}${timeDesc}.`;
             speakText(reply, voiceEnabled);
             setStatusMessage({ text: `✓ ${reply}` });
           }

@@ -283,9 +283,16 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 
                     {/* TERMIN */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="font-mono text-xs text-[#9e8f82]">
-                        {dateDisplay}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className="font-mono text-xs text-[#9e8f82]">
+                          {dateDisplay}
+                        </span>
+                        {task.dueTime && (
+                          <span className="text-[10px] text-[#d99b5a] font-mono">
+                            godz. {task.dueTime}
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     {/* UWAGI */}

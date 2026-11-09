@@ -3,8 +3,11 @@ import type { Priority, Status } from '../types';
 export interface AiCommandResult {
   action: 'add_task' | 'todo' | 'add_cost' | 'add_note' | 'summary' | 'end_month' | 'unknown';
   name?: string;
+  category?: 'work' | 'personal';
   startDate?: string;
   endDate?: string;
+  dueTime?: string;
+  reminderTime?: string;
   price?: number;
   type?: 'business' | 'private';
   cost?: number;
@@ -47,14 +50,22 @@ export async function executeAiCommand(
   const todayStr = new Date().toISOString().split('T')[0];
   const dayName = new Date().toLocaleDateString('pl-PL', { weekday: 'long' });
 
-  const systemPrompt = `Jesteś inteligentnym asystentem w aplikacji do zarządzania projektami i finansami JC Studio.
+  const systemPrompt = `Jesteś inteligentnym asystentem w aplikacji do zarządzania zadaniami, projektami i czasem JC Studio.
 Dzisiejsza data: ${todayStr} (${dayName}).
 Twoim zadaniem jest zamienienie komendy użytkownika w języku polskim na format JSON.
 Nie dodawaj żadnego tekstu przed ani po JSON-ie. Odpowiedz TYLKO i wyłącznie obiektem JSON.
 
 Dozwolone akcje (action) i struktury:
-1. Dodanie nowego zadania/projektu (jeśli brak dat start/end, przyjmij dzisiejszą datę. Wyłuskaj budżet w zł. Zostaw samą nazwę projektu. Jeśli użytkownik mówi "przypomnij mailem", "wyślij na maila", "przypomnij na maila", "wyślij powiadomienie na maila", dodaj "remindByEmail": true):
-   {"action": "add_task", "name": "nazwa projektu", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "price": liczba, "remindByEmail": true/false}
+1. Dodanie nowego zadania / projektu / spotkania / sprawy codziennej:
+   Obsługuj zarówno zlecenia graficzne/3D/architektoniczne, jak i wszelkie codzienne sprawy osobiste (np. fryzjer, lekarz, dentysta, zakupy, spotkanie, trening, przegląd auta, serwis).
+   - Jeśli to zlecenie komercyjne/3D/architektoniczne -> "category": "work".
+   - Jeśli to sprawa codzienna/prywatna (np. fryzjer, lekarz, zakupy) -> "category": "personal".
+   - Jeśli podano termin relatywny (np. "za tydzień", "jutro", "w piątek", "za 3 dni"), precyzyjnie oblicz datę YYYY-MM-DD bazując na dzisiejszej dacie ${todayStr}.
+   - Jeśli podano godzinę (np. "o 14:00", "na 11:30"), wyłuskaj "dueTime": "HH:MM".
+   - Jeśli użytkownik mówi "przypomnij mailem", "przypomnij mi godzinę przed mailem", "wyślij powiadomienie na maila", ustaw "remindByEmail": true oraz wyłuskaj "reminderTime": np. "godzinę przed" lub inną podaną wartość.
+   - Jeśli podano kwotę w zł -> "price": liczba.
+   Format:
+   {"action": "add_task", "name": "nazwa", "category": "work"|"personal", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "dueTime": "HH:MM", "reminderTime": "opis", "price": liczba, "remindByEmail": true/false}
 
 2. Dodanie do To-Do / Szybkich Notatek (np. "dodaj do to do kupić mleko", "muszę zadzwonić do klienta"):
    {"action": "todo", "text": "treść zadania"}

@@ -289,23 +289,35 @@ export function App() {
   // AI Command Handlers (From JC Studio)
   const handleAiAddTask = (taskData: {
     name: string;
+    category?: string;
     price?: number;
     startDate?: string;
     endDate?: string;
+    dueTime?: string;
+    reminderTime?: string;
     remindByEmail?: boolean;
   }) => {
     const todayStr = new Date().toISOString().split('T')[0];
+    const category = taskData.category || (taskData.price ? 'work' : 'personal');
+
+    const notesParts: string[] = [];
+    if (taskData.dueTime) notesParts.push(`Godzina: ${taskData.dueTime}`);
+    if (taskData.reminderTime) notesParts.push(`Przypomnienie: ${taskData.reminderTime}`);
+    notesParts.push('Dodane przez Asystenta AI ✨');
+
     const newTask: Task = {
       id: Date.now().toString(),
       title: taskData.name,
       price: taskData.price,
       startDate: taskData.startDate || todayStr,
       dueDate: taskData.endDate || todayStr,
-      category: 'work',
+      dueTime: taskData.dueTime,
+      reminderTime: taskData.reminderTime,
+      category,
       priority: 'high',
       status: 'in_progress',
       subtasks: [],
-      notes: 'Dodane przez Asystenta AI ✨',
+      notes: notesParts.join(' • '),
       remindByEmail: taskData.remindByEmail,
       emailReminderSentAt: taskData.remindByEmail ? new Date().toISOString() : undefined,
       createdAt: new Date().toISOString(),
