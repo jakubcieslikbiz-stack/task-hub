@@ -20,7 +20,86 @@ export interface AuthCredentials {
 
 const STORAGE_KEY_CREDS = 'taskhub_auth_credentials';
 const STORAGE_KEY_SESSION = 'taskhub_auth_session';
+const STORAGE_KEY_TOKEN = 'taskhub_auth_token';
 const STORAGE_KEY_REMEMBER = 'taskhub_remember_until';
+
+/**
+ * Zwraca aktywny token sesyjny JWT (jeśli istnieje)
+ */
+export function getAuthToken(): string | null {
+  try {
+    return sessionStorage.getItem(STORAGE_KEY_TOKEN) || localStorage.getItem(STORAGE_KEY_TOKEN);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Zapisuje token sesyjny JWT
+ */
+export function setAuthToken(token: string): void {
+  try {
+    sessionStorage.setItem(STORAGE_KEY_TOKEN, token);
+  } catch {}
+}
+
+/**
+ * Logowanie przez backendową funkcję Vercel Serverless (/api/auth)
+ */
+export async function backendLogin(
+  login: string,
+  password: string
+): Promise<{ success: boolean; token: string }> {
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'login',
+        login: login.trim(),
+        password,
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || 'Nieprawidłowy login lub hasło.');
+    }
+
+    if (data.token) {
+      setAuthToken(data.token);
+    }
+    setSessionAuthenticated();
+    return { success: true, token: data.token };
+  } catch (err: any) {
+    throw err;
+  }
+}
+
+/**
+ * Zmiana hasła przez backendową funkcję Vercel Serverless (/api/auth)
+ */
+export async function backendChangePassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<void> {
+  const token = getAuthToken();
+  const res = await fetch('/api/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'change-password',
+      token,
+      currentPassword,
+      newPassword,
+    }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || 'Błąd podczas zmiany hasła na serwerze.');
+  }
+}
 
 /**
  * Domyślny skrót SHA-256 dla loginu głównego studia (nie ujawniamy loginu jawnym tekstem w kodzie)
@@ -212,6 +291,8 @@ export function setSessionAuthenticated(): void {
 export function clearSessionAuthentication(): void {
   try {
     sessionStorage.removeItem(STORAGE_KEY_SESSION);
+    sessionStorage.removeItem(STORAGE_KEY_TOKEN);
+    localStorage.removeItem(STORAGE_KEY_TOKEN);
     localStorage.removeItem(STORAGE_KEY_REMEMBER);
   } catch (err) {
     console.warn('Błąd czyszczenia sesji:', err);

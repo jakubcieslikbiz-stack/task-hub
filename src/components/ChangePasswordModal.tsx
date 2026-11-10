@@ -12,6 +12,7 @@ import {
   hashPassword,
   verifyPassword,
   saveStoredCredentials,
+  backendChangePassword,
   type AuthCredentials,
 } from '../lib/auth';
 
@@ -67,8 +68,21 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
 
     try {
       setIsLoading(true);
+
+      // Spróbuj zmienić hasło na bezpiecznym backendzie Vercel Serverless
+      try {
+        await backendChangePassword(currentPassword, newPassword);
+      } catch (backendErr: any) {
+        if (backendErr?.message && !backendErr.message.includes('fetch')) {
+          setError(backendErr.message);
+          return;
+        }
+      }
+
+      // Aktualizuj lokalną kopię kryptograficzną dla natychmiastowej spójności w UI
       const { hash, salt } = await hashPassword(newPassword);
       const newCreds: AuthCredentials = {
+        loginHash: storedCredentials?.loginHash,
         hash,
         salt,
         updatedAt: new Date().toISOString(),

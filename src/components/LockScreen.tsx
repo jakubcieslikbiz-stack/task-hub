@@ -19,6 +19,7 @@ import {
   sha256Hex,
   saveStoredCredentials,
   setSessionAuthenticated,
+  backendLogin,
   type AuthCredentials,
 } from '../lib/auth';
 import {
@@ -197,16 +198,37 @@ export const LockScreen: React.FC<LockScreenProps> = ({
 
     setIsLoading(true);
     try {
-      const expectedLoginHash = storedCredentials.loginHash || DEFAULT_LOGIN_HASH;
-      const isLoginValid = await verifyLogin(login, expectedLoginHash);
-      if (!isLoginValid) {
-        triggerErrorShake('Nieprawidłowy login lub hasło.');
-        return;
+      let loginSuccess = false;
+
+      try {
+        // Główna walidacja na bezpiecznym backendzie Vercel Serverless
+        const result = await backendLogin(login.trim(), password);
+        if (result?.success) {
+          loginSuccess = true;
+        }
+      } catch (backendErr: any) {
+        // Jeśli backend zwrócił konkretny błąd (np. błędne hasło lub blokada rate-limit), pokazujemy go
+        if (backendErr?.message && !backendErr.message.includes('fetch')) {
+          triggerErrorShake(backendErr.message);
+          setPassword('');
+          return;
+        }
+        // W razie braku połączenia (offline), bezpieczny fallback do lokalnej weryfikacji kryptograficznej
+        const expectedLoginHash = storedCredentials.loginHash || DEFAULT_LOGIN_HASH;
+        const isLoginValid = await verifyLogin(login, expectedLoginHash);
+        const isValid = isLoginValid && (await verifyPassword(password, storedCredentials));
+        if (isValid) {
+          loginSuccess = true;
+        } else {
+          triggerErrorShake('Nieprawidłowy login lub hasło.');
+          setPassword('');
+          return;
+        }
       }
 
-      const isValid = await verifyPassword(password, storedCredentials);
-      if (isValid) {
+      if (loginSuccess) {
         if (!storedCredentials.loginHash) {
+          const expectedLoginHash = storedCredentials.loginHash || DEFAULT_LOGIN_HASH;
           const updatedCreds = {
             ...storedCredentials,
             loginHash: expectedLoginHash,
