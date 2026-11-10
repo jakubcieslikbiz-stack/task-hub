@@ -51,9 +51,47 @@ export const LockScreen: React.FC<LockScreenProps> = ({
   const [enableBioOnLogin, setEnableBioOnLogin] = useState(true);
   const [isBioLoading, setIsBioLoading] = useState(false);
 
+  const autoTriggeredRef = React.useRef(false);
+
   useEffect(() => {
-    isBiometricsAvailable().then((avail) => setIsBioAvailable(avail));
-  }, []);
+    let active = true;
+
+    async function checkAndAutoTriggerBio() {
+      const avail = await isBiometricsAvailable();
+      if (!active) return;
+      setIsBioAvailable(avail);
+
+      const hasCred = hasBiometricCredential();
+      setHasBioCred(hasCred);
+
+      // Automatyczne wywołanie Face ID od razu po otwarciu aplikacji na telefonie!
+      if (avail && hasCred && !isFirstTimeSetup && !autoTriggeredRef.current) {
+        autoTriggeredRef.current = true;
+        setTimeout(async () => {
+          if (!active) return;
+          try {
+            setIsBioLoading(true);
+            const ok = await authenticateWithBiometrics();
+            if (ok && active) {
+              setSessionAuthenticated();
+              onAuthenticated();
+              return;
+            }
+          } catch (e) {
+            console.log('Automatyczny Face ID wymaga pierwszego dotknięcia ekranu:', e);
+          } finally {
+            if (active) setIsBioLoading(false);
+          }
+        }, 120);
+      }
+    }
+
+    checkAndAutoTriggerBio();
+
+    return () => {
+      active = false;
+    };
+  }, [isFirstTimeSetup, onAuthenticated]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
