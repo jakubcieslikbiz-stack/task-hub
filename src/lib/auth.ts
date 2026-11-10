@@ -21,7 +21,6 @@ export interface AuthCredentials {
 const STORAGE_KEY_CREDS = 'taskhub_auth_credentials';
 const STORAGE_KEY_SESSION = 'taskhub_auth_session';
 const STORAGE_KEY_REMEMBER = 'taskhub_remember_until';
-const STORAGE_KEY_SAVED_LOGIN = 'taskhub_saved_login';
 
 /**
  * Domyślny skrót SHA-256 dla loginu głównego studia (nie ujawniamy loginu jawnym tekstem w kodzie)
@@ -63,22 +62,11 @@ export async function verifyLogin(
  * Pobiera zapamiętany login na zaufanym urządzeniu
  */
 export function getSavedLogin(): string {
-  try {
-    return localStorage.getItem(STORAGE_KEY_SAVED_LOGIN) || '';
-  } catch {
-    return '';
-  }
+  return '';
 }
 
-/**
- * Zapisuje login na zaufanym urządzeniu
- */
-export function saveSavedLogin(login: string): void {
-  try {
-    if (login) {
-      localStorage.setItem(STORAGE_KEY_SAVED_LOGIN, login.trim());
-    }
-  } catch {}
+export function saveSavedLogin(_login: string): void {
+  // Nie zapisujemy loginu na urządzeniu
 }
 
 /**
@@ -200,39 +188,19 @@ export function saveStoredCredentials(creds: AuthCredentials): void {
  */
 export function isSessionAuthenticated(): boolean {
   try {
-    // 1. Sprawdź bieżącą kartę/sesję
-    if (sessionStorage.getItem(STORAGE_KEY_SESSION) === 'true') {
-      return true;
-    }
-    // 2. Sprawdź czy użytkownik wybrał "Zapamiętaj na tym urządzeniu" (30 dni)
-    const rememberUntil = localStorage.getItem(STORAGE_KEY_REMEMBER);
-    if (rememberUntil) {
-      const exp = Number(rememberUntil);
-      if (!isNaN(exp) && Date.now() < exp) {
-        return true;
-      } else {
-        localStorage.removeItem(STORAGE_KEY_REMEMBER);
-      }
-    }
-    return false;
+    return sessionStorage.getItem(STORAGE_KEY_SESSION) === 'true';
   } catch {
     return false;
   }
 }
 
 /**
- * Ustawia status zalogowania
+ * Ustawia status zalogowania dla bieżącej sesji
  */
-export function setSessionAuthenticated(rememberOnDevice: boolean = false): void {
+export function setSessionAuthenticated(): void {
   try {
     sessionStorage.setItem(STORAGE_KEY_SESSION, 'true');
-    if (rememberOnDevice) {
-      // 30 dni ważności
-      const thirtyDays = Date.now() + 30 * 24 * 60 * 60 * 1000;
-      localStorage.setItem(STORAGE_KEY_REMEMBER, String(thirtyDays));
-    } else {
-      localStorage.removeItem(STORAGE_KEY_REMEMBER);
-    }
+    localStorage.removeItem(STORAGE_KEY_REMEMBER);
   } catch (err) {
     console.warn('Błąd zapisu sesji:', err);
   }

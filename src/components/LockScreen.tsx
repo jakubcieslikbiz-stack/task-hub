@@ -14,8 +14,6 @@ import {
   hashPassword,
   verifyPassword,
   verifyLogin,
-  getSavedLogin,
-  saveSavedLogin,
   DEFAULT_LOGIN_HASH,
   sha256Hex,
   saveStoredCredentials,
@@ -36,11 +34,10 @@ export const LockScreen: React.FC<LockScreenProps> = ({
 }) => {
   const isFirstTimeSetup = !storedCredentials;
 
-  const [login, setLogin] = useState(() => getSavedLogin());
+  const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberOnDevice, setRememberOnDevice] = useState(true);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,10 +98,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
 
       saveStoredCredentials(newCreds);
       await onSaveCredentials(newCreds);
-      if (rememberOnDevice) {
-        saveSavedLogin(login.trim());
-      }
-      setSessionAuthenticated(rememberOnDevice);
+      setSessionAuthenticated();
       onAuthenticated();
     } catch (err: any) {
       triggerErrorShake(err?.message || 'Błąd podczas tworzenia hasła.');
@@ -147,10 +141,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
           saveStoredCredentials(updatedCreds);
           void onSaveCredentials(updatedCreds);
         }
-        if (rememberOnDevice) {
-          saveSavedLogin(login.trim());
-        }
-        setSessionAuthenticated(rememberOnDevice);
+        setSessionAuthenticated();
         onAuthenticated();
       } else {
         triggerErrorShake('Nieprawidłowy login lub hasło.');
@@ -271,19 +262,6 @@ export const LockScreen: React.FC<LockScreenProps> = ({
               />
             </div>
           )}
-
-          {/* Remember on device checkbox */}
-          <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-2 cursor-pointer text-xs text-[#9e8f82] hover:text-[#f5ede4] transition-colors select-none">
-              <input
-                type="checkbox"
-                checked={rememberOnDevice}
-                onChange={(e) => setRememberOnDevice(e.target.checked)}
-                className="w-4 h-4 rounded border-[#382b20] bg-[#140f0c] text-[#d99b5a] focus:ring-0 accent-[#d99b5a] cursor-pointer"
-              />
-              <span>Zapamiętaj na tym urządzeniu (30 dni)</span>
-            </label>
-          </div>
 
           {/* Submit button */}
           <button
