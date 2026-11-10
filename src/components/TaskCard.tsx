@@ -102,7 +102,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   return (
     <div
       className={`group relative rounded-3xl border transition-all duration-300 glass-panel p-4 sm:p-5 shadow-2xl hover:border-[#3d2f24] ${
-        isPaid
+        task.category === 'personal'
+          ? isPaid
+            ? 'border-[#7ec29a]/40 bg-[#28211a]'
+            : isDone
+            ? 'border-[#7ec29a]/30 bg-[#241d17] opacity-75 hover:opacity-95'
+            : 'border-[#7ec29a]/50 bg-[#35291e] hover:bg-[#423326]'
+          : isPaid
           ? 'border-[#7ec29a]/40 bg-[#1e1913]/90'
           : isDone
           ? 'border-[#2e231c]/60 opacity-60 hover:opacity-90'

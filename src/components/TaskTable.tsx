@@ -189,12 +189,19 @@ export const TaskTable: React.FC<TaskTableProps> = ({
               const completedSubtasks = task.subtasks.filter((s) => s.completed).length;
               const hasSubtasks = task.subtasks.length > 0;
               const isExpanded = expandedRowId === task.id;
+              const isPersonal = task.category === 'personal';
 
               return (
                 <React.Fragment key={task.id}>
                   <tr
                     className={`group transition-colors ${
-                      isPaid
+                      isPersonal
+                        ? isPaid
+                          ? 'bg-[#2a2119]/85 hover:bg-[#352a20]'
+                          : isDone
+                          ? 'bg-[#261e17]/80 hover:bg-[#30261e]'
+                          : 'bg-[#3b2d21]/95 hover:bg-[#493829]'
+                        : isPaid
                         ? 'bg-[#15120e]/60 hover:bg-[#1a1410]'
                         : isDone
                         ? 'bg-[#121411]/50 hover:bg-[#161a15]'
@@ -202,7 +209,11 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                     }`}
                   >
                     {/* PROJEKT */}
-                    <td className="py-3.5 pl-6 pr-4">
+                    <td
+                      className={`py-3.5 pl-6 pr-4 transition-colors ${
+                        isPersonal ? 'border-l-4 border-l-[#7ec29a]' : ''
+                      }`}
+                    >
                       <div className="flex items-center gap-2">
                         {hasSubtasks && (
                           <button
@@ -231,7 +242,13 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                           </span>
                           <div className="flex items-center gap-2">
                             {category && (
-                              <span className="text-[10px] text-[#7a6b5e]">
+                              <span
+                                className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                  isPersonal
+                                    ? 'bg-[#7ec29a]/20 text-[#9ee2b9] border border-[#7ec29a]/35'
+                                    : 'text-[#7a6b5e]'
+                                }`}
+                              >
                                 {category.name}
                               </span>
                             )}
@@ -415,9 +432,26 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 
                   {/* Expanded Subtasks Row */}
                   {isExpanded && hasSubtasks && (
-                    <tr className="bg-[#120e0b]/90 border-b border-[#2e231c]">
-                      <td colSpan={8} className="py-3 pl-12 pr-6">
-                        <div className="p-3.5 rounded-2xl bg-[#17110d] border border-[#2e231c] space-y-2">
+                    <tr
+                      className={`border-b ${
+                        isPersonal
+                          ? 'bg-[#2b221a]/95 border-[#3d2f24]'
+                          : 'bg-[#120e0b]/90 border-[#2e231c]'
+                      }`}
+                    >
+                      <td
+                        colSpan={8}
+                        className={`py-3 pl-12 pr-6 ${
+                          isPersonal ? 'border-l-4 border-l-[#7ec29a]' : ''
+                        }`}
+                      >
+                        <div
+                          className={`p-3.5 rounded-2xl border space-y-2 ${
+                            isPersonal
+                              ? 'bg-[#231a13] border-[#3d2f24]'
+                              : 'bg-[#17110d] border-[#2e231c]'
+                          }`}
+                        >
                           <span className="text-[10px] font-mono uppercase tracking-wider text-[#9e8f82] block">
                             Etapy i podzadania ({completedSubtasks}/{task.subtasks.length}):
                           </span>

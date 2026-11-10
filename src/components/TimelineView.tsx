@@ -210,11 +210,17 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
                   const isPaid = task.status === 'paid';
                   const isDone = task.status === 'done';
 
+                  const isPersonal = task.category === 'personal';
+
                   return (
                     <div
                       key={task.id}
                       onClick={() => onEditTask(task)}
-                      className="grid gap-1 py-3 items-center hover:bg-[#251b14]/50 rounded-2xl transition-colors cursor-pointer group"
+                      className={`grid gap-1 py-3 items-center rounded-2xl transition-colors cursor-pointer group ${
+                        isPersonal
+                          ? 'bg-[#2d2218]/70 hover:bg-[#3a2d21]/80 border-l-2 border-l-[#7ec29a]'
+                          : 'hover:bg-[#251b14]/50'
+                      }`}
                       style={{
                         gridTemplateColumns: `220px repeat(${daysInMonth}, minmax(32px, 1fr))`,
                       }}
