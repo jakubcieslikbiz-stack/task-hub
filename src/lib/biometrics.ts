@@ -123,9 +123,13 @@ export async function authenticateWithBiometrics(): Promise<boolean> {
   try {
     const rawIdBuffer = base64ToBuffer(storedId);
 
+    const hostname = window.location.hostname;
+    const rpId = hostname === 'localhost' ? undefined : hostname;
+
     const assertion = await navigator.credentials.get({
       publicKey: {
         challenge,
+        rpId,
         allowCredentials: [
           {
             type: 'public-key',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Lock,
   Unlock,
@@ -51,28 +51,47 @@ export const LockScreen: React.FC<LockScreenProps> = ({
   const [enableBioOnLogin, setEnableBioOnLogin] = useState(true);
   const [isBioLoading, setIsBioLoading] = useState(false);
 
-  const autoTriggeredRef = React.useRef(false);
+  const autoTriggeredRef = useRef(false);
+
+  const handleBiometricUnlock = useCallback(async () => {
+    setError(null);
+    setIsBioLoading(true);
+    try {
+      const ok = await authenticateWithBiometrics();
+      if (ok) {
+        setSessionAuthenticated();
+        onAuthenticated();
+        return;
+      } else {
+        triggerErrorShake('Weryfikacja Face ID anulowana lub nieudana.');
+      }
+    } catch (e: any) {
+      triggerErrorShake(e?.message || 'Błąd weryfikacji biometrycznej.');
+    } finally {
+      setIsBioLoading(false);
+    }
+  }, [onAuthenticated]);
 
   useEffect(() => {
-    let active = true;
+    let unmounted = false;
 
     async function checkAndAutoTriggerBio() {
       const avail = await isBiometricsAvailable();
-      if (!active) return;
+      if (unmounted) return;
       setIsBioAvailable(avail);
 
       const hasCred = hasBiometricCredential();
+      if (unmounted) return;
       setHasBioCred(hasCred);
 
-      // Automatyczne wywołanie Face ID od razu po otwarciu aplikacji na telefonie!
+      // Automatyczne wywołanie Face ID od razu po otwarciu aplikacji na telefonie
       if (avail && hasCred && !isFirstTimeSetup && !autoTriggeredRef.current) {
         autoTriggeredRef.current = true;
         setTimeout(async () => {
-          if (!active) return;
           try {
             setIsBioLoading(true);
             const ok = await authenticateWithBiometrics();
-            if (ok && active) {
+            if (ok) {
               setSessionAuthenticated();
               onAuthenticated();
               return;
@@ -80,16 +99,16 @@ export const LockScreen: React.FC<LockScreenProps> = ({
           } catch (e) {
             console.log('Automatyczny Face ID wymaga pierwszego dotknięcia ekranu:', e);
           } finally {
-            if (active) setIsBioLoading(false);
+            setIsBioLoading(false);
           }
-        }, 120);
+        }, 150);
       }
     }
 
     checkAndAutoTriggerBio();
 
     return () => {
-      active = false;
+      unmounted = true;
     };
   }, [isFirstTimeSetup, onAuthenticated]);
 
@@ -106,24 +125,6 @@ export const LockScreen: React.FC<LockScreenProps> = ({
       } catch (_) {}
     }
     setTimeout(() => setIsShaking(false), 600);
-  };
-
-  const handleBiometricUnlock = async () => {
-    setError(null);
-    setIsBioLoading(true);
-    try {
-      const ok = await authenticateWithBiometrics();
-      if (ok) {
-        setSessionAuthenticated();
-        onAuthenticated();
-      } else {
-        triggerErrorShake('Weryfikacja Face ID anulowana lub nieudana.');
-      }
-    } catch {
-      triggerErrorShake('Błąd weryfikacji biometrycznej.');
-    } finally {
-      setIsBioLoading(false);
-    }
   };
 
   const handleSetupSubmit = async (e: React.FormEvent) => {

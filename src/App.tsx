@@ -135,6 +135,10 @@ export function App() {
     setIsAuthenticated(false);
   };
 
+  const handleAuthenticated = useCallback(() => {
+    setIsAuthenticated(true);
+  }, []);
+
   // Automated Monthly Report Generation (Runs on mount & checks periodically for 23:50 on last day of month)
   useEffect(() => {
     const runCheck = () => {
@@ -831,7 +835,7 @@ export function App() {
     return (
       <LockScreen
         storedCredentials={authCredentials}
-        onAuthenticated={() => setIsAuthenticated(true)}
+        onAuthenticated={handleAuthenticated}
         onSaveCredentials={async (newCreds) => {
           // Ochrona: jeśli hasło już istnieje, zablokuj podmianę na inne hasło
           if (authCredentials?.hash && authCredentials.hash !== newCreds.hash) {
