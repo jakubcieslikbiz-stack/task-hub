@@ -55,6 +55,11 @@ export const LockScreen: React.FC<LockScreenProps> = ({
     e.preventDefault();
     setError(null);
 
+    if (storedCredentials) {
+      triggerErrorShake('Hasło zostało już utworzone w chmurze. Odblokuj panel podając hasło.');
+      return;
+    }
+
     if (password.length < 4) {
       triggerErrorShake('Hasło musi mieć co najmniej 4 znaki.');
       return;
