@@ -158,6 +158,135 @@ export function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Gest przeciągnięcia na mobile (Swipe gesture: lewa -> prawa otwiera sidebar, prawa -> lewa zamyka)
+  useEffect(() => {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let isEligible = false;
+    let hasTriggered = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      // Tylko na ekranach mobilnych poniżej breakpointu md (768px)
+      if (window.innerWidth >= 768) return;
+      // Nie otwieraj podczas otwartych modali
+      if (isTaskModalOpen || isAiModalOpen || isPhoneModalOpen) return;
+
+      const touch = e.touches[0];
+      if (!touch) return;
+
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartTime = Date.now();
+      hasTriggered = false;
+
+      const target = e.target as HTMLElement | null;
+
+      // Ignoruj gesty na polach formularzy (input, textarea, select)
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) {
+        isEligible = false;
+        return;
+      }
+
+      // W strefie poziomego wykresu zezwalaj tylko na swipe z samej krawędzi (<= 35px)
+      if (target?.closest('.touch-pan-x, [data-no-swipe]') && touchStartX > 35) {
+        isEligible = false;
+        return;
+      }
+
+      if (isMobileMenuOpen) {
+        // Gdy sidebar jest otwarty, jakikolwiek poziomy ruch w lewo zamyka go
+        isEligible = true;
+      } else {
+        // Gdy jest zamknięty, swipe musi startować z lewej strony ekranu (do 35% szerokości lub 120px)
+        const leftZoneWidth = Math.max(100, window.innerWidth * 0.35);
+        isEligible = touchStartX <= leftZoneWidth;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isEligible || hasTriggered) return;
+      const touch = e.touches[0];
+      if (!touch) return;
+
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+
+      // Gest musi być dominująco poziomy (aby nie kolidować z pionowym przewijaniem)
+      if (absX < 35 || absX <= absY * 1.25) return;
+
+      if (!isMobileMenuOpen && deltaX > 35) {
+        // Przeciągnięcie w prawo z lewej strony -> OTWÓRZ SIDEBAR
+        hasTriggered = true;
+        setIsMobileMenuOpen(true);
+        if (navigator.vibrate) {
+          try {
+            navigator.vibrate(12);
+          } catch (_) {}
+        }
+      } else if (isMobileMenuOpen && deltaX < -30) {
+        // Przeciągnięcie w lewo przy otwartym -> ZAMKNIJ SIDEBAR
+        hasTriggered = true;
+        setIsMobileMenuOpen(false);
+        if (navigator.vibrate) {
+          try {
+            navigator.vibrate(8);
+          } catch (_) {}
+        }
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (!isEligible || hasTriggered) {
+        isEligible = false;
+        return;
+      }
+
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+      const elapsed = Date.now() - touchStartTime;
+
+      // Szybki gest (flick pod palcem < 300ms) o drodze min. 25px
+      if (elapsed < 300 && absX >= 25 && absX > absY) {
+        if (!isMobileMenuOpen && deltaX > 25) {
+          setIsMobileMenuOpen(true);
+          if (navigator.vibrate) {
+            try {
+              navigator.vibrate(12);
+            } catch (_) {}
+          }
+        } else if (isMobileMenuOpen && deltaX < -25) {
+          setIsMobileMenuOpen(false);
+          if (navigator.vibrate) {
+            try {
+              navigator.vibrate(8);
+            } catch (_) {}
+          }
+        }
+      }
+
+      isEligible = false;
+      hasTriggered = false;
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isMobileMenuOpen, isTaskModalOpen, isAiModalOpen, isPhoneModalOpen]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isInitialRemoteLoad = useRef(true);
 
