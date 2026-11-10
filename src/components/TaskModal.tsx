@@ -41,17 +41,34 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
   useEffect(() => {
     if (initialTask) {
-      setTitle(initialTask.title);
+      setTitle(initialTask.title || '');
       setDescription(initialTask.description || '');
-      setPrice(initialTask.price !== undefined ? initialTask.price.toString() : '');
-      setCategory(initialTask.category);
-      setPriority(initialTask.priority);
-      setStatus(initialTask.status);
-      setStartDate(initialTask.startDate || '');
-      setDueDate(initialTask.dueDate || '');
+      setPrice(
+        initialTask.price !== undefined && initialTask.price !== null
+          ? String(initialTask.price)
+          : ''
+      );
+      setCategory(initialTask.category || CATEGORIES[0].id);
+      setPriority(initialTask.priority || 'medium');
+      setStatus(initialTask.status || 'in_progress');
+      setStartDate(typeof initialTask.startDate === 'string' ? initialTask.startDate : '');
+      setDueDate(typeof initialTask.dueDate === 'string' ? initialTask.dueDate : '');
       setNotes(initialTask.notes || '');
-      setRemindByEmail(initialTask.remindByEmail || false);
-      setSubtasks(initialTask.subtasks || []);
+      setRemindByEmail(Boolean(initialTask.remindByEmail));
+      setSubtasks(
+        Array.isArray(initialTask.subtasks)
+          ? initialTask.subtasks.map((st: any, i: number) => {
+              if (typeof st === 'string') {
+                return { id: `st-${Date.now()}-${i}`, title: st, completed: false };
+              }
+              return {
+                id: String(st?.id || `st-${Date.now()}-${i}`),
+                title: typeof st?.title === 'string' ? st.title : String(st?.title || ''),
+                completed: Boolean(st?.completed),
+              };
+            })
+          : []
+      );
     } else {
       setTitle('');
       setDescription('');
@@ -330,7 +347,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               </button>
             </div>
 
-            {subtasks.length > 0 && (
+            {Array.isArray(subtasks) && subtasks.length > 0 && (
               <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
                 {subtasks.map((st) => (
                   <div
@@ -365,12 +382,21 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   Powiadomienie na: {getStoredRecipientEmail()}
                 </span>
                 {remindByEmail && dueDate && (() => {
-                  const target = calculateReminderTimestamp({ dueDate });
-                  return (
-                    <span className="text-[10px] text-[#d99b5a] block mt-0.5">
-                      ⏱️ Zostanie zaplanowane na: {target ? formatScheduledReminder(target) : `${dueDate} (godz. 09:00)`}
-                    </span>
-                  );
+                  try {
+                    const target = calculateReminderTimestamp({ dueDate });
+                    const formatted = target ? formatScheduledReminder(target) : '';
+                    return (
+                      <span className="text-[10px] text-[#d99b5a] block mt-0.5">
+                        ⏱️ Zostanie zaplanowane na: {formatted || `${dueDate} (godz. 09:00)`}
+                      </span>
+                    );
+                  } catch {
+                    return (
+                      <span className="text-[10px] text-[#d99b5a] block mt-0.5">
+                        ⏱️ Zostanie zaplanowane na: {dueDate}
+                      </span>
+                    );
+                  }
                 })()}
               </div>
             </div>

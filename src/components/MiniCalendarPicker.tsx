@@ -198,19 +198,23 @@ export const MiniCalendarPicker: React.FC<MiniCalendarPickerProps> = ({
 
   // Format trigger display text
   const formatDisplay = () => {
-    if (!value) return placeholder;
+    if (!value || typeof value !== 'string') return placeholder;
     try {
-      const parts = value.split('-').map(Number);
-      const d = new Date(parts[0], parts[1] - 1, parts[2]);
-      if (isNaN(d.getTime())) return value;
-      return d.toLocaleDateString('pl-PL', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        weekday: 'short',
-      });
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const parts = value.split('-').map(Number);
+        const d = new Date(parts[0], parts[1] - 1, parts[2]);
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleDateString('pl-PL', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            weekday: 'short',
+          });
+        }
+      }
+      return String(value);
     } catch {
-      return value;
+      return placeholder;
     }
   };
 

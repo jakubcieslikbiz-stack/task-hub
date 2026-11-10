@@ -127,31 +127,39 @@ export function calculateReminderTimestamp(params: ReminderTimeParams): Date | n
 /**
  * Formatuje zaplanowaną datę przypomnienia po polsku (np. "dzisiaj o godz. 10:30")
  */
-export function formatScheduledReminder(date: Date): string {
-  const now = new Date();
-  const isToday =
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate();
+export function formatScheduledReminder(date: Date | string | number | null | undefined): string {
+  if (!date) return '';
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return '';
 
-  const tomorrow = new Date(now);
-  tomorrow.setDate(now.getDate() + 1);
-  const isTomorrow =
-    date.getFullYear() === tomorrow.getFullYear() &&
-    date.getMonth() === tomorrow.getMonth() &&
-    date.getDate() === tomorrow.getDate();
+  try {
+    const now = new Date();
+    const isToday =
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate();
 
-  const timeStr = date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+    const isTomorrow =
+      d.getFullYear() === tomorrow.getFullYear() &&
+      d.getMonth() === tomorrow.getMonth() &&
+      d.getDate() === tomorrow.getDate();
 
-  if (isToday) {
-    return `dzisiaj o godz. ${timeStr}`;
+    const timeStr = d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+    if (isToday) {
+      return `dzisiaj o godz. ${timeStr}`;
+    }
+    if (isTomorrow) {
+      return `jutro o godz. ${timeStr}`;
+    }
+
+    const dateStr = d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
+    return `${dateStr} o godz. ${timeStr}`;
+  } catch {
+    return '';
   }
-  if (isTomorrow) {
-    return `jutro o godz. ${timeStr}`;
-  }
-
-  const dateStr = date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
-  return `${dateStr} o godz. ${timeStr}`;
 }
 
 /**
@@ -205,7 +213,10 @@ export async function sendTaskReminderEmail(
     }
   }
 
-  const formattedPrice = task.price !== undefined ? `${task.price.toLocaleString('pl-PL')} zł` : 'Nie określono';
+  const formattedPrice =
+    typeof task.price === 'number' && !isNaN(task.price)
+      ? `${task.price.toLocaleString('pl-PL')} zł`
+      : 'Nie określono';
   const formattedDueDate = task.dueDate ? `${task.dueDate}${task.dueTime ? ` godz. ${task.dueTime}` : ''}` : 'Dzisiaj';
   const priorityLabels: Record<string, string> = {
     urgent: '🚨 Pilne',

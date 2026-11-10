@@ -17,6 +17,7 @@ import { PortfolioManagerView } from './components/PortfolioManagerView';
 import { PomodoroView } from './components/PomodoroView';
 import { RecentActivityAndGoals } from './components/RecentActivityAndGoals';
 import { TaskModal } from './components/TaskModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { AiAssistantBar } from './components/AiAssistantBar';
 import { AiTaskModal } from './components/AiTaskModal';
 import { ConnectPhoneModal } from './components/ConnectPhoneModal';
@@ -664,6 +665,7 @@ export function App() {
   };
 
   const handleOpenEdit = (task: Task) => {
+    if (!task) return;
     setEditingTask(task);
     setIsTaskModalOpen(true);
   };
@@ -1121,12 +1123,23 @@ export function App() {
         onAddNoteToTask={handleAiAddNoteToTask}
       />
 
-      <TaskModal
-        isOpen={isTaskModalOpen}
-        onClose={() => setIsTaskModalOpen(false)}
-        onSave={handleSaveTask}
-        initialTask={editingTask}
-      />
+      <ErrorBoundary
+        fallbackMessage="Wystąpił problem podczas edycji zlecenia"
+        onReset={() => {
+          setIsTaskModalOpen(false);
+          setEditingTask(null);
+        }}
+      >
+        <TaskModal
+          isOpen={isTaskModalOpen}
+          onClose={() => {
+            setIsTaskModalOpen(false);
+            setEditingTask(null);
+          }}
+          onSave={handleSaveTask}
+          initialTask={editingTask}
+        />
+      </ErrorBoundary>
 
       <AiTaskModal
         isOpen={isAiModalOpen}

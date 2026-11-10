@@ -140,10 +140,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </h3>
 
             {/* Price Badge (Warm champagne / sage) */}
-            {task.price !== undefined && (
+            {task.price !== undefined && task.price !== null && (
               <span className="flex-shrink-0 inline-flex items-center gap-0.5 px-3 py-1 rounded-full text-xs font-medium font-mono bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30">
                 <DollarSign className="w-3 h-3 text-[#7ec29a] -mr-0.5" />
-                {task.price.toLocaleString('pl-PL')} zł
+                {Number(task.price).toLocaleString('pl-PL')} zł
               </span>
             )}
           </div>
