@@ -17,6 +17,8 @@ import {
   Plus,
   Search,
   Tag,
+  Lock,
+  KeyRound,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -34,6 +36,8 @@ interface SidebarProps {
   onToggleSearch?: () => void;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
+  onLockApp?: () => void;
+  onOpenChangePassword?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -51,6 +55,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleSearch,
   mobileOpen = false,
   onCloseMobile,
+  onLockApp,
+  onOpenChangePassword,
 }) => {
   const [showCategoryMenu, setShowCategoryMenu] = React.useState(false);
 
@@ -338,6 +344,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
             Wgraj plik
           </span>
         </button>
+
+        {/* Change password modal trigger */}
+        {onOpenChangePassword && (
+          <button
+            onClick={() => {
+              if (onCloseMobile) onCloseMobile();
+              onOpenChangePassword();
+            }}
+            title="Zmień hasło dostępu"
+            className="group relative p-2 rounded-full text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#221a14]/60 transition-all"
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+            <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+              Zmień hasło
+            </span>
+          </button>
+        )}
+
+        {/* Lock app button */}
+        {onLockApp && (
+          <button
+            onClick={() => {
+              if (onCloseMobile) onCloseMobile();
+              onLockApp();
+            }}
+            title="Zablokuj panel"
+            className="group relative p-2 rounded-full text-[#9e8f82] hover:text-[#e07a68] hover:bg-[#2a1411]/60 transition-all"
+          >
+            <Lock className="w-3.5 h-3.5" />
+            <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#e07a68] border border-[#4d231c] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+              Zablokuj
+            </span>
+          </button>
+        )}
       </div>
     </aside>
     </>

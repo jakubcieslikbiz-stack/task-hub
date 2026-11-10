@@ -22,7 +22,16 @@ import { AiAssistantBar } from './components/AiAssistantBar';
 import { AiTaskModal } from './components/AiTaskModal';
 import { ConnectPhoneModal } from './components/ConnectPhoneModal';
 import { FinanceSummaryBoxes } from './components/FinanceSummaryBoxes';
-import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid } from 'lucide-react';
+import { LockScreen } from './components/LockScreen';
+import { ChangePasswordModal } from './components/ChangePasswordModal';
+import {
+  getStoredCredentials,
+  saveStoredCredentials,
+  isSessionAuthenticated,
+  clearSessionAuthentication,
+  type AuthCredentials,
+} from './lib/auth';
+import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid, Lock, KeyRound } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { checkAndAutoGenerateReports } from './lib/monthlyReport';
 import { sortTasksByClosestDeadline } from './utils/taskSort';
@@ -108,6 +117,20 @@ export function App() {
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [defaultStatusForNewTask, setDefaultStatusForNewTask] = useState<Status>('in_progress');
   const [autoReportNotice, setAutoReportNotice] = useState<string | null>(null);
+
+  // Authentication & Security state (Haszowane hasło PBKDF2)
+  const [authCredentials, setAuthCredentials] = useState<AuthCredentials | null>(() => getStoredCredentials());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    const creds = getStoredCredentials();
+    if (!creds) return false;
+    return isSessionAuthenticated();
+  });
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+
+  const handleLockApp = () => {
+    clearSessionAuthentication();
+    setIsAuthenticated(false);
+  };
 
   // Automated Monthly Report Generation (Runs on mount & checks periodically for 23:50 on last day of month)
   useEffect(() => {
@@ -331,6 +354,7 @@ export function App() {
           const notesRow = data.find((r) => r.key === 'notes');
           const costsRow = data.find((r) => r.key === 'costs');
           const portfolioRow = data.find((r) => r.key === 'portfolio');
+          const authRow = data.find((r) => r.key === 'auth');
 
           if (tasksRow && Array.isArray(tasksRow.data)) {
             setTasks(tasksRow.data);
@@ -343,6 +367,10 @@ export function App() {
           }
           if (portfolioRow && Array.isArray(portfolioRow.data)) {
             setPortfolioProjects(portfolioRow.data);
+          }
+          if (authRow && authRow.data && authRow.data.hash && authRow.data.salt) {
+            setAuthCredentials(authRow.data);
+            saveStoredCredentials(authRow.data);
           }
           setCloudSynced(true);
         } else if (data && data.length === 0) {
@@ -382,6 +410,10 @@ export function App() {
           }
           if (payload.new && payload.new.key === 'portfolio' && Array.isArray(payload.new.data)) {
             setPortfolioProjects(payload.new.data);
+          }
+          if (payload.new && payload.new.key === 'auth' && payload.new.data?.hash) {
+            setAuthCredentials(payload.new.data);
+            saveStoredCredentials(payload.new.data);
           }
         }
       )
@@ -772,6 +804,28 @@ export function App() {
     return <PublicPortfolioView projects={portfolioProjects} />;
   }
 
+  // Wymóg hasła z haszem PBKDF2: jeśli panel jest zablokowany lub nie ma jeszcze hasła, pokaż ekran blokady
+  if (!isAuthenticated) {
+    return (
+      <LockScreen
+        storedCredentials={authCredentials}
+        onAuthenticated={() => setIsAuthenticated(true)}
+        onSaveCredentials={(newCreds) => {
+          setAuthCredentials(newCreds);
+          if (supabase) {
+            void supabase
+              .from('taskhub_state')
+              .upsert({
+                key: 'auth',
+                data: newCreds,
+                updated_at: new Date().toISOString(),
+              });
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#0c0907] font-sans text-[#f5ede4] relative selection:bg-[#d99b5a]/35 selection:text-[#f5ede4]">
       <input
@@ -801,6 +855,8 @@ export function App() {
         }}
         mobileOpen={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
+        onLockApp={handleLockApp}
+        onOpenChangePassword={() => setIsChangePasswordOpen(true)}
       />
 
       {/* Main Content Area with offset for the floating dock & iPhone notch */}
@@ -830,11 +886,30 @@ export function App() {
               )}
             </div>
 
-            {isSyncing && (
-              <span className="text-[11px] text-[#d99b5a] animate-pulse font-medium">
-                Aktualizowanie...
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {isSyncing && (
+                <span className="text-[11px] text-[#d99b5a] animate-pulse font-medium mr-1">
+                  Aktualizowanie...
+                </span>
+              )}
+
+              {/* Security Actions */}
+              <button
+                onClick={() => setIsChangePasswordOpen(true)}
+                title="Zmień hasło dostępu"
+                className="p-1 rounded-full text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#251b14] transition-colors"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={handleLockApp}
+                title="Zablokuj panel"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#251b14] hover:bg-[#322319] border border-[#3d2f24] text-[11px] text-[#d99b5a] hover:text-[#f5ede4] transition-all active:scale-95"
+              >
+                <Lock className="w-3 h-3 text-[#d99b5a]" />
+                <span className="hidden sm:inline font-medium">Zablokuj</span>
+              </button>
+            </div>
           </div>
 
           {/* Automated Monthly Report Alert Banner */}
@@ -1158,6 +1233,24 @@ export function App() {
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
         localIp="192.168.0.179"
+      />
+
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+        storedCredentials={authCredentials}
+        onCredentialsUpdated={(newCreds) => {
+          setAuthCredentials(newCreds);
+          if (supabase) {
+            void supabase
+              .from('taskhub_state')
+              .upsert({
+                key: 'auth',
+                data: newCreds,
+                updated_at: new Date().toISOString(),
+              });
+          }
+        }}
       />
     </div>
   );
