@@ -31,7 +31,7 @@ import {
   clearSessionAuthentication,
   type AuthCredentials,
 } from './lib/auth';
-import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid, Lock, KeyRound } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid, Lock, KeyRound, Loader2 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { checkAndAutoGenerateReports } from './lib/monthlyReport';
 import { sortTasksByClosestDeadline } from './utils/taskSort';
@@ -120,6 +120,9 @@ export function App() {
 
   // Authentication & Security state (Haszowane hasło PBKDF2)
   const [authCredentials, setAuthCredentials] = useState<AuthCredentials | null>(() => getStoredCredentials());
+  const [isInitialAuthChecked, setIsInitialAuthChecked] = useState<boolean>(() => {
+    return !isSupabaseConfigured || getStoredCredentials() !== null;
+  });
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     const creds = getStoredCredentials();
     if (!creds) return false;
@@ -386,6 +389,7 @@ export function App() {
         console.warn('Supabase sync notice:', err);
       } finally {
         setIsSyncing(false);
+        setIsInitialAuthChecked(true);
         isInitialRemoteLoad.current = false;
       }
     }
@@ -804,22 +808,48 @@ export function App() {
     return <PublicPortfolioView projects={portfolioProjects} />;
   }
 
+  // Jeśli nie mamy jeszcze poświadczeń z localStorage i trwa pierwsze odpytanie Supabase w chmurze
+  if (!isInitialAuthChecked) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0c0907] text-[#f5ede4] select-none">
+        <div className="w-16 h-16 rounded-2xl bg-[#1e1713] border border-[#423326] flex items-center justify-center text-[#d99b5a] shadow-inner mb-4 animate-pulse">
+          <Lock className="w-8 h-8 text-[#d99b5a]" />
+        </div>
+        <span className="text-xs font-mono uppercase tracking-[0.2em] text-[#d99b5a] mb-2 font-semibold">
+          JC Studio • Security
+        </span>
+        <p className="text-xs text-[#9e8f82] flex items-center gap-2">
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-[#d99b5a]" />
+          Weryfikowanie chmury...
+        </p>
+      </div>
+    );
+  }
+
   // Wymóg hasła z haszem PBKDF2: jeśli panel jest zablokowany lub nie ma jeszcze hasła, pokaż ekran blokady
   if (!isAuthenticated) {
     return (
       <LockScreen
         storedCredentials={authCredentials}
         onAuthenticated={() => setIsAuthenticated(true)}
-        onSaveCredentials={(newCreds) => {
+        onSaveCredentials={async (newCreds) => {
           setAuthCredentials(newCreds);
+          saveStoredCredentials(newCreds);
           if (supabase) {
-            void supabase
-              .from('taskhub_state')
-              .upsert({
-                key: 'auth',
-                data: newCreds,
-                updated_at: new Date().toISOString(),
-              });
+            try {
+              await supabase
+                .from('taskhub_state')
+                .upsert(
+                  {
+                    key: 'auth',
+                    data: newCreds,
+                    updated_at: new Date().toISOString(),
+                  },
+                  { onConflict: 'key' }
+                );
+            } catch (err) {
+              console.error('Supabase auth save error:', err);
+            }
           }
         }}
       />
@@ -1239,16 +1269,24 @@ export function App() {
         isOpen={isChangePasswordOpen}
         onClose={() => setIsChangePasswordOpen(false)}
         storedCredentials={authCredentials}
-        onCredentialsUpdated={(newCreds) => {
+        onCredentialsUpdated={async (newCreds) => {
           setAuthCredentials(newCreds);
+          saveStoredCredentials(newCreds);
           if (supabase) {
-            void supabase
-              .from('taskhub_state')
-              .upsert({
-                key: 'auth',
-                data: newCreds,
-                updated_at: new Date().toISOString(),
-              });
+            try {
+              await supabase
+                .from('taskhub_state')
+                .upsert(
+                  {
+                    key: 'auth',
+                    data: newCreds,
+                    updated_at: new Date().toISOString(),
+                  },
+                  { onConflict: 'key' }
+                );
+            } catch (err) {
+              console.error('Supabase auth update error:', err);
+            }
           }
         }}
       />

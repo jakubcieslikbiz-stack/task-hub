@@ -19,7 +19,7 @@ interface ChangePasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   storedCredentials: AuthCredentials | null;
-  onCredentialsUpdated: (newCreds: AuthCredentials) => void;
+  onCredentialsUpdated: (newCreds: AuthCredentials) => Promise<void> | void;
 }
 
 export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
@@ -75,7 +75,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
       };
 
       saveStoredCredentials(newCreds);
-      onCredentialsUpdated(newCreds);
+      await onCredentialsUpdated(newCreds);
       setSuccess(true);
       setTimeout(() => {
         setSuccess(false);

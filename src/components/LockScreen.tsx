@@ -21,7 +21,7 @@ import {
 interface LockScreenProps {
   storedCredentials: AuthCredentials | null;
   onAuthenticated: () => void;
-  onSaveCredentials: (creds: AuthCredentials) => void;
+  onSaveCredentials: (creds: AuthCredentials) => Promise<void> | void;
 }
 
 export const LockScreen: React.FC<LockScreenProps> = ({
@@ -76,7 +76,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
       };
 
       saveStoredCredentials(newCreds);
-      onSaveCredentials(newCreds);
+      await onSaveCredentials(newCreds);
       setSessionAuthenticated(rememberOnDevice);
       onAuthenticated();
     } catch (err: any) {
