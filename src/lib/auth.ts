@@ -12,6 +12,7 @@
  */
 
 export interface AuthCredentials {
+  loginHash?: string;
   hash: string;
   salt: string;
   updatedAt: string;
@@ -20,6 +21,65 @@ export interface AuthCredentials {
 const STORAGE_KEY_CREDS = 'taskhub_auth_credentials';
 const STORAGE_KEY_SESSION = 'taskhub_auth_session';
 const STORAGE_KEY_REMEMBER = 'taskhub_remember_until';
+const STORAGE_KEY_SAVED_LOGIN = 'taskhub_saved_login';
+
+/**
+ * Domyślny skrót SHA-256 dla loginu głównego studia (nie ujawniamy loginu jawnym tekstem w kodzie)
+ */
+export const DEFAULT_LOGIN_HASH =
+  '8d296bbb2d705962d78a4f50186f5fcf80e4a3cfac336ebf2ed8e3db2360ca2e';
+
+/**
+ * Oblicza jednokierunkowy skrót SHA-256 z tekstu (np. z loginu)
+ */
+export async function sha256Hex(text: string): Promise<string> {
+  const cryptoObj = window.crypto || (globalThis as any).crypto;
+  if (!cryptoObj || !cryptoObj.subtle) {
+    throw new Error('Środowisko nie obsługuje Web Crypto API.');
+  }
+  const enc = new TextEncoder();
+  const data = enc.encode(text.trim());
+  const hashBuffer = await cryptoObj.subtle.digest('SHA-256', data);
+  return bufferToHex(hashBuffer);
+}
+
+/**
+ * Weryfikuje wprowadzony login z kryptograficznym haszem
+ */
+export async function verifyLogin(
+  inputLogin: string,
+  expectedHash: string = DEFAULT_LOGIN_HASH
+): Promise<boolean> {
+  if (!inputLogin || !inputLogin.trim()) return false;
+  try {
+    const hash = await sha256Hex(inputLogin.trim());
+    return hash.toLowerCase() === expectedHash.toLowerCase();
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Pobiera zapamiętany login na zaufanym urządzeniu
+ */
+export function getSavedLogin(): string {
+  try {
+    return localStorage.getItem(STORAGE_KEY_SAVED_LOGIN) || '';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Zapisuje login na zaufanym urządzeniu
+ */
+export function saveSavedLogin(login: string): void {
+  try {
+    if (login) {
+      localStorage.setItem(STORAGE_KEY_SAVED_LOGIN, login.trim());
+    }
+  } catch {}
+}
 
 /**
  * Konwertuje ciąg bajtów na ciąg szesnastkowy (hex)

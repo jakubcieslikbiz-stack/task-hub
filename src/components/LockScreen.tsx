@@ -8,10 +8,16 @@ import {
   AlertCircle,
   Loader2,
   Sparkles,
+  User,
 } from 'lucide-react';
 import {
   hashPassword,
   verifyPassword,
+  verifyLogin,
+  getSavedLogin,
+  saveSavedLogin,
+  DEFAULT_LOGIN_HASH,
+  sha256Hex,
   saveStoredCredentials,
   setSessionAuthenticated,
   type AuthCredentials,
@@ -30,6 +36,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
 }) => {
   const isFirstTimeSetup = !storedCredentials;
 
+  const [login, setLogin] = useState(() => getSavedLogin());
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -59,6 +66,17 @@ export const LockScreen: React.FC<LockScreenProps> = ({
       return;
     }
 
+    if (!login.trim()) {
+      triggerErrorShake('Podaj login.');
+      return;
+    }
+
+    const isLoginValid = await verifyLogin(login, DEFAULT_LOGIN_HASH);
+    if (!isLoginValid) {
+      triggerErrorShake('Nieprawidłowy login.');
+      return;
+    }
+
     if (password.length < 4) {
       triggerErrorShake('Hasło musi mieć co najmniej 4 znaki.');
       return;
@@ -73,7 +91,9 @@ export const LockScreen: React.FC<LockScreenProps> = ({
     try {
       // Wygeneruj unikalną sól i skrót PBKDF2 (100k iteracji SHA-256)
       const { hash, salt } = await hashPassword(password);
+      const loginHash = await sha256Hex(login.trim());
       const newCreds: AuthCredentials = {
+        loginHash,
         hash,
         salt,
         updatedAt: new Date().toISOString(),
@@ -81,6 +101,9 @@ export const LockScreen: React.FC<LockScreenProps> = ({
 
       saveStoredCredentials(newCreds);
       await onSaveCredentials(newCreds);
+      if (rememberOnDevice) {
+        saveSavedLogin(login.trim());
+      }
       setSessionAuthenticated(rememberOnDevice);
       onAuthenticated();
     } catch (err: any) {
@@ -95,6 +118,11 @@ export const LockScreen: React.FC<LockScreenProps> = ({
     if (!storedCredentials) return;
     setError(null);
 
+    if (!login.trim()) {
+      triggerErrorShake('Podaj login.');
+      return;
+    }
+
     if (!password.trim()) {
       triggerErrorShake('Podaj hasło dostępu.');
       return;
@@ -102,12 +130,30 @@ export const LockScreen: React.FC<LockScreenProps> = ({
 
     setIsLoading(true);
     try {
+      const expectedLoginHash = storedCredentials.loginHash || DEFAULT_LOGIN_HASH;
+      const isLoginValid = await verifyLogin(login, expectedLoginHash);
+      if (!isLoginValid) {
+        triggerErrorShake('Nieprawidłowy login lub hasło.');
+        return;
+      }
+
       const isValid = await verifyPassword(password, storedCredentials);
       if (isValid) {
+        if (!storedCredentials.loginHash) {
+          const updatedCreds = {
+            ...storedCredentials,
+            loginHash: expectedLoginHash,
+          };
+          saveStoredCredentials(updatedCreds);
+          void onSaveCredentials(updatedCreds);
+        }
+        if (rememberOnDevice) {
+          saveSavedLogin(login.trim());
+        }
         setSessionAuthenticated(rememberOnDevice);
         onAuthenticated();
       } else {
-        triggerErrorShake('Nieprawidłowe hasło dostępu.');
+        triggerErrorShake('Nieprawidłowy login lub hasło.');
         setPassword('');
       }
     } catch (err: any) {
@@ -165,14 +211,34 @@ export const LockScreen: React.FC<LockScreenProps> = ({
         {/* Form */}
         <form onSubmit={isFirstTimeSetup ? handleSetupSubmit : handleUnlockSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5">
+            <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5 flex items-center gap-1.5">
+              <User className="w-3.5 h-3.5 text-[#d99b5a]" />
+              Login
+            </label>
+            <input
+              type="text"
+              required
+              autoFocus={!login}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="Wprowadź login..."
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+              className="w-full px-4 py-3 rounded-2xl glass-input text-sm font-mono placeholder-[#7a6b5e] focus:border-[#d99b5a] transition-all"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5 flex items-center gap-1.5">
+              <KeyRound className="w-3.5 h-3.5 text-[#d99b5a]" />
               {isFirstTimeSetup ? 'Nowe hasło główne' : 'Hasło dostępu'}
             </label>
             <div className="relative">
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
-                autoFocus
+                autoFocus={Boolean(login)}
                 placeholder="Wprowadź hasło..."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

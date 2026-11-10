@@ -833,8 +833,8 @@ export function App() {
         storedCredentials={authCredentials}
         onAuthenticated={() => setIsAuthenticated(true)}
         onSaveCredentials={async (newCreds) => {
-          // Ochrona: jeśli hasło już istnieje w chmurze lub pamięci, zablokuj nadpisanie
-          if (authCredentials?.hash) {
+          // Ochrona: jeśli hasło już istnieje, zablokuj podmianę na inne hasło
+          if (authCredentials?.hash && authCredentials.hash !== newCreds.hash) {
             console.warn('Próba nadpisania istniejącego hasła została zablokowana.');
             return;
           }
