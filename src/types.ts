@@ -22,7 +22,9 @@ export interface Task {
   status: Status;        // todo | in_progress | done | paid
   notes?: string;        // Uwagi do projektu
   remindByEmail?: boolean; // Czy wysłać/oznaczyć przypomnienie e-mail
-  emailReminderSentAt?: string; // Data i czas wysłania przypomnienia
+  emailReminderSentAt?: string; // Data i czas faktycznego wysłania przypomnienia
+  emailReminderScheduledAt?: string; // Data i czas ZAPLANOWANEGO wysłania (ISO)
+  emailReminderId?: string; // Identyfikator zaplanowanego maila w Resend
   subtasks: Subtask[];
   createdAt: string;
   completedAt?: string;

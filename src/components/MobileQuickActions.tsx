@@ -17,6 +17,11 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { executeAiCommand, speakText } from '../lib/ai';
+import {
+  sendTaskReminderEmail,
+  calculateReminderTimestamp,
+  formatScheduledReminder,
+} from '../lib/email';
 
 interface MobileQuickActionsProps {
   currentView: ViewMode;
@@ -32,6 +37,9 @@ interface MobileQuickActionsProps {
     dueTime?: string;
     reminderTime?: string;
     remindByEmail?: boolean;
+    emailReminderScheduledAt?: string;
+    emailReminderSentAt?: string;
+    emailReminderId?: string;
   }) => void;
   onAddTodo: (text: string) => void;
   onAddCost: (cost: { name: string; cost: number; type: 'business' | 'private' }) => void;
@@ -143,6 +151,55 @@ export const MobileQuickActions: React.FC<MobileQuickActionsProps> = ({
             /przypomnij.*(mail|e-mail|poczt)|wy[sś]lij.*(mail|e-mail|poczt)/i.test(spokenText);
 
           const taskCategory = result.category || (result.price ? 'work' : 'personal');
+          const catName = taskCategory === 'personal' ? 'sprawę' : 'zlecenie';
+          const timeMsg = result.dueTime ? ` na ${result.dueTime}` : '';
+          const dateMsg = result.endDate ? ` (${result.endDate})` : '';
+
+          let scheduledAtIso: string | undefined = undefined;
+          let scheduledDateText: string | undefined = undefined;
+          let emailReminderId: string | undefined = undefined;
+
+          if (wantsEmail) {
+            const reminderDate = calculateReminderTimestamp({
+              dueDate: result.endDate || result.startDate,
+              dueTime: result.dueTime,
+              reminderTime: result.reminderTime,
+            });
+
+            if (reminderDate && reminderDate.getTime() > Date.now()) {
+              scheduledAtIso = reminderDate.toISOString();
+              scheduledDateText = formatScheduledReminder(reminderDate);
+
+              const emailRes = await sendTaskReminderEmail({
+                title: result.name || 'Nowe zadanie',
+                dueDate: result.endDate,
+                dueTime: result.dueTime,
+                reminderTime: result.reminderTime,
+                scheduledAt: scheduledAtIso,
+                price: result.price,
+                priority: 'high',
+                category: taskCategory,
+                notes: `Termin: ${result.endDate || 'dzisiaj'}${timeMsg}`,
+              });
+              if (emailRes.success) {
+                emailReminderId = emailRes.id;
+              }
+            } else {
+              const emailRes = await sendTaskReminderEmail({
+                title: result.name || 'Nowe zadanie',
+                dueDate: result.endDate,
+                dueTime: result.dueTime,
+                reminderTime: result.reminderTime,
+                price: result.price,
+                priority: 'high',
+                category: taskCategory,
+                notes: `Termin: ${result.endDate || 'dzisiaj'}${timeMsg}`,
+              });
+              if (emailRes.success) {
+                emailReminderId = emailRes.id;
+              }
+            }
+          }
 
           onAddTask({
             name: result.name || 'Nowe zadanie',
@@ -153,15 +210,24 @@ export const MobileQuickActions: React.FC<MobileQuickActionsProps> = ({
             dueTime: result.dueTime,
             reminderTime: result.reminderTime,
             remindByEmail: wantsEmail,
+            emailReminderScheduledAt: scheduledAtIso,
+            emailReminderSentAt: scheduledAtIso ? undefined : (wantsEmail ? new Date().toISOString() : undefined),
+            emailReminderId,
           });
 
-          const catName = taskCategory === 'personal' ? 'sprawę' : 'zlecenie';
-          const timeMsg = result.dueTime ? ` na ${result.dueTime}` : '';
-          const dateMsg = result.endDate ? ` (${result.endDate})` : '';
-          const reply = `Dodałam ${catName}: "${result.name}"${dateMsg}${timeMsg}`;
-
-          speakText(reply);
-          setFeedback(`✓ ${reply}`);
+          if (wantsEmail && scheduledDateText) {
+            const reply = `Dodałam ${catName}: "${result.name}" i zaplanowałam maila na ${scheduledDateText}!`;
+            speakText(reply);
+            setFeedback(`✓ ${reply}`);
+          } else if (wantsEmail) {
+            const reply = `Dodałam ${catName}: "${result.name}" i wysłałam maila!`;
+            speakText(reply);
+            setFeedback(`✓ ${reply}`);
+          } else {
+            const reply = `Dodałam ${catName}: "${result.name}"${dateMsg}${timeMsg}`;
+            speakText(reply);
+            setFeedback(`✓ ${reply}`);
+          }
           break;
         }
 

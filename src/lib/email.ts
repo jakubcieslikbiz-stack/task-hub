@@ -35,6 +35,10 @@ export function setStoredRecipientEmail(email: string): void {
 export interface SendTaskEmailParams {
   title: string;
   dueDate?: string;
+  dueTime?: string;
+  reminderTime?: string;
+  scheduledAt?: string; // ISO 8601 string do Resend scheduled_at
+  forceImmediate?: boolean; // Wymuś natychmiastową wysyłkę
   price?: number;
   priority?: string;
   category?: string;
@@ -43,9 +47,136 @@ export interface SendTaskEmailParams {
   subtasks?: string[];
 }
 
+export interface ReminderTimeParams {
+  dueDate?: string;
+  dueTime?: string;
+  reminderTime?: string;
+}
+
+/**
+ * Oblicza dokładną datę i godzinę (Date) kiedy przypomnienie powinno zostać wysłane.
+ */
+export function calculateReminderTimestamp(params: ReminderTimeParams): Date | null {
+  const { dueDate, dueTime, reminderTime } = params;
+
+  const now = new Date();
+  let targetYear = now.getFullYear();
+  let targetMonth = now.getMonth();
+  let targetDay = now.getDate();
+
+  let hasSpecificDate = false;
+  if (dueDate && /^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+    const [y, m, d] = dueDate.split('-').map(Number);
+    targetYear = y;
+    targetMonth = m - 1;
+    targetDay = d;
+    hasSpecificDate = true;
+  }
+
+  let hours = 9;
+  let minutes = 0;
+  let hasSpecificTime = false;
+
+  const timeRegex = /(\b[01]?\d|2[0-3])[:.]([0-5]\d)\b/;
+  if (dueTime && timeRegex.test(dueTime)) {
+    const match = dueTime.match(timeRegex);
+    if (match) {
+      hours = parseInt(match[1], 10);
+      minutes = parseInt(match[2], 10);
+      hasSpecificTime = true;
+    }
+  } else if (reminderTime && timeRegex.test(reminderTime)) {
+    const match = reminderTime.match(timeRegex);
+    if (match) {
+      hours = parseInt(match[1], 10);
+      minutes = parseInt(match[2], 10);
+      hasSpecificTime = true;
+    }
+  }
+
+  const targetDate = new Date(targetYear, targetMonth, targetDay, hours, minutes, 0, 0);
+
+  if (reminderTime) {
+    const lower = reminderTime.toLowerCase();
+    if (lower.includes('godzin') && (lower.includes('przed') || lower.includes('wcześniej'))) {
+      const hoursMatch = lower.match(/(\d+)\s*godzin/);
+      const hOffset = hoursMatch ? parseInt(hoursMatch[1], 10) : 1;
+      targetDate.setHours(targetDate.getHours() - hOffset);
+    } else if (lower.includes('minut') && (lower.includes('przed') || lower.includes('wcześniej'))) {
+      const minMatch = lower.match(/(\d+)\s*minut/);
+      const mOffset = minMatch ? parseInt(minMatch[1], 10) : 15;
+      targetDate.setMinutes(targetDate.getMinutes() - mOffset);
+    } else if (lower.includes('dzień przed') || lower.includes('dzien przed')) {
+      targetDate.setDate(targetDate.getDate() - 1);
+    }
+  }
+
+  // Jeśli nie podano daty, ale podano godzinę która dzisiaj już minęła, zaplanuj na jutro
+  if (!hasSpecificDate && hasSpecificTime && targetDate.getTime() < now.getTime() - 60000) {
+    targetDate.setDate(targetDate.getDate() + 1);
+  }
+
+  // Jeśli brak daty, brak godziny i brak reguły, zwróć null (oznacza wysyłkę natychmiastową)
+  if (!hasSpecificDate && !hasSpecificTime && !reminderTime) {
+    return null;
+  }
+
+  return targetDate;
+}
+
+/**
+ * Formatuje zaplanowaną datę przypomnienia po polsku (np. "dzisiaj o godz. 10:30")
+ */
+export function formatScheduledReminder(date: Date): string {
+  const now = new Date();
+  const isToday =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  const isTomorrow =
+    date.getFullYear() === tomorrow.getFullYear() &&
+    date.getMonth() === tomorrow.getMonth() &&
+    date.getDate() === tomorrow.getDate();
+
+  const timeStr = date.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+
+  if (isToday) {
+    return `dzisiaj o godz. ${timeStr}`;
+  }
+  if (isTomorrow) {
+    return `jutro o godz. ${timeStr}`;
+  }
+
+  const dateStr = date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
+  return `${dateStr} o godz. ${timeStr}`;
+}
+
+/**
+ * Anulowanie zaplanowanego maila w Resend
+ */
+export async function cancelScheduledTaskEmail(emailId: string): Promise<boolean> {
+  if (!emailId) return false;
+  const apiKey = getStoredResendKey();
+  if (!apiKey) return false;
+  try {
+    const res = await fetch(`https://api.resend.com/emails/${emailId}/cancel`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey.trim()}`,
+      },
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export async function sendTaskReminderEmail(
   task: SendTaskEmailParams
-): Promise<{ success: boolean; id?: string; error?: string }> {
+): Promise<{ success: boolean; id?: string; scheduledAt?: string; error?: string }> {
   const apiKey = getStoredResendKey();
   const recipient = getStoredRecipientEmail();
 
@@ -53,8 +184,29 @@ export async function sendTaskReminderEmail(
     return { success: false, error: 'Brak skonfigurowanego klucza Resend API' };
   }
 
+  // Sprawdź czy mail ma być zaplanowany na przyszłość
+  let scheduledAtIso: string | undefined = undefined;
+  if (task.forceImmediate) {
+    scheduledAtIso = undefined;
+  } else if (task.scheduledAt) {
+    const scheduledTime = new Date(task.scheduledAt).getTime();
+    if (scheduledTime > Date.now()) {
+      scheduledAtIso = task.scheduledAt;
+    }
+  } else {
+    // Oblicz z parametrów
+    const targetDate = calculateReminderTimestamp({
+      dueDate: task.dueDate,
+      dueTime: task.dueTime,
+      reminderTime: task.reminderTime,
+    });
+    if (targetDate && targetDate.getTime() > Date.now()) {
+      scheduledAtIso = targetDate.toISOString();
+    }
+  }
+
   const formattedPrice = task.price !== undefined ? `${task.price.toLocaleString('pl-PL')} zł` : 'Nie określono';
-  const formattedDueDate = task.dueDate || 'Brak terminu';
+  const formattedDueDate = task.dueDate ? `${task.dueDate}${task.dueTime ? ` godz. ${task.dueTime}` : ''}` : 'Dzisiaj';
   const priorityLabels: Record<string, string> = {
     urgent: '🚨 Pilne',
     high: '⚡ Wysoki',
@@ -62,6 +214,17 @@ export async function sendTaskReminderEmail(
     low: '☕ Niski',
   };
   const priorityLabel = task.priority ? priorityLabels[task.priority] || task.priority : 'Normalny';
+
+  const scheduledBannerHtml = scheduledAtIso
+    ? `
+      <div style="background-color: #172554; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;">
+        <p style="margin: 0; color: #93c5fd; font-size: 13px; line-height: 1.5;">
+          ⏱️ <strong>Zaplanowane przypomnienie:</strong><br/>
+          Wiadomość wysłana zgodnie z Twoim terminem: <strong>${formatScheduledReminder(new Date(scheduledAtIso))}</strong>.
+        </p>
+      </div>
+    `
+    : '';
 
   const subtasksHtml =
     task.subtasks && task.subtasks.length > 0
@@ -123,6 +286,7 @@ export async function sendTaskReminderEmail(
           <!-- Content -->
           <tr>
             <td style="padding: 32px;">
+              ${scheduledBannerHtml}
               <h2 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600; color: #ffffff; line-height: 1.3;">
                 ${task.title}
               </h2>
@@ -157,11 +321,14 @@ export async function sendTaskReminderEmail(
     </html>
   `;
 
+  const subjectPrefix = scheduledAtIso ? '⏰ [Zaplanowane]' : '🔔 [TaskHub]';
+
   return sendRawEmail({
     to: recipient,
-    subject: `🔔 [TaskHub] Przypomnienie: ${task.title} (${formattedDueDate})`,
+    subject: `${subjectPrefix} Przypomnienie: ${task.title} (${formattedDueDate})`,
     html,
     apiKey,
+    scheduledAt: scheduledAtIso,
   });
 }
 
@@ -222,12 +389,14 @@ async function sendRawEmail({
   subject,
   html,
   apiKey,
+  scheduledAt,
 }: {
   to: string;
   subject: string;
   html: string;
   apiKey: string;
-}): Promise<{ success: boolean; id?: string; error?: string }> {
+  scheduledAt?: string;
+}): Promise<{ success: boolean; id?: string; scheduledAt?: string; error?: string }> {
   // Strategy 1: Try local or Vercel serverless endpoint `/api/send-email`
   try {
     const res = await fetch('/api/send-email', {
@@ -240,12 +409,13 @@ async function sendRawEmail({
         subject,
         html,
         apiKey,
+        scheduled_at: scheduledAt,
       }),
     });
 
     if (res.ok) {
       const data = await res.json();
-      return { success: true, id: data.id };
+      return { success: true, id: data.id, scheduledAt };
     }
   } catch (e) {
     // Fall back to direct Resend call if /api/send-email is unreachable
@@ -253,18 +423,23 @@ async function sendRawEmail({
 
   // Strategy 2: Direct call to Resend API
   try {
+    const payload: any = {
+      from: 'TaskHub <onboarding@resend.dev>',
+      to: [to],
+      subject,
+      html,
+    };
+    if (scheduledAt) {
+      payload.scheduled_at = scheduledAt;
+    }
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey.trim()}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: 'TaskHub <onboarding@resend.dev>',
-        to: [to],
-        subject,
-        html,
-      }),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
@@ -276,7 +451,7 @@ async function sendRawEmail({
     }
 
     const data = await res.json();
-    return { success: true, id: data.id };
+    return { success: true, id: data.id, scheduledAt };
   } catch (err: any) {
     return {
       success: false,

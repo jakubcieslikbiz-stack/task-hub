@@ -7,6 +7,8 @@ import {
   setStoredResendKey,
   getStoredRecipientEmail,
   setStoredRecipientEmail,
+  calculateReminderTimestamp,
+  formatScheduledReminder,
 } from '../lib/email';
 import {
   Mic,
@@ -34,6 +36,9 @@ interface AiAssistantBarProps {
     dueTime?: string;
     reminderTime?: string;
     remindByEmail?: boolean;
+    emailReminderScheduledAt?: string;
+    emailReminderSentAt?: string;
+    emailReminderId?: string;
   }) => void;
   onAddTodo: (text: string) => void;
   onAddCost: (cost: { name: string; cost: number; type: 'business' | 'private' }) => void;
@@ -131,6 +136,58 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
             /przypomnij.*(mail|e-mail|poczt)|wy[sś]lij.*(mail|e-mail|poczt)/i.test(commandText);
 
           const taskCategory = result.category || (result.price ? 'work' : 'personal');
+          const categoryDesc = taskCategory === 'personal' ? 'sprawę osobistą' : 'zlecenie';
+          const timeDesc = result.dueTime ? ` na godz. ${result.dueTime}` : '';
+          const dateDesc = result.endDate ? ` na ${result.endDate}` : '';
+          const reminderDesc = result.reminderTime ? ` (${result.reminderTime})` : '';
+
+          let scheduledAtIso: string | undefined = undefined;
+          let scheduledTimeLabel: string | undefined = undefined;
+          let emailReminderId: string | undefined = undefined;
+
+          if (wantsEmail) {
+            const reminderDate = calculateReminderTimestamp({
+              dueDate: result.endDate || result.startDate,
+              dueTime: result.dueTime,
+              reminderTime: result.reminderTime,
+            });
+
+            if (reminderDate && reminderDate.getTime() > Date.now()) {
+              scheduledAtIso = reminderDate.toISOString();
+              scheduledTimeLabel = formatScheduledReminder(reminderDate);
+
+              // Zaplanuj w Resend na dokładną godzinę
+              const emailRes = await sendTaskReminderEmail({
+                title: result.name || 'Nowe zadanie',
+                dueDate: result.endDate,
+                dueTime: result.dueTime,
+                reminderTime: result.reminderTime,
+                scheduledAt: scheduledAtIso,
+                price: result.price,
+                priority: 'high',
+                category: taskCategory,
+                notes: `Termin: ${result.endDate || 'dzisiaj'}${timeDesc}${reminderDesc}`,
+              });
+              if (emailRes.success) {
+                emailReminderId = emailRes.id;
+              }
+            } else {
+              // Wyślij natychmiast jeśli brak przyszłej godziny lub termin już minął
+              const emailRes = await sendTaskReminderEmail({
+                title: result.name || 'Nowe zadanie',
+                dueDate: result.endDate,
+                dueTime: result.dueTime,
+                reminderTime: result.reminderTime,
+                price: result.price,
+                priority: 'high',
+                category: taskCategory,
+                notes: `Termin: ${result.endDate || 'dzisiaj'}${timeDesc}${reminderDesc}`,
+              });
+              if (emailRes.success) {
+                emailReminderId = emailRes.id;
+              }
+            }
+          }
 
           onAddTask({
             name: result.name || 'Nowe zadanie',
@@ -141,36 +198,23 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
             dueTime: result.dueTime,
             reminderTime: result.reminderTime,
             remindByEmail: wantsEmail,
+            emailReminderScheduledAt: scheduledAtIso,
+            emailReminderSentAt: scheduledAtIso ? undefined : (wantsEmail ? new Date().toISOString() : undefined),
+            emailReminderId,
           });
 
-          const categoryDesc = taskCategory === 'personal' ? 'sprawę osobistą' : 'zlecenie';
-          const timeDesc = result.dueTime ? ` na godz. ${result.dueTime}` : '';
-          const dateDesc = result.endDate ? ` na ${result.endDate}` : '';
-          const reminderDesc = result.reminderTime ? ` (${result.reminderTime})` : '';
-
-          if (wantsEmail) {
-            const emailRes = await sendTaskReminderEmail({
-              title: result.name || 'Nowe zadanie',
-              dueDate: result.endDate,
-              price: result.price,
-              priority: 'high',
-              category: taskCategory,
-              notes: `Termin: ${result.endDate || 'dzisiaj'}${timeDesc}${reminderDesc}`,
+          if (wantsEmail && scheduledTimeLabel) {
+            const reply = `Dodałam ${categoryDesc}: "${result.name}"${dateDesc}${timeDesc} i zaplanowałam przypomnienie e-mail na ${scheduledTimeLabel}!`;
+            speakText(reply, voiceEnabled);
+            setStatusMessage({
+              text: `✓ ${reply} (✉️ e-mail przyjdzie o ${scheduledTimeLabel})`,
             });
-            if (emailRes.success) {
-              const reply = `Dodałam ${categoryDesc}: "${result.name}"${dateDesc}${timeDesc} i wysłałam przypomnienie na Twój e-mail!`;
-              speakText(reply, voiceEnabled);
-              setStatusMessage({
-                text: `✓ ${reply} (✉️ wysłano na ${getStoredRecipientEmail()})`,
-              });
-            } else {
-              const reply = `Dodałam ${categoryDesc}: "${result.name}", ale wystąpił problem z wysyłką e-mail.`;
-              speakText(reply, voiceEnabled);
-              setStatusMessage({
-                text: `✓ Dodałam ${categoryDesc}, błąd e-mail: ${emailRes.error}`,
-                isError: true,
-              });
-            }
+          } else if (wantsEmail) {
+            const reply = `Dodałam ${categoryDesc}: "${result.name}"${dateDesc}${timeDesc} i wysłałam przypomnienie e-mail!`;
+            speakText(reply, voiceEnabled);
+            setStatusMessage({
+              text: `✓ ${reply} (✉️ wysłano na ${getStoredRecipientEmail()})`,
+            });
           } else {
             const reply = `Dodałam ${categoryDesc}: "${result.name}"${result.price ? ` za ${result.price} zł` : ''}${dateDesc}${timeDesc}.`;
             speakText(reply, voiceEnabled);

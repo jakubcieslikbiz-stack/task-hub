@@ -123,6 +123,41 @@ export function App() {
     return () => clearInterval(interval);
   }, [tasks, costs]);
 
+  // Check and update scheduled email reminder statuses
+  useEffect(() => {
+    const checkReminders = () => {
+      const now = new Date();
+      setTasks((prevTasks) => {
+        let changed = false;
+        const updated = prevTasks.map((t) => {
+          if (
+            t.remindByEmail &&
+            !t.emailReminderSentAt &&
+            t.emailReminderScheduledAt
+          ) {
+            const schedDate = new Date(t.emailReminderScheduledAt);
+            if (now >= schedDate) {
+              changed = true;
+              return {
+                ...t,
+                emailReminderSentAt: now.toISOString(),
+              };
+            }
+          }
+          return t;
+        });
+        if (changed) {
+          syncTasksToCloud(updated);
+        }
+        return changed ? updated : prevTasks;
+      });
+    };
+
+    checkReminders();
+    const interval = setInterval(checkReminders, 20000);
+    return () => clearInterval(interval);
+  }, []);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isInitialRemoteLoad = useRef(true);
 
@@ -315,6 +350,9 @@ export function App() {
     dueTime?: string;
     reminderTime?: string;
     remindByEmail?: boolean;
+    emailReminderScheduledAt?: string;
+    emailReminderSentAt?: string;
+    emailReminderId?: string;
   }) => {
     const todayStr = new Date().toISOString().split('T')[0];
     const category = taskData.category || (taskData.price ? 'work' : 'personal');
@@ -338,7 +376,9 @@ export function App() {
       subtasks: [],
       notes: notesParts.join(' • '),
       remindByEmail: taskData.remindByEmail,
-      emailReminderSentAt: taskData.remindByEmail ? new Date().toISOString() : undefined,
+      emailReminderScheduledAt: taskData.emailReminderScheduledAt,
+      emailReminderSentAt: taskData.emailReminderSentAt,
+      emailReminderId: taskData.emailReminderId,
       createdAt: new Date().toISOString(),
     };
     const updated = [newTask, ...tasks];
@@ -476,6 +516,8 @@ export function App() {
         notes: taskData.notes,
         remindByEmail: taskData.remindByEmail,
         emailReminderSentAt: taskData.emailReminderSentAt,
+        emailReminderScheduledAt: taskData.emailReminderScheduledAt,
+        emailReminderId: taskData.emailReminderId,
         subtasks: taskData.subtasks || [],
         createdAt: new Date().toISOString(),
         completedAt: isPaidOrDone ? new Date().toISOString() : undefined,

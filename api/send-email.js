@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { to, subject, html, apiKey: clientApiKey } = req.body || {};
+    const { to, subject, html, apiKey: clientApiKey, scheduled_at } = req.body || {};
 
     const apiKey =
       process.env.RESEND_API_KEY ||
@@ -35,18 +35,24 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Brak wymaganych pól (to, subject, html)' });
     }
 
+    const payload = {
+      from: 'TaskHub <onboarding@resend.dev>',
+      to: Array.isArray(to) ? to : [to],
+      subject,
+      html,
+    };
+
+    if (scheduled_at) {
+      payload.scheduled_at = scheduled_at;
+    }
+
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey.trim()}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        from: 'TaskHub <onboarding@resend.dev>',
-        to: Array.isArray(to) ? to : [to],
-        subject,
-        html,
-      }),
+      body: JSON.stringify(payload),
     });
 
     const data = await resendResponse.json();

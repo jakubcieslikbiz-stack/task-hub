@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Task, Priority, Status } from '../types';
 import { CATEGORIES } from '../data/initialData';
-import { sendTaskReminderEmail } from '../lib/email';
+import { sendTaskReminderEmail, formatScheduledReminder } from '../lib/email';
 import {
   CheckCircle2,
   Circle,
@@ -17,6 +17,7 @@ import {
   Mail,
   Loader2,
   Check,
+  Clock,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -76,6 +77,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     const res = await sendTaskReminderEmail({
       title: task.title,
       dueDate: task.dueDate,
+      dueTime: task.dueTime,
+      reminderTime: task.reminderTime,
+      forceImmediate: true,
       price: task.price,
       priority: task.priority,
       category: category?.name,
@@ -270,24 +274,51 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         {/* Right action buttons: Quick Email & Menu */}
         <div className="flex items-center gap-1 relative">
-          <button
-            onClick={handleQuickSendEmail}
-            disabled={isSendingEmail}
-            className={`p-2 rounded-full transition-colors ${
-              emailSentStatus
-                ? 'bg-[#7ec29a]/20 text-[#7ec29a]'
-                : 'text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14]'
-            }`}
-            title={emailSentStatus || 'Wyślij przypomnienie e-mailem'}
-          >
-            {isSendingEmail ? (
-              <Loader2 className="w-4 h-4 animate-spin text-[#d99b5a]" />
-            ) : emailSentStatus ? (
-              <Check className="w-4 h-4 text-[#7ec29a]" />
-            ) : (
-              <Mail className="w-4 h-4" />
-            )}
-          </button>
+          {(() => {
+            const isScheduled = Boolean(
+              task.remindByEmail && task.emailReminderScheduledAt && !task.emailReminderSentAt
+            );
+            const isSent = Boolean(task.emailReminderSentAt);
+
+            const tooltip = emailSentStatus
+              ? 'Wysłano przypomnienie e-mail!'
+              : isScheduled
+              ? `⏱️ Zaplanowano wysyłkę na: ${formatScheduledReminder(
+                  new Date(task.emailReminderScheduledAt!)
+                )}. Kliknij, aby wysłać natychmiast.`
+              : isSent
+              ? `✓ Wysłano e-mail (${new Date(task.emailReminderSentAt!).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}). Kliknij, aby ponowić.`
+              : 'Wyślij przypomnienie e-mailem';
+
+            return (
+              <button
+                onClick={handleQuickSendEmail}
+                disabled={isSendingEmail}
+                className={`p-2 rounded-full transition-colors ${
+                  emailSentStatus
+                    ? 'bg-[#7ec29a]/20 text-[#7ec29a]'
+                    : isScheduled
+                    ? 'bg-[#d99b5a]/15 text-[#d99b5a] hover:bg-[#d99b5a]/25 border border-[#d99b5a]/30'
+                    : isSent
+                    ? 'bg-[#7ec29a]/10 text-[#7ec29a] hover:bg-[#7ec29a]/20'
+                    : 'text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14]'
+                }`}
+                title={tooltip}
+              >
+                {isSendingEmail ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-[#d99b5a]" />
+                ) : emailSentStatus ? (
+                  <Check className="w-4 h-4 text-[#7ec29a]" />
+                ) : isScheduled ? (
+                  <Clock className="w-4 h-4 text-[#d99b5a] animate-pulse" />
+                ) : isSent ? (
+                  <Check className="w-4 h-4 text-[#7ec29a]" />
+                ) : (
+                  <Mail className="w-4 h-4" />
+                )}
+              </button>
+            );
+          })()}
 
           <button
             onClick={() => setShowMenu(!showMenu)}

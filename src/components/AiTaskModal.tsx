@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import type { ParsedAiTask } from '../lib/ai';
 import { parseTaskWithOpenAI } from '../lib/ai';
 import type { Task, Subtask } from '../types';
-import { sendTaskReminderEmail } from '../lib/email';
+import {
+  sendTaskReminderEmail,
+  calculateReminderTimestamp,
+} from '../lib/email';
 import { Sparkles, Key, X, CheckCircle2, AlertCircle, Loader2, Mail } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -59,20 +62,50 @@ export const AiTaskModal: React.FC<AiTaskModalProps> = ({
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!previewTask) return;
 
+    let emailReminderScheduledAt: string | undefined = undefined;
+    let emailReminderSentAt: string | undefined = undefined;
+    let emailReminderId: string | undefined = undefined;
+
     if (remindByEmail) {
-      sendTaskReminderEmail({
-        title: previewTask.title,
-        dueDate: previewTask.dueDate,
-        price: previewTask.price,
-        priority: previewTask.priority,
-        category: previewTask.category,
-        notes: previewTask.notes,
-        description: previewTask.description,
-        subtasks: previewTask.subtasks,
-      });
+      const reminderDate = calculateReminderTimestamp({ dueDate: previewTask.dueDate });
+      const isFuture = reminderDate && reminderDate.getTime() > Date.now();
+
+      if (isFuture) {
+        const schedIso = reminderDate.toISOString();
+        const emailRes = await sendTaskReminderEmail({
+          title: previewTask.title,
+          dueDate: previewTask.dueDate,
+          scheduledAt: schedIso,
+          price: previewTask.price,
+          priority: previewTask.priority,
+          category: previewTask.category,
+          notes: previewTask.notes,
+          description: previewTask.description,
+          subtasks: previewTask.subtasks,
+        });
+        if (emailRes.success) {
+          emailReminderScheduledAt = schedIso;
+          emailReminderId = emailRes.id;
+        }
+      } else {
+        const emailRes = await sendTaskReminderEmail({
+          title: previewTask.title,
+          dueDate: previewTask.dueDate,
+          price: previewTask.price,
+          priority: previewTask.priority,
+          category: previewTask.category,
+          notes: previewTask.notes,
+          description: previewTask.description,
+          subtasks: previewTask.subtasks,
+        });
+        if (emailRes.success) {
+          emailReminderSentAt = new Date().toISOString();
+          emailReminderId = emailRes.id;
+        }
+      }
     }
 
     const subtasks: Subtask[] = previewTask.subtasks.map((st: string, i: number) => ({
@@ -92,7 +125,9 @@ export const AiTaskModal: React.FC<AiTaskModalProps> = ({
       description: previewTask.description,
       notes: previewTask.notes,
       remindByEmail,
-      emailReminderSentAt: remindByEmail ? new Date().toISOString() : undefined,
+      emailReminderScheduledAt,
+      emailReminderSentAt,
+      emailReminderId,
       subtasks,
     });
 

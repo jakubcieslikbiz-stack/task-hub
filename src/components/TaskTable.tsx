@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Task, Priority, Status } from '../types';
 import { CATEGORIES } from '../data/initialData';
-import { sendTaskReminderEmail } from '../lib/email';
+import { sendTaskReminderEmail, formatScheduledReminder } from '../lib/email';
 import {
   Pencil,
   Trash2,
@@ -11,6 +11,7 @@ import {
   Mail,
   Loader2,
   Plus,
+  Clock,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -94,6 +95,9 @@ export const TaskTable: React.FC<TaskTableProps> = ({
     const res = await sendTaskReminderEmail({
       title: task.title,
       dueDate: task.dueDate,
+      dueTime: task.dueTime,
+      reminderTime: task.reminderTime,
+      forceImmediate: true,
       price: task.price,
       priority: task.priority,
       category: task.category,
@@ -312,31 +316,52 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                     {/* AKCJE */}
                     <td className="py-3.5 pl-4 pr-6 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Ikona koperty - zawsze dostępna przy każdym zleceniu */}
-                        <button
-                          onClick={() => handleQuickSendEmail(task)}
-                          disabled={sendingEmailId === task.id}
-                          title={
-                            emailSentStatus[task.id]
-                              ? 'Wysłano przypomnienie e-mail!'
-                              : 'Wyślij przypomnienie e-mail w razie czego'
-                          }
-                          className={`p-1.5 rounded-lg transition-all active:scale-90 disabled:opacity-50 ${
-                            emailSentStatus[task.id]
-                              ? 'bg-[#7ec29a]/20 text-[#7ec29a]'
-                              : task.remindByEmail
-                              ? 'text-[#d99b5a] hover:text-[#7ec29a] hover:bg-[#251b14]'
-                              : 'text-[#9e8f82] hover:text-[#7ec29a] hover:bg-[#251b14]'
-                          }`}
-                        >
-                          {sendingEmailId === task.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin text-[#d99b5a]" />
-                          ) : emailSentStatus[task.id] ? (
-                            <Check className="w-3.5 h-3.5 text-[#7ec29a]" />
-                          ) : (
-                            <Mail className="w-3.5 h-3.5" />
-                          )}
-                        </button>
+                        {/* Ikona koperty / zaplanowanego powiadomienia */}
+                        {(() => {
+                          const isScheduled = Boolean(
+                            task.remindByEmail && task.emailReminderScheduledAt && !task.emailReminderSentAt
+                          );
+                          const isSent = Boolean(task.emailReminderSentAt);
+
+                          const tooltip = emailSentStatus[task.id]
+                            ? 'Wysłano przypomnienie e-mail!'
+                            : isScheduled
+                            ? `⏱️ Zaplanowano wysyłkę na: ${formatScheduledReminder(
+                                new Date(task.emailReminderScheduledAt!)
+                              )}. Kliknij, aby wysłać natychmiast.`
+                            : isSent
+                            ? `✓ Przypomnienie e-mail wysłane (${new Date(task.emailReminderSentAt!).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}). Kliknij, aby wysłać ponownie.`
+                            : 'Wyślij przypomnienie e-mail';
+
+                          return (
+                            <button
+                              onClick={() => handleQuickSendEmail(task)}
+                              disabled={sendingEmailId === task.id}
+                              title={tooltip}
+                              className={`p-1.5 rounded-lg transition-all active:scale-90 disabled:opacity-50 ${
+                                emailSentStatus[task.id]
+                                  ? 'bg-[#7ec29a]/20 text-[#7ec29a]'
+                                  : isScheduled
+                                  ? 'bg-[#d99b5a]/15 text-[#d99b5a] hover:bg-[#d99b5a]/25 border border-[#d99b5a]/30'
+                                  : isSent
+                                  ? 'bg-[#7ec29a]/10 text-[#7ec29a] hover:bg-[#7ec29a]/20'
+                                  : 'text-[#9e8f82] hover:text-[#7ec29a] hover:bg-[#251b14]'
+                              }`}
+                            >
+                              {sendingEmailId === task.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-[#d99b5a]" />
+                              ) : emailSentStatus[task.id] ? (
+                                <Check className="w-3.5 h-3.5 text-[#7ec29a]" />
+                              ) : isScheduled ? (
+                                <Clock className="w-3.5 h-3.5 text-[#d99b5a] animate-pulse" />
+                              ) : isSent ? (
+                                <Check className="w-3.5 h-3.5 text-[#7ec29a]" />
+                              ) : (
+                                <Mail className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          );
+                        })()}
 
                         <button
                           onClick={() => onEdit(task)}

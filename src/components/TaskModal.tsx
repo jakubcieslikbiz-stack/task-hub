@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import type { Task, Priority, Status, Subtask } from '../types';
 import { CATEGORIES } from '../data/initialData';
-import { getStoredRecipientEmail, sendTaskReminderEmail } from '../lib/email';
+import {
+  getStoredRecipientEmail,
+  sendTaskReminderEmail,
+  calculateReminderTimestamp,
+  formatScheduledReminder,
+  cancelScheduledTaskEmail,
+} from '../lib/email';
 import { MiniCalendarPicker } from './MiniCalendarPicker';
 import { X, Plus, Trash, DollarSign, Mail } from 'lucide-react';
 
@@ -77,21 +83,61 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     setSubtasks(subtasks.filter((s) => s.id !== id));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
 
+    let emailReminderScheduledAt = initialTask?.emailReminderScheduledAt;
+    let emailReminderSentAt = initialTask?.emailReminderSentAt;
+    let emailReminderId = initialTask?.emailReminderId;
+
     if (remindByEmail) {
-      sendTaskReminderEmail({
-        title: title.trim(),
-        dueDate: dueDate || undefined,
-        price: price.trim() !== '' ? Number(price) : undefined,
-        priority,
-        category,
-        notes: notes.trim() || undefined,
-        description: description.trim() || undefined,
-        subtasks: subtasks.map((s) => s.title),
-      });
+      const reminderDate = calculateReminderTimestamp({ dueDate });
+      const isFuture = reminderDate && reminderDate.getTime() > Date.now();
+
+      if (isFuture) {
+        if (initialTask?.emailReminderId) {
+          await cancelScheduledTaskEmail(initialTask.emailReminderId);
+        }
+        const schedIso = reminderDate.toISOString();
+        const emailRes = await sendTaskReminderEmail({
+          title: title.trim(),
+          dueDate: dueDate || undefined,
+          scheduledAt: schedIso,
+          price: price.trim() !== '' ? Number(price) : undefined,
+          priority,
+          category,
+          notes: notes.trim() || undefined,
+          description: description.trim() || undefined,
+          subtasks: subtasks.map((s) => s.title),
+        });
+        if (emailRes.success) {
+          emailReminderScheduledAt = schedIso;
+          emailReminderSentAt = undefined;
+          emailReminderId = emailRes.id;
+        }
+      } else if (!emailReminderSentAt) {
+        const emailRes = await sendTaskReminderEmail({
+          title: title.trim(),
+          dueDate: dueDate || undefined,
+          price: price.trim() !== '' ? Number(price) : undefined,
+          priority,
+          category,
+          notes: notes.trim() || undefined,
+          description: description.trim() || undefined,
+          subtasks: subtasks.map((s) => s.title),
+        });
+        if (emailRes.success) {
+          emailReminderSentAt = new Date().toISOString();
+          emailReminderScheduledAt = undefined;
+          emailReminderId = emailRes.id;
+        }
+      }
+    } else if (initialTask?.emailReminderId && !initialTask?.emailReminderSentAt) {
+      await cancelScheduledTaskEmail(initialTask.emailReminderId);
+      emailReminderScheduledAt = undefined;
+      emailReminderSentAt = undefined;
+      emailReminderId = undefined;
     }
 
     onSave({
@@ -106,9 +152,9 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       dueDate: dueDate || undefined,
       notes: notes.trim() || undefined,
       remindByEmail,
-      emailReminderSentAt: remindByEmail
-        ? (initialTask?.emailReminderSentAt || new Date().toISOString())
-        : undefined,
+      emailReminderScheduledAt,
+      emailReminderSentAt,
+      emailReminderId,
       subtasks,
     });
     onClose();
@@ -318,6 +364,14 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 <span className="text-[11px] text-[#9e8f82] block">
                   Powiadomienie na: {getStoredRecipientEmail()}
                 </span>
+                {remindByEmail && dueDate && (() => {
+                  const target = calculateReminderTimestamp({ dueDate });
+                  return (
+                    <span className="text-[10px] text-[#d99b5a] block mt-0.5">
+                      ⏱️ Zostanie zaplanowane na: {target ? formatScheduledReminder(target) : `${dueDate} (godz. 09:00)`}
+                    </span>
+                  );
+                })()}
               </div>
             </div>
             <input
