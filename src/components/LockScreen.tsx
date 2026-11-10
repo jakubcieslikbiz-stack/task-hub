@@ -5,7 +5,6 @@ import {
   KeyRound,
   Eye,
   EyeOff,
-  ShieldCheck,
   AlertCircle,
   Loader2,
   Sparkles,
@@ -218,14 +217,6 @@ export const LockScreen: React.FC<LockScreenProps> = ({
               />
               <span>Zapamiętaj na tym urządzeniu (30 dni)</span>
             </label>
-          </div>
-
-          {/* Cryptographic security note */}
-          <div className="p-3 rounded-2xl bg-[#140f0c]/60 border border-[#2a1e16] flex items-start gap-2.5 text-[11px] text-[#7a6b5e] leading-relaxed">
-            <ShieldCheck className="w-4 h-4 text-[#7ec29a] flex-shrink-0 mt-0.5" />
-            <span>
-              Hasło jest zabezpieczone haszem kryptograficznym <strong>PBKDF2 + SHA-256 (100 000 powtórzeń)</strong> z unikalną solą. Hasło w postaci jawnej nigdy nie jest zapisywane.
-            </span>
           </div>
 
           {/* Submit button */}
