@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Lock,
   Unlock,
@@ -9,6 +9,7 @@ import {
   Loader2,
   Sparkles,
   User,
+  ScanFace,
 } from 'lucide-react';
 import {
   hashPassword,
@@ -20,6 +21,12 @@ import {
   setSessionAuthenticated,
   type AuthCredentials,
 } from '../lib/auth';
+import {
+  isBiometricsAvailable,
+  hasBiometricCredential,
+  registerBiometricCredential,
+  authenticateWithBiometrics,
+} from '../lib/biometrics';
 
 interface LockScreenProps {
   storedCredentials: AuthCredentials | null;
@@ -39,6 +46,15 @@ export const LockScreen: React.FC<LockScreenProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  const [isBioAvailable, setIsBioAvailable] = useState(false);
+  const [hasBioCred, setHasBioCred] = useState(() => hasBiometricCredential());
+  const [enableBioOnLogin, setEnableBioOnLogin] = useState(true);
+  const [isBioLoading, setIsBioLoading] = useState(false);
+
+  useEffect(() => {
+    isBiometricsAvailable().then((avail) => setIsBioAvailable(avail));
+  }, []);
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isShaking, setIsShaking] = useState(false);
@@ -52,6 +68,24 @@ export const LockScreen: React.FC<LockScreenProps> = ({
       } catch (_) {}
     }
     setTimeout(() => setIsShaking(false), 600);
+  };
+
+  const handleBiometricUnlock = async () => {
+    setError(null);
+    setIsBioLoading(true);
+    try {
+      const ok = await authenticateWithBiometrics();
+      if (ok) {
+        setSessionAuthenticated();
+        onAuthenticated();
+      } else {
+        triggerErrorShake('Weryfikacja Face ID anulowana lub nieudana.');
+      }
+    } catch {
+      triggerErrorShake('Błąd weryfikacji biometrycznej.');
+    } finally {
+      setIsBioLoading(false);
+    }
   };
 
   const handleSetupSubmit = async (e: React.FormEvent) => {
@@ -141,6 +175,18 @@ export const LockScreen: React.FC<LockScreenProps> = ({
           saveStoredCredentials(updatedCreds);
           void onSaveCredentials(updatedCreds);
         }
+
+        if (enableBioOnLogin && isBioAvailable && !hasBioCred) {
+          try {
+            const bioRegistered = await registerBiometricCredential(login.trim());
+            if (bioRegistered) {
+              setHasBioCred(true);
+            }
+          } catch (e) {
+            console.warn('Rejestracja Face ID:', e);
+          }
+        }
+
         setSessionAuthenticated();
         onAuthenticated();
       } else {
@@ -199,17 +245,53 @@ export const LockScreen: React.FC<LockScreenProps> = ({
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={isFirstTimeSetup ? handleSetupSubmit : handleUnlockSubmit} className="space-y-4">
+        {/* Biometric login button if already registered on this device */}
+        {!isFirstTimeSetup && isBioAvailable && hasBioCred && (
+          <div className="mb-4">
+            <button
+              type="button"
+              disabled={isBioLoading}
+              onClick={handleBiometricUnlock}
+              className="w-full py-3.5 px-4 rounded-2xl bg-[#d99b5a]/15 hover:bg-[#d99b5a]/25 border border-[#d99b5a]/40 text-[#f5ede4] text-xs font-medium flex items-center justify-center gap-2.5 transition-all shadow-lg active:scale-98 cursor-pointer disabled:opacity-50 group"
+            >
+              {isBioLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin text-[#d99b5a]" />
+              ) : (
+                <ScanFace className="w-4 h-4 text-[#d99b5a] group-hover:scale-110 transition-transform" />
+              )}
+              <span>Zaloguj za pomocą Face ID / Biometrii</span>
+            </button>
+
+            <div className="flex items-center gap-3 my-3">
+              <div className="flex-1 h-px bg-[#2e231c]" />
+              <span className="text-[10px] text-[#7a6b5e] uppercase tracking-wider font-mono">
+                lub hasłem
+              </span>
+              <div className="flex-1 h-px bg-[#2e231c]" />
+            </div>
+          </div>
+        )}
+
+        {/* Form with full W3C autofill attributes for Apple Keychain & Google Password Manager */}
+        <form
+          method="post"
+          action="#"
+          autoComplete="on"
+          onSubmit={isFirstTimeSetup ? handleSetupSubmit : handleUnlockSubmit}
+          className="space-y-4"
+        >
           <div>
-            <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5 flex items-center gap-1.5">
+            <label htmlFor="username" className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5 flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-[#d99b5a]" />
               Login
             </label>
             <input
+              id="username"
+              name="username"
               type="text"
               required
               autoFocus={!login}
+              autoComplete="username webauthn"
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
@@ -221,15 +303,18 @@ export const LockScreen: React.FC<LockScreenProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5 flex items-center gap-1.5">
+            <label htmlFor="password" className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5 flex items-center gap-1.5">
               <KeyRound className="w-3.5 h-3.5 text-[#d99b5a]" />
               {isFirstTimeSetup ? 'Nowe hasło główne' : 'Hasło dostępu'}
             </label>
             <div className="relative">
               <input
+                id="password"
+                name="password"
                 type={showPassword ? 'text' : 'password'}
                 required
                 autoFocus={Boolean(login)}
+                autoComplete={isFirstTimeSetup ? 'new-password' : 'current-password webauthn'}
                 placeholder="Wprowadź hasło..."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -249,17 +334,38 @@ export const LockScreen: React.FC<LockScreenProps> = ({
           {/* Repeat password field during first setup */}
           {isFirstTimeSetup && (
             <div>
-              <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5">
+              <label htmlFor="confirm-password" className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5">
                 Powtórz hasło
               </label>
               <input
+                id="confirm-password"
+                name="confirm-password"
                 type={showPassword ? 'text' : 'password'}
                 required
+                autoComplete="new-password"
                 placeholder="Wpisz ponownie to samo hasło..."
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="w-full px-4 py-3 rounded-2xl glass-input text-sm font-mono placeholder-[#7a6b5e] focus:border-[#d99b5a] transition-all"
               />
+            </div>
+          )}
+
+          {/* Optional Face ID activation toggle if available on device */}
+          {!isFirstTimeSetup && isBioAvailable && !hasBioCred && (
+            <div className="pt-0.5">
+              <label className="flex items-center gap-2 cursor-pointer text-xs text-[#d99b5a] hover:text-[#f1c38e] transition-colors select-none">
+                <input
+                  type="checkbox"
+                  checked={enableBioOnLogin}
+                  onChange={(e) => setEnableBioOnLogin(e.target.checked)}
+                  className="w-4 h-4 rounded border-[#382b20] bg-[#140f0c] text-[#d99b5a] focus:ring-0 accent-[#d99b5a] cursor-pointer"
+                />
+                <span className="flex items-center gap-1.5 font-medium">
+                  <ScanFace className="w-3.5 h-3.5 shrink-0" />
+                  Włącz logowanie Face ID na tym telefonie
+                </span>
+              </label>
             </div>
           )}
 
