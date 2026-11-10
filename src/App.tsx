@@ -25,6 +25,7 @@ import { FinanceSummaryBoxes } from './components/FinanceSummaryBoxes';
 import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { checkAndAutoGenerateReports } from './lib/monthlyReport';
+import { sortTasksByClosestDeadline } from './utils/taskSort';
 
 const DEFAULT_API_KEY = (import.meta.env.VITE_OPENAI_API_KEY as string) || '';
 
@@ -723,38 +724,42 @@ export function App() {
     e.target.value = '';
   };
 
-  // Filtering for views
+  // Filtering and sorting for views (domyślnie sortowane od najbliższego terminu DDL)
   const todayStr = new Date().toISOString().split('T')[0];
-  const todayTasks = tasks.filter((t) => t.dueDate === todayStr || t.status === 'in_progress');
+  const todayTasks = sortTasksByClosestDeadline(
+    tasks.filter((t) => t.dueDate === todayStr || t.status === 'in_progress')
+  );
   const completedToday = todayTasks.filter((t) => t.status === 'done' || t.status === 'paid').length;
 
-  const filteredTasks = tasks.filter((task) => {
-    if (currentView === 'today') {
-      const isDueToday = task.dueDate === todayStr;
-      const isInProgress = task.status === 'in_progress';
-      if (!isDueToday && !isInProgress) return false;
-    }
+  const filteredTasks = sortTasksByClosestDeadline(
+    tasks.filter((task) => {
+      if (currentView === 'today') {
+        const isDueToday = task.dueDate === todayStr;
+        const isInProgress = task.status === 'in_progress';
+        if (!isDueToday && !isInProgress) return false;
+      }
 
-    if (selectedCategory && task.category !== selectedCategory) {
-      return false;
-    }
+      if (selectedCategory && task.category !== selectedCategory) {
+        return false;
+      }
 
-    if (statusFilter === 'in_progress' && task.status !== 'in_progress') return false;
-    if (statusFilter === 'done' && task.status !== 'done') return false;
-    if (statusFilter === 'paid' && task.status !== 'paid') return false;
+      if (statusFilter === 'in_progress' && task.status !== 'in_progress') return false;
+      if (statusFilter === 'done' && task.status !== 'done') return false;
+      if (statusFilter === 'paid' && task.status !== 'paid') return false;
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      const matchTitle = task.title.toLowerCase().includes(query);
-      const matchDesc = task.description?.toLowerCase().includes(query);
-      const matchNotes = task.notes?.toLowerCase().includes(query);
-      const matchPrice = task.price?.toString().includes(query);
-      const matchDate = task.dueDate?.includes(query);
-      return matchTitle || matchDesc || matchNotes || matchPrice || matchDate;
-    }
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchTitle = task.title.toLowerCase().includes(query);
+        const matchDesc = task.description?.toLowerCase().includes(query);
+        const matchNotes = task.notes?.toLowerCase().includes(query);
+        const matchPrice = task.price?.toString().includes(query);
+        const matchDate = task.dueDate?.includes(query);
+        return matchTitle || matchDesc || matchNotes || matchPrice || matchDate;
+      }
 
-    return true;
-  });
+      return true;
+    })
+  );
 
   // Client public portfolio check: when visiting /portfolio or ?portfolio, only show public portfolio view
   const isPublicPortfolio =

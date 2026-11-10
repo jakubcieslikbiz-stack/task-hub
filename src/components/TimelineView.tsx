@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Task } from '../types';
+import { sortTasksByClosestDeadline } from '../utils/taskSort';
 import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 
 interface TimelineViewProps {
@@ -64,13 +65,15 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
 
   const isCurrentMonth = currentYear === now.getFullYear() && currentMonth === now.getMonth();
 
-  // Filter tasks that overlap with the current month (od 1 do ostatniego dnia)
-  const relevantTasks = tasks.filter((task) => {
-    const start = task.startDate || task.createdAt.slice(0, 10) || task.dueDate || '';
-    const end = task.dueDate || start;
-    if (!start && !end) return false;
-    return start <= monthEnd && end >= monthStart;
-  });
+  // Filter tasks that overlap with the current month (od 1 do ostatniego dnia) and sort by closest deadline
+  const relevantTasks = sortTasksByClosestDeadline(
+    tasks.filter((task) => {
+      const start = task.startDate || task.createdAt.slice(0, 10) || task.dueDate || '';
+      const end = task.dueDate || start;
+      if (!start && !end) return false;
+      return start <= monthEnd && end >= monthStart;
+    })
+  );
 
   const monthTotalValue = relevantTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
   const paidCount = relevantTasks.filter((t) => t.status === 'paid').length;

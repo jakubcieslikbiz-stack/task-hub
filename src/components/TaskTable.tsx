@@ -55,6 +55,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
   const [emailSentStatus, setEmailSentStatus] = useState<Record<string, boolean>>({});
+  const todayStr = new Date().toISOString().split('T')[0];
 
   const toggleRowExpanded = (id: string) => {
     setExpandedRowId((prev) => (prev === id ? null : id));
@@ -148,7 +149,14 @@ export const TaskTable: React.FC<TaskTableProps> = ({
               <th className="py-4 px-4 font-normal">Budżet</th>
               <th className="py-4 px-4 font-normal text-center">Gotowe</th>
               <th className="py-4 px-4 font-normal text-center">Opłacone</th>
-              <th className="py-4 px-4 font-normal">Termin</th>
+              <th className="py-4 px-4 font-normal">
+                <span className="inline-flex items-center gap-1 text-[#f5ede4]">
+                  Termin (DDL)
+                  <span className="text-[#d99b5a] text-[11px] font-bold" title="Posortowane od najbliższego terminu">
+                    ↑
+                  </span>
+                </span>
+              </th>
               <th className="py-4 px-4 font-normal">Uwagi</th>
               <th className="py-4 pl-4 pr-6 font-normal text-right">Akcje</th>
             </tr>
@@ -288,9 +296,29 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                     {/* TERMIN */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <span className="font-mono text-xs text-[#9e8f82]">
-                          {dateDisplay}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`font-mono text-xs ${
+                              !isDone && task.dueDate && task.dueDate < todayStr
+                                ? 'text-[#e07a68] font-semibold'
+                                : !isDone && task.dueDate === todayStr
+                                ? 'text-[#d99b5a] font-semibold'
+                                : 'text-[#9e8f82]'
+                            }`}
+                          >
+                            {dateDisplay}
+                          </span>
+                          {!isDone && task.dueDate && task.dueDate < todayStr && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono uppercase bg-[#e07a68]/20 text-[#f19b8c] border border-[#e07a68]/30">
+                              Po terminie
+                            </span>
+                          )}
+                          {!isDone && task.dueDate === todayStr && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono uppercase bg-[#d99b5a]/20 text-[#f1c38e] border border-[#d99b5a]/30">
+                              Dziś
+                            </span>
+                          )}
+                        </div>
                         {task.dueTime && (
                           <span className="text-[10px] text-[#d99b5a] font-mono">
                             godz. {task.dueTime}
