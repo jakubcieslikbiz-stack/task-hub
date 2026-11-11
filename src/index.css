@@ -205,3 +205,44 @@ html {
 .pill-hover:active {
   transform: scale(0.95);
 }
+
+/* Dynamic Financial Dashboard Animations */
+@keyframes shimmerBar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmerBar 2.4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUpStagger {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-1 {
+  animation: slideUpStagger 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.04s both;
+}
+
+.stagger-2 {
+  animation: slideUpStagger 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.11s both;
+}
+
+.stagger-3 {
+  animation: slideUpStagger 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both;
+}
+
+.stagger-4 {
+  animation: slideUpStagger 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}

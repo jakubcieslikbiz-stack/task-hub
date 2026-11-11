@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { Task, MonthlyCosts } from '../types';
+import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 import {
   Clock,
   DollarSign,
@@ -120,6 +121,48 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   const totalCosts = (costs.zus || 0) + (costs.tax || 0);
   const netProfit = paidValue - totalCosts;
 
+  // Animated number counters for the 4 KPI boxes (rolling up on mount & filter switch)
+  const animInProgressValue = useAnimatedCounter(inProgressValue, 1100);
+  const animInProgressCount = useAnimatedCounter(inProgressTasks.length, 800);
+
+  const animDoneValue = useAnimatedCounter(doneValue, 1100);
+  const animDoneCount = useAnimatedCounter(doneTasks.length, 800);
+
+  const animPaidValue = useAnimatedCounter(paidValue, 1100);
+  const animPaidCount = useAnimatedCounter(paidTasks.length, 800);
+
+  const animNetProfit = useAnimatedCounter(netProfit, 1100);
+  const animTotalCount = useAnimatedCounter(currentMonthTasks.length, 800);
+
+  // Animated chart rise effect ("wykres się podnosi")
+  const [chartRise, setChartRise] = useState(0);
+
+  useEffect(() => {
+    let startTime: number | null = null;
+    let animId: number;
+    const duration = 1100;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      // Snappy lift-off with smooth logarithmic deceleration (easeOutQuart)
+      const ease = 1 - Math.pow(1 - progress, 3.5);
+      setChartRise(ease);
+
+      if (progress < 1) {
+        animId = requestAnimationFrame(animate);
+      }
+    };
+
+    setChartRise(0);
+    animId = requestAnimationFrame(animate);
+
+    return () => {
+      if (animId) cancelAnimationFrame(animId);
+    };
+  }, [statusFilter]);
+
   const handleSaveCosts = (e: React.FormEvent) => {
     e.preventDefault();
     onSaveCosts({
@@ -187,9 +230,12 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   const plotW = svgWidth - padX * 2;
   const plotH = svgHeight - padTop - padBottom;
 
+  const baselineY = padTop + plotH;
   const coords = timelineData.map((pt, idx) => {
     const x = padX + (idx / (timelineData.length - 1)) * plotW;
-    const y = padTop + plotH - (pt.val / maxVal) * plotH;
+    const targetOffset = (pt.val / maxVal) * plotH;
+    // Graph elevates smoothly from baselineY up to peak
+    const y = baselineY - targetOffset * chartRise;
     return { x, y, pt };
   });
 
@@ -446,6 +492,16 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
                 {/* Area gradient under line */}
                 <path d={areaPathD} fill="url(#cashflowGradient)" />
 
+                {/* Subtle studio glow behind main line */}
+                <path
+                  d={linePathD}
+                  fill="none"
+                  stroke="#d99b5a"
+                  strokeWidth="5"
+                  strokeOpacity="0.22"
+                  className="blur-[2px]"
+                />
+
                 {/* Main Dynamic Line */}
                 <path
                   d={linePathD}
@@ -454,7 +510,6 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  className="transition-all duration-300"
                 />
 
                 {/* Vertical hover indicator line */}
@@ -562,7 +617,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         {/* Box 1: W toku */}
         <div
           onClick={() => onFilterChange(statusFilter === 'in_progress' ? 'all' : 'in_progress')}
-          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group stagger-1 ${
             statusFilter === 'in_progress'
               ? 'bg-[#2a1e16] border-[#d99b5a]/60 shadow-[#d99b5a]/10 ring-1 ring-[#d99b5a]/30'
               : 'glass-panel hover:border-[#3d2f24] hover:shadow-xl'
@@ -574,11 +629,11 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
               W toku
             </span>
             <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30 transition-transform group-hover:scale-105">
-              {inProgressTasks.length}
+              {animInProgressCount}
             </span>
           </div>
           <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono">
-            {inProgressValue.toLocaleString('pl-PL')} zł
+            {animInProgressValue.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">
             <span>W trakcie renderów</span>
@@ -589,7 +644,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         {/* Box 2: Gotowe */}
         <div
           onClick={() => onFilterChange(statusFilter === 'done' ? 'all' : 'done')}
-          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group stagger-2 ${
             statusFilter === 'done'
               ? 'bg-[#2a1e16] border-[#7ec29a]/60 shadow-[#7ec29a]/10 ring-1 ring-[#7ec29a]/30'
               : 'glass-panel hover:border-[#3d2f24] hover:shadow-xl'
@@ -601,11 +656,11 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
               Gotowe
             </span>
             <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30 transition-transform group-hover:scale-105">
-              {doneTasks.length}
+              {animDoneCount}
             </span>
           </div>
           <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono">
-            {doneValue.toLocaleString('pl-PL')} zł
+            {animDoneValue.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">
             <span>Czeka na rozliczenie</span>
@@ -616,7 +671,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         {/* Box 3: Opłacone */}
         <div
           onClick={() => onFilterChange(statusFilter === 'paid' ? 'all' : 'paid')}
-          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group stagger-3 ${
             statusFilter === 'paid'
               ? 'bg-[#2a1e16] border-[#f5ede4]/60 shadow-black/30 ring-1 ring-[#f5ede4]/30'
               : 'glass-panel hover:border-[#3d2f24] hover:shadow-xl'
@@ -628,11 +683,11 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
               Opłacone
             </span>
             <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#f5ede4]/15 text-[#f5ede4] border border-[#f5ede4]/30 transition-transform group-hover:scale-105">
-              {paidTasks.length}
+              {animPaidCount}
             </span>
           </div>
           <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono">
-            {paidValue.toLocaleString('pl-PL')} zł
+            {animPaidValue.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">
             <span>Rzeczywisty przychód</span>
@@ -643,7 +698,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         {/* Box 4: Na czysto */}
         <div
           onClick={onOpenFinancesView}
-          className="cursor-pointer glass-panel hover:border-[#3d2f24] hover:shadow-xl rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group flex flex-col justify-between"
+          className="cursor-pointer glass-panel hover:border-[#3d2f24] hover:shadow-xl rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group flex flex-col justify-between stagger-4"
         >
           <div className="flex items-center justify-between text-xs font-medium mb-1">
             <span className={`flex items-center gap-1.5 truncate ${netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'}`}>
@@ -651,7 +706,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
               Zysk netto
             </span>
             <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30" title="Łącznie zleceń w miesiącu">
-              {currentMonthTasks.length}
+              {animTotalCount}
             </span>
           </div>
 
@@ -660,7 +715,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
               netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'
             }`}
           >
-            {netProfit.toLocaleString('pl-PL')} zł
+            {animNetProfit.toLocaleString('pl-PL')} zł
           </div>
 
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">

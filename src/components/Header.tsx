@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ViewMode } from '../types';
+import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 import {
   Search,
   Sparkles,
@@ -42,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { title, subtitle, short } = VIEW_TITLES[currentView];
   const percent = totalTodayCount > 0 ? Math.round((completedTodayCount / totalTodayCount) * 100) : 0;
+  const animPercent = useAnimatedCounter(percent, 1000);
 
   const now = new Date();
   const dateFormatted = now.toLocaleDateString('pl-PL', {
@@ -70,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
             {currentView === 'today' && totalTodayCount > 0 && (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30">
                 <Sparkles className="w-3.5 h-3.5 text-[#7ec29a]" />
-                {percent}% ukończone ({completedTodayCount}/{totalTodayCount})
+                {animPercent}% ukończone ({completedTodayCount}/{totalTodayCount})
               </span>
             )}
           </div>

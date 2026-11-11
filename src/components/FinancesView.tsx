@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Task, MonthlyCosts, MonthlyReport } from '../types';
+import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 import {
   DollarSign,
   TrendingUp,
@@ -103,6 +104,12 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
   const totalCosts = currentZus + currentTax;
   const netProfit = earnings - totalCosts;
 
+  // Animated counters for KPI boxes
+  const animEarnings = useAnimatedCounter(earnings, 1000);
+  const animPendingValue = useAnimatedCounter(pendingValue, 1000);
+  const animTotalCosts = useAnimatedCounter(totalCosts, 1000);
+  const animNetProfit = useAnimatedCounter(netProfit, 1000);
+
   const handleSaveCosts = (e: React.FormEvent) => {
     e.preventDefault();
     onSaveCosts({ zus: currentZus, tax: currentTax });
@@ -200,13 +207,13 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Zarobki (Opłacone) */}
-        <div className="glass-panel border border-[#7ec29a]/30 rounded-3xl p-5 shadow-2xl flex flex-col justify-between">
+        <div className="glass-panel border border-[#7ec29a]/30 rounded-3xl p-5 shadow-2xl flex flex-col justify-between stagger-1">
           <div className="flex items-center justify-between text-xs text-[#7ec29a] font-medium">
             <span>Zarobiono (Opłacone)</span>
             <TrendingUp className="w-4 h-4" />
           </div>
           <div className="mt-3 text-2xl sm:text-3xl font-light text-[#f5ede4] font-mono">
-            {earnings.toLocaleString('pl-PL')} zł
+            {animEarnings.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82]">
             {paidTasks.length} z {monthTasks.length} zleceń opłacone
@@ -214,13 +221,13 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
         </div>
 
         {/* W toku / Do opłacenia */}
-        <div className="glass-panel border border-[#d99b5a]/30 rounded-3xl p-5 shadow-2xl flex flex-col justify-between">
+        <div className="glass-panel border border-[#d99b5a]/30 rounded-3xl p-5 shadow-2xl flex flex-col justify-between stagger-2">
           <div className="flex items-center justify-between text-xs text-[#d99b5a] font-medium">
             <span>Oczekujące płatności</span>
             <FileText className="w-4 h-4" />
           </div>
           <div className="mt-3 text-2xl sm:text-3xl font-light text-[#f5ede4] font-mono">
-            {pendingValue.toLocaleString('pl-PL')} zł
+            {animPendingValue.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82]">
             W toku lub do rozliczenia
@@ -228,13 +235,13 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
         </div>
 
         {/* Koszty miesięczne */}
-        <div className="glass-panel border border-[#e07a68]/30 rounded-3xl p-5 shadow-2xl flex flex-col justify-between">
+        <div className="glass-panel border border-[#e07a68]/30 rounded-3xl p-5 shadow-2xl flex flex-col justify-between stagger-3">
           <div className="flex items-center justify-between text-xs text-[#e07a68] font-medium">
             <span>Koszty (ZUS + Podatek)</span>
             <TrendingDown className="w-4 h-4" />
           </div>
           <div className="mt-3 text-2xl sm:text-3xl font-light text-[#e07a68] font-mono">
-            {totalCosts.toLocaleString('pl-PL')} zł
+            {animTotalCosts.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82]">
             ZUS: {currentZus} zł | Podatek: {currentTax} zł
@@ -242,7 +249,7 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
         </div>
 
         {/* Dochód na czysto */}
-        <div className="glass-panel rounded-3xl p-5 shadow-2xl flex flex-col justify-between border border-[#2b211a]">
+        <div className="glass-panel rounded-3xl p-5 shadow-2xl flex flex-col justify-between border border-[#2b211a] stagger-4">
           <div className="flex items-center justify-between text-xs font-medium">
             <span className={netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'}>
               Na czysto (Zysk)
@@ -253,7 +260,7 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
             netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'
           }`}>
             {netProfit >= 0 ? '+' : ''}
-            {netProfit.toLocaleString('pl-PL')} zł
+            {animNetProfit.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82]">
             Po odliczeniu wszystkich kosztów
