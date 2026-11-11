@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ViewMode } from '../types';
 import { CATEGORIES } from '../data/initialData';
+import { usePomodoro } from '../context/PomodoroContext';
 import {
   Calendar,
   CheckSquare,
@@ -59,6 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenChangePassword,
 }) => {
   const [showCategoryMenu, setShowCategoryMenu] = React.useState(false);
+  const { isRunning: isPomodoroRunning, formattedTime: pomodoroTime, mode: pomodoroMode } = usePomodoro();
 
   const handleNav = (view: ViewMode) => {
     onViewChange(view);
@@ -154,12 +156,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className={`group relative p-2.5 rounded-full transition-all ${
             currentView === 'pomodoro'
               ? 'bg-[#2a1e16] text-[#f5ede4] border border-[#3d2c20]'
+              : isPomodoroRunning
+              ? 'text-[#d99b5a] bg-[#2a1e16]/80 border border-[#d99b5a]/40'
               : 'text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#221a14]/60'
           }`}
         >
-          <Timer className="w-4 h-4" />
+          <Timer className={`w-4 h-4 ${isPomodoroRunning ? 'animate-pulse' : ''}`} />
+          {isPomodoroRunning && (
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#d99b5a] shadow-[0_0_6px_#d99b5a]" />
+          )}
           <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-            Pomodoro Focus
+            {isPomodoroRunning
+              ? `Pomodoro (${pomodoroTime} • ${pomodoroMode === 'focus' ? 'Praca' : 'Przerwa'})`
+              : 'Pomodoro Focus'}
           </span>
         </button>
 

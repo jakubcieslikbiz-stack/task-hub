@@ -15,6 +15,7 @@ import { EmailOfferDrafterView } from './components/EmailOfferDrafterView';
 import { PublicPortfolioView } from './components/PublicPortfolioView';
 import { PortfolioManagerView } from './components/PortfolioManagerView';
 import { PomodoroView } from './components/PomodoroView';
+import { PomodoroFloatingWidget } from './components/PomodoroFloatingWidget';
 import { RecentActivityAndGoals } from './components/RecentActivityAndGoals';
 import { TaskModal } from './components/TaskModal';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -1298,6 +1299,13 @@ export function App() {
             }
           }
         }}
+      />
+
+      {/* Floating Pomodoro Widget when working in other views */}
+      <PomodoroFloatingWidget
+        currentView={currentView}
+        onNavigateToPomodoro={() => setCurrentView('pomodoro')}
+        tasks={tasks}
       />
     </div>
   );

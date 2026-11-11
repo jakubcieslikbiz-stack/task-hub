@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ViewMode } from '../types';
 import { Calendar, CheckSquare, Timer, Clock, DollarSign, Plus, Image as ImageIcon, MailCheck } from 'lucide-react';
+import { usePomodoro } from '../context/PomodoroContext';
 
 interface BottomNavProps {
   currentView: ViewMode;
@@ -13,6 +14,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   onViewChange,
   onQuickAdd,
 }) => {
+  const { isRunning: isPomodoroRunning, formattedTime: pomodoroTime } = usePomodoro();
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#140f0c]/95 backdrop-blur-2xl border-t border-[#2e231c] px-2 py-2 pb-safe flex items-center justify-around shadow-2xl">
       <button
@@ -37,12 +40,23 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
       <button
         onClick={() => onViewChange('pomodoro')}
-        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
-          currentView === 'pomodoro' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors relative ${
+          currentView === 'pomodoro'
+            ? 'text-[#f5ede4] font-semibold'
+            : isPomodoroRunning
+            ? 'text-[#d99b5a]'
+            : 'text-[#9e8f82] hover:text-[#f5ede4]'
         }`}
       >
-        <Timer className="w-4 h-4" />
-        <span className="text-[9px]">Pomodoro</span>
+        <div className="relative">
+          <Timer className={`w-4 h-4 ${isPomodoroRunning ? 'animate-pulse' : ''}`} />
+          {isPomodoroRunning && (
+            <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-[#d99b5a] shadow-[0_0_6px_#d99b5a]" />
+          )}
+        </div>
+        <span className="text-[9px] font-mono">
+          {isPomodoroRunning ? pomodoroTime : 'Pomodoro'}
+        </span>
       </button>
 
       {/* Floating Center Action Button (Warm bone cream) */}
