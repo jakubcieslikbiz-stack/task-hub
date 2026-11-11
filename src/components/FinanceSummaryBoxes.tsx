@@ -172,17 +172,20 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
     setShowCostSettings(false);
   };
 
-  // Build Real Timeline Data Points for the CURRENT MONTH (1 to daysInMonth)
+  // Build Cumulative Month-to-Date Timeline Points (od 1 do DZISIEJSZEGO DNIA)
   const getTimelinePoints = () => {
     const rawPoints: {
       dateStr: string;
       label: string;
       val: number;
+      dailyVal: number;
       tasks: Task[];
       isToday: boolean;
     }[] = [];
 
-    for (let day = 1; day <= daysInMonth; day++) {
+    let runningTotal = 0;
+
+    for (let day = 1; day <= curDate; day++) {
       const d = new Date(curYear, curMonth, day);
       const dateStr = toLocalDateStr(d);
       const label = `${day} ${d.toLocaleDateString('pl-PL', { month: 'short' })}`;
@@ -193,23 +196,26 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         return taskDate === dateStr;
       });
 
-      let dailyVal = 0;
+      let dayVal = 0;
       if (statusFilter === 'paid') {
-        dailyVal = dayTasks
+        dayVal = dayTasks
           .filter((t) => t.status === 'paid')
           .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
       } else if (statusFilter === 'in_progress') {
-        dailyVal = dayTasks
+        dayVal = dayTasks
           .filter((t) => t.status === 'in_progress' || t.status === 'todo')
           .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
       } else {
-        dailyVal = dayTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
+        dayVal = dayTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
       }
+
+      runningTotal += dayVal;
 
       rawPoints.push({
         dateStr,
         label,
-        val: dailyVal,
+        val: runningTotal,
+        dailyVal: dayVal,
         tasks: dayTasks,
         isToday,
       });
@@ -219,7 +225,9 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   };
 
   const timelineData = getTimelinePoints();
-  const maxVal = Math.max(...timelineData.map((d) => d.val), 2000);
+  const rawMax = Math.max(...timelineData.map((d) => d.val), 2000);
+  // Add 15% margin above peak so the line has breathing room
+  const maxVal = Math.ceil((rawMax * 1.15) / 500) * 500;
 
   // SVG Chart Dimensions (Expanded for mobile scrolling & crisp zoom)
   const svgWidth = 880;
@@ -230,26 +238,24 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   const plotW = svgWidth - padX * 2;
   const plotH = svgHeight - padTop - padBottom;
 
+  const denominator = Math.max(1, timelineData.length - 1);
   const baselineY = padTop + plotH;
   const coords = timelineData.map((pt, idx) => {
-    const x = padX + (idx / (timelineData.length - 1)) * plotW;
+    const x = padX + (timelineData.length === 1 ? 0.5 : idx / denominator) * plotW;
     const targetOffset = (pt.val / maxVal) * plotH;
     // Graph elevates smoothly from baselineY up to peak
     const y = baselineY - targetOffset * chartRise;
     return { x, y, pt };
   });
 
+  const todayCoord = coords.find((c) => c.pt.isToday) || coords[coords.length - 1];
+
   // Auto-center chart on today on mount & when zoom changes
   useEffect(() => {
     const timer = setTimeout(() => {
       if (chartScrollRef.current) {
-        const todayIdx = coords.findIndex((c) => c.pt.isToday);
-        if (todayIdx !== -1) {
-          const container = chartScrollRef.current;
-          const ratio = coords[todayIdx].x / svgWidth;
-          const scrollPos = ratio * container.scrollWidth - container.clientWidth / 2;
-          container.scrollTo({ left: Math.max(0, scrollPos), behavior: 'smooth' });
-        }
+        const container = chartScrollRef.current;
+        container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
       }
     }, 120);
     return () => clearTimeout(timer);
@@ -277,11 +283,11 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-mono uppercase tracking-wider text-[#d99b5a] flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#d99b5a] animate-pulse" />
-                Aktualny miesiąc: {monthNamePolish} (1 – {daysInMonth})
+                Aktualny miesiąc: {monthNamePolish} (1 – {curDate} • Dziś)
               </span>
             </div>
             <h3 className="text-base font-light text-[#f5ede4] tracking-tight mt-0.5">
-              Rzeczywiste przepływy dzienne JC Studio
+              Skumulowany przychód miesiąca JC Studio
             </h3>
           </div>
 
@@ -416,8 +422,13 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
                     {hoveredCoord.pt.isToday && ' • Dziś ✨'}
                   </div>
                   <div className="font-semibold text-[#f5ede4]">
-                    {hoveredCoord.pt.val.toLocaleString('pl-PL')} zł
+                    Suma: {hoveredCoord.pt.val.toLocaleString('pl-PL')} zł
                   </div>
+                  {hoveredCoord.pt.dailyVal > 0 && (
+                    <div className="text-[10px] text-[#7ec29a] font-mono">
+                      +{hoveredCoord.pt.dailyVal.toLocaleString('pl-PL')} zł w tym dniu
+                    </div>
+                  )}
                   {hoveredCoord.pt.tasks.length > 0 && (
                     <div className="text-[10px] text-[#d99b5a] truncate max-w-[220px]">
                       {hoveredCoord.pt.tasks.map((t) => t.title).join(', ')}
@@ -566,17 +577,35 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
                             : 'fill-[#7a6b5e]'
                         }`}
                       >
-                        {chartZoom === '1x'
-                          ? i % 3 === 0 || c.pt.isToday || i === coords.length - 1
+                        {c.pt.isToday
+                          ? `Dziś (${c.pt.label})`
+                          : chartZoom === '1x'
+                          ? i % 2 === 0 || i === 0
                             ? c.pt.label
                             : ''
-                          : i % 2 === 0 || c.pt.isToday || i === coords.length - 1
-                          ? c.pt.label
-                          : ''}
+                          : c.pt.label}
                       </text>
                     </g>
                   );
                 })}
+
+                {/* Glowing beacon at the tip of the line (Today - end of chart) */}
+                {todayCoord && (
+                  <g className="pointer-events-none transition-all duration-300">
+                    <circle
+                      cx={todayCoord.x}
+                      cy={todayCoord.y}
+                      r={7}
+                      className="fill-[#d99b5a]/30 animate-ping"
+                    />
+                    <circle
+                      cx={todayCoord.x}
+                      cy={todayCoord.y}
+                      r={4}
+                      className="fill-[#f5ede4] stroke-[#d99b5a] stroke-2 shadow-md"
+                    />
+                  </g>
+                )}
               </svg>
             </div>
           </div>
