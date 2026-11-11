@@ -528,7 +528,6 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
                 {/* Interactive Data points */}
                 {coords.map((c, i) => {
                   const isHovered = hoveredIndex === i;
-                  const hasValue = c.pt.val > 0;
 
                   return (
                     <g key={i}>
@@ -544,19 +543,15 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
                         onClick={() => setHoveredIndex(i)}
                       />
 
-                      {/* Dot */}
-                      <circle
-                        cx={c.x}
-                        cy={c.y}
-                        r={isHovered ? 5.5 : hasValue ? 3.5 : 2}
-                        className={`transition-all duration-150 ${
-                          isHovered
-                            ? 'fill-[#f5ede4] stroke-[#d99b5a] stroke-2 shadow-lg'
-                            : hasValue
-                            ? 'fill-[#f5ede4]'
-                            : 'fill-[#3d2f24]'
-                        }`}
-                      />
+                      {/* Hover dot indicator only (no static dots on peaks) */}
+                      {isHovered && (
+                        <circle
+                          cx={c.x}
+                          cy={c.y}
+                          r={5}
+                          className="fill-[#f5ede4] stroke-[#d99b5a] stroke-2 shadow-lg"
+                        />
+                      )}
 
                       {/* X-axis date labels */}
                       <text
