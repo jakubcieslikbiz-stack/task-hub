@@ -1019,7 +1019,8 @@ export function App() {
           )}
 
           {/* Active Views */}
-          {currentView === 'portfolio_manager' ? (
+          <div key={currentView} className="animate-slide-up">
+            {currentView === 'portfolio_manager' ? (
             <PortfolioManagerView
               projects={portfolioProjects}
               onSaveProjects={handleSavePortfolio}
@@ -1228,6 +1229,7 @@ export function App() {
               </div>
             </div>
           )}
+          </div>
         </div>
       </main>
 

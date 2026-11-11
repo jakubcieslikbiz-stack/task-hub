@@ -31,7 +31,7 @@ export const ConnectPhoneModal: React.FC<ConnectPhoneModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden p-6 relative"
+        className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden p-6 relative animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         <button

@@ -108,7 +108,7 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className="w-full max-w-md glass-panel border border-[#3d2f24] rounded-3xl p-6 shadow-2xl relative"
+        className="w-full max-w-md glass-panel border border-[#3d2f24] rounded-3xl p-6 shadow-2xl relative animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

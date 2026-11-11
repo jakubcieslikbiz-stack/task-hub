@@ -59,7 +59,7 @@ export const QuickNotes: React.FC<QuickNotesProps> = ({
       {isAdding && (
         <form
           onSubmit={handleCreate}
-          className="glass-panel border border-[#3d2f24] rounded-3xl p-6 shadow-2xl space-y-4"
+          className="glass-panel border border-[#3d2f24] rounded-3xl p-6 shadow-2xl space-y-4 animate-scale-in"
         >
           <input
             type="text"
@@ -103,7 +103,7 @@ export const QuickNotes: React.FC<QuickNotesProps> = ({
           notes.map((note) => (
             <div
               key={note.id}
-              className="glass-panel border border-[#2b211a] hover:border-[#3d2f24] rounded-3xl p-5 flex flex-col justify-between shadow-xl group transition-all"
+              className="glass-panel border border-[#2b211a] hover:border-[#3d2f24] rounded-3xl p-5 flex flex-col justify-between shadow-xl group transition-all duration-200 card-hover-lift"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">

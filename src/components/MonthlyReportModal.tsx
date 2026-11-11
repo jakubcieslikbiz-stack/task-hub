@@ -49,8 +49,8 @@ export const MonthlyReportModal: React.FC<MonthlyReportModalProps> = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-[#0c0907]/80 backdrop-blur-md">
-      <div className="relative w-full max-w-3xl glass-panel rounded-3xl border border-[#3d2f24] p-6 sm:p-8 shadow-2xl space-y-6 my-auto text-[#f5ede4] max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-[#0c0907]/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="relative w-full max-w-3xl glass-panel rounded-3xl border border-[#3d2f24] p-6 sm:p-8 shadow-2xl space-y-6 my-auto text-[#f5ede4] max-h-[92vh] overflow-y-auto animate-scale-in">
         {/* Modal Top Bar */}
         <div className="flex items-center justify-between pb-4 border-b border-[#2e231c]">
           <div className="flex items-center gap-3">

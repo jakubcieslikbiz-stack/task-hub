@@ -75,7 +75,7 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
         {/* 3 Goals Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Goal 1: Q4 Bookings / Przychody */}
-          <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] space-y-2.5 flex flex-col justify-between">
+          <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] hover:border-[#3d2f24] space-y-2.5 flex flex-col justify-between transition-all duration-200 card-hover-lift">
             <div className="flex items-center justify-between text-xs">
               <span className="text-[#f5ede4] font-medium flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5 text-[#d99b5a]" />
@@ -101,7 +101,7 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
           </div>
 
           {/* Goal 2: Zrealizowane projekty 3D */}
-          <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] space-y-2.5 flex flex-col justify-between">
+          <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] hover:border-[#3d2f24] space-y-2.5 flex flex-col justify-between transition-all duration-200 card-hover-lift">
             <div className="flex items-center justify-between text-xs">
               <span className="text-[#f5ede4] font-medium flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5 text-[#7ec29a]" />
@@ -127,7 +127,7 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
           </div>
 
           {/* Goal 3: Hardware Fund (GPU RTX / Stacja renderująca) */}
-          <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] space-y-2.5 flex flex-col justify-between">
+          <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] hover:border-[#3d2f24] space-y-2.5 flex flex-col justify-between transition-all duration-200 card-hover-lift">
             <div className="flex items-center justify-between text-xs">
               <span className="text-[#f5ede4] font-medium flex items-center gap-1.5">
                 <Cpu className="w-3.5 h-3.5 text-[#f1c38e]" />

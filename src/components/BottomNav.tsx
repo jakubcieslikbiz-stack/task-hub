@@ -20,8 +20,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#140f0c]/95 backdrop-blur-2xl border-t border-[#2e231c] px-2 py-2 pb-safe flex items-center justify-around shadow-2xl">
       <button
         onClick={() => onViewChange('today')}
-        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
-          currentView === 'today' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-all duration-150 active:scale-90 ${
+          currentView === 'today' ? 'text-[#f5ede4] font-semibold scale-105' : 'text-[#9e8f82] hover:text-[#f5ede4]'
         }`}
       >
         <Calendar className="w-4 h-4" />
@@ -30,8 +30,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
       <button
         onClick={() => onViewChange('all')}
-        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
-          currentView === 'all' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-all duration-150 active:scale-90 ${
+          currentView === 'all' ? 'text-[#f5ede4] font-semibold scale-105' : 'text-[#9e8f82] hover:text-[#f5ede4]'
         }`}
       >
         <CheckSquare className="w-4 h-4" />
@@ -40,9 +40,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
       <button
         onClick={() => onViewChange('pomodoro')}
-        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors relative ${
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-all duration-150 active:scale-90 relative ${
           currentView === 'pomodoro'
-            ? 'text-[#f5ede4] font-semibold'
+            ? 'text-[#f5ede4] font-semibold scale-105'
             : isPomodoroRunning
             ? 'text-[#d99b5a]'
             : 'text-[#9e8f82] hover:text-[#f5ede4]'
@@ -72,8 +72,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
       <button
         onClick={() => onViewChange('timeline')}
-        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
-          currentView === 'timeline' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-all duration-150 active:scale-90 ${
+          currentView === 'timeline' ? 'text-[#f5ede4] font-semibold scale-105' : 'text-[#9e8f82] hover:text-[#f5ede4]'
         }`}
       >
         <Clock className="w-4 h-4" />
@@ -82,8 +82,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
       <button
         onClick={() => onViewChange('finances')}
-        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
-          currentView === 'finances' ? 'text-[#7ec29a] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-all duration-150 active:scale-90 ${
+          currentView === 'finances' ? 'text-[#7ec29a] font-semibold scale-105' : 'text-[#9e8f82] hover:text-[#f5ede4]'
         }`}
       >
         <DollarSign className="w-4 h-4" />
@@ -92,8 +92,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
       <button
         onClick={() => onViewChange('converter')}
-        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
-          currentView === 'converter' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-all duration-150 active:scale-90 ${
+          currentView === 'converter' ? 'text-[#f5ede4] font-semibold scale-105' : 'text-[#9e8f82] hover:text-[#f5ede4]'
         }`}
       >
         <ImageIcon className="w-4 h-4" />
@@ -102,8 +102,8 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
       <button
         onClick={() => onViewChange('offers')}
-        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-colors ${
-          currentView === 'offers' ? 'text-[#d99b5a] font-semibold' : 'text-[#9e8f82] hover:text-[#f5ede4]'
+        className={`flex flex-col items-center gap-0.5 py-1 px-1.5 transition-all duration-150 active:scale-90 ${
+          currentView === 'offers' ? 'text-[#d99b5a] font-semibold scale-105' : 'text-[#9e8f82] hover:text-[#f5ede4]'
         }`}
       >
         <MailCheck className="w-4 h-4" />

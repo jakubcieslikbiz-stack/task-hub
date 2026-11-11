@@ -180,7 +180,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className="w-full max-w-lg glass-panel border border-[#3d2f24] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
+        className="w-full max-w-lg glass-panel border border-[#3d2f24] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

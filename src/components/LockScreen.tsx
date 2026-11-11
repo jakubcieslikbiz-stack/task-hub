@@ -271,7 +271,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
 
       <div
         className={`w-full max-w-md glass-panel border border-[#382b20] rounded-3xl p-6 sm:p-8 shadow-2xl relative z-10 transition-transform ${
-          isShaking ? 'animate-wiggle' : ''
+          isShaking ? 'animate-wiggle' : 'animate-scale-in'
         }`}
       >
         {/* Studio Badge / Crest */}

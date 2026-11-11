@@ -562,18 +562,18 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         {/* Box 1: W toku */}
         <div
           onClick={() => onFilterChange(statusFilter === 'in_progress' ? 'all' : 'in_progress')}
-          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 border shadow-lg relative group ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group ${
             statusFilter === 'in_progress'
-              ? 'bg-[#2a1e16] border-[#d99b5a]/60 shadow-[#d99b5a]/10'
-              : 'glass-panel hover:border-[#3d2f24]'
+              ? 'bg-[#2a1e16] border-[#d99b5a]/60 shadow-[#d99b5a]/10 ring-1 ring-[#d99b5a]/30'
+              : 'glass-panel hover:border-[#3d2f24] hover:shadow-xl'
           }`}
         >
           <div className="flex items-center justify-between text-xs text-[#d99b5a] font-medium mb-1">
             <span className="flex items-center gap-1.5 truncate">
-              <Clock className="w-3.5 h-3.5 shrink-0" />
+              <Clock className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:rotate-12 duration-200" />
               W toku
             </span>
-            <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30">
+            <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30 transition-transform group-hover:scale-105">
               {inProgressTasks.length}
             </span>
           </div>
@@ -582,25 +582,25 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">
             <span>W trakcie renderów</span>
-            <span className="text-[10px] text-[#d99b5a] group-hover:underline">filtruj →</span>
+            <span className="text-[10px] text-[#d99b5a] group-hover:underline transition-all">filtruj →</span>
           </div>
         </div>
 
         {/* Box 2: Gotowe */}
         <div
           onClick={() => onFilterChange(statusFilter === 'done' ? 'all' : 'done')}
-          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 border shadow-lg relative group ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group ${
             statusFilter === 'done'
-              ? 'bg-[#2a1e16] border-[#7ec29a]/60 shadow-[#7ec29a]/10'
-              : 'glass-panel hover:border-[#3d2f24]'
+              ? 'bg-[#2a1e16] border-[#7ec29a]/60 shadow-[#7ec29a]/10 ring-1 ring-[#7ec29a]/30'
+              : 'glass-panel hover:border-[#3d2f24] hover:shadow-xl'
           }`}
         >
           <div className="flex items-center justify-between text-xs text-[#7ec29a] font-medium mb-1">
             <span className="flex items-center gap-1.5 truncate">
-              <Layers className="w-3.5 h-3.5 shrink-0" />
+              <Layers className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:rotate-12 duration-200" />
               Gotowe
             </span>
-            <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30">
+            <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30 transition-transform group-hover:scale-105">
               {doneTasks.length}
             </span>
           </div>
@@ -609,25 +609,25 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">
             <span>Czeka na rozliczenie</span>
-            <span className="text-[10px] text-[#7ec29a] group-hover:underline">filtruj →</span>
+            <span className="text-[10px] text-[#7ec29a] group-hover:underline transition-all">filtruj →</span>
           </div>
         </div>
 
         {/* Box 3: Opłacone */}
         <div
           onClick={() => onFilterChange(statusFilter === 'paid' ? 'all' : 'paid')}
-          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 border shadow-lg relative group ${
+          className={`cursor-pointer rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group ${
             statusFilter === 'paid'
-              ? 'bg-[#2a1e16] border-[#f5ede4]/60 shadow-black/30'
-              : 'glass-panel hover:border-[#3d2f24]'
+              ? 'bg-[#2a1e16] border-[#f5ede4]/60 shadow-black/30 ring-1 ring-[#f5ede4]/30'
+              : 'glass-panel hover:border-[#3d2f24] hover:shadow-xl'
           }`}
         >
           <div className="flex items-center justify-between text-xs text-[#f5ede4] font-medium mb-1">
             <span className="flex items-center gap-1.5 truncate">
-              <DollarSign className="w-3.5 h-3.5 shrink-0" />
+              <DollarSign className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:rotate-12 duration-200" />
               Opłacone
             </span>
-            <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#f5ede4]/15 text-[#f5ede4] border border-[#f5ede4]/30">
+            <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#f5ede4]/15 text-[#f5ede4] border border-[#f5ede4]/30 transition-transform group-hover:scale-105">
               {paidTasks.length}
             </span>
           </div>
@@ -636,18 +636,18 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">
             <span>Rzeczywisty przychód</span>
-            <span className="text-[10px] text-[#f5ede4] group-hover:underline">filtruj →</span>
+            <span className="text-[10px] text-[#f5ede4] group-hover:underline transition-all">filtruj →</span>
           </div>
         </div>
 
         {/* Box 4: Na czysto */}
         <div
           onClick={onOpenFinancesView}
-          className="cursor-pointer glass-panel hover:border-[#3d2f24] rounded-2xl p-4 transition-all duration-200 border shadow-lg relative group flex flex-col justify-between"
+          className="cursor-pointer glass-panel hover:border-[#3d2f24] hover:shadow-xl rounded-2xl p-4 transition-all duration-200 hover:-translate-y-1 active:scale-[0.98] border shadow-lg relative group flex flex-col justify-between"
         >
           <div className="flex items-center justify-between text-xs font-medium mb-1">
             <span className={`flex items-center gap-1.5 truncate ${netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'}`}>
-              <Wallet className="w-3.5 h-3.5 shrink-0" />
+              <Wallet className="w-3.5 h-3.5 shrink-0 transition-transform group-hover:rotate-12 duration-200" />
               Zysk netto
             </span>
             <span className="shrink-0 text-xs font-mono font-semibold px-2 py-0.5 rounded-full bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30" title="Łącznie zleceń w miesiącu">

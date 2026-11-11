@@ -101,7 +101,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   return (
     <div
-      className={`group relative rounded-3xl border transition-all duration-300 glass-panel p-4 sm:p-5 shadow-2xl hover:border-[#3d2f24] ${
+      className={`group relative rounded-3xl border transition-all duration-200 card-hover-lift glass-panel p-4 sm:p-5 shadow-2xl ${
         task.category === 'personal'
           ? isPaid
             ? 'border-[#7ec29a]/40 bg-[#28211a]'
@@ -119,7 +119,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       <div className="flex items-start gap-3">
         <button
           onClick={handleToggle}
-          className="mt-0.5 flex-shrink-0 text-[#9e8f82] hover:text-[#f5ede4] transition-colors focus:outline-none"
+          className="mt-0.5 flex-shrink-0 text-[#9e8f82] hover:text-[#f5ede4] transition-all duration-150 active:scale-90 hover:scale-110 focus:outline-none"
           title={isPaid ? 'Opłacone' : isDone ? 'Oznacz jako niewykonane' : 'Oznacz jako zrobione'}
         >
           {isPaid ? (

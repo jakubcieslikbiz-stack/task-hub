@@ -91,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <button
           onClick={onToggleSearch}
           title="Szukaj zleceń"
-          className="group relative p-2.5 rounded-full text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-all"
+          className="group relative p-2.5 rounded-full text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-all duration-150 hover:scale-105 active:scale-95"
         >
           <Search className="w-4 h-4" />
           <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
@@ -104,7 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={onOpenNewTaskModal}
             title="Nowe zlecenie"
-            className="group relative p-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] shadow-lg shadow-black/50 active:scale-95 transition-all"
+            className="group relative p-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] shadow-lg shadow-black/50 hover:scale-110 active:scale-90 transition-all duration-150"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
             <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">

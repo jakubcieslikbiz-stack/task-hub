@@ -284,9 +284,9 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                         type="button"
                         onClick={() => handleToggleDone(task)}
                         title={isDone ? 'Oznacz jako w toku' : 'Oznacz jako gotowe'}
-                        className={`w-5 h-5 rounded-md border inline-flex items-center justify-center transition-all ${
+                        className={`w-5 h-5 rounded-md border inline-flex items-center justify-center transition-all duration-150 active:scale-90 hover:scale-110 ${
                           isDone
-                            ? 'bg-[#7ec29a] border-[#7ec29a] text-[#0c0907] shadow-sm'
+                            ? 'bg-[#7ec29a] border-[#7ec29a] text-[#0c0907] shadow-sm shadow-[#7ec29a]/30'
                             : 'border-[#3d2f24] bg-[#140f0c] hover:border-[#7ec29a]/70 hover:bg-[#1a1410]'
                         }`}
                       >
@@ -300,9 +300,9 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                         type="button"
                         onClick={() => handleTogglePaid(task)}
                         title={isPaid ? 'Cofnij status opłacone' : 'Oznacz jako opłacone'}
-                        className={`w-5 h-5 rounded-md border inline-flex items-center justify-center transition-all ${
+                        className={`w-5 h-5 rounded-md border inline-flex items-center justify-center transition-all duration-150 active:scale-90 hover:scale-110 ${
                           isPaid
-                            ? 'bg-[#d99b5a] border-[#d99b5a] text-[#0c0907] shadow-sm'
+                            ? 'bg-[#d99b5a] border-[#d99b5a] text-[#0c0907] shadow-sm shadow-[#d99b5a]/30'
                             : 'border-[#3d2f24] bg-[#140f0c] hover:border-[#d99b5a]/70 hover:bg-[#1a1410]'
                         }`}
                       >
@@ -411,7 +411,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                         <button
                           onClick={() => onEdit(task)}
                           title="Edytuj zlecenie"
-                          className="p-1.5 rounded-lg text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#251b14] transition-all active:scale-90"
+                          className="p-1.5 rounded-lg text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#251b14] transition-all duration-150 active:scale-90 hover:scale-110"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
@@ -422,7 +422,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                             }
                           }}
                           title="Usuń zlecenie"
-                          className="p-1.5 rounded-lg text-[#9e8f82] hover:text-[#e07a68] hover:bg-[#2a1714] transition-all active:scale-90"
+                          className="p-1.5 rounded-lg text-[#9e8f82] hover:text-[#e07a68] hover:bg-[#2a1714] transition-all duration-150 active:scale-90 hover:scale-110"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

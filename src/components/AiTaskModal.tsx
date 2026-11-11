@@ -152,7 +152,7 @@ export const AiTaskModal: React.FC<AiTaskModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className="w-full max-w-xl bg-slate-900 border border-indigo-500/30 rounded-3xl shadow-2xl overflow-hidden p-6 relative max-h-[90vh] flex flex-col"
+        className="w-full max-w-xl bg-slate-900 border border-indigo-500/30 rounded-3xl shadow-2xl overflow-hidden p-6 relative max-h-[90vh] flex flex-col animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         <button
