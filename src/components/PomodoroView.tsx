@@ -228,27 +228,46 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
           </button>
         </div>
 
-        {/* Cycle indicators (4 dots) */}
-        <div className="relative z-10 flex items-center gap-2 mt-7">
-          <span className="text-[11px] font-mono uppercase text-[#7a6b5e] mr-1">
-            Cykl sesji:
+        {/* Dynamic Session Accumulator (no 4-session limit - scales for 8-10h workdays) */}
+        <div className="relative z-10 flex flex-wrap items-center justify-center gap-2 mt-7 max-w-lg px-4">
+          <span className="text-[11px] font-mono uppercase text-[#7a6b5e] tracking-wider">
+            Sesje dzisiaj ({completedSessionsToday}):
           </span>
-          {[0, 1, 2, 3].map((idx) => {
-            const isCompleted =
-              (completedSessionsToday % 4) > idx ||
-              (completedSessionsToday > 0 && completedSessionsToday % 4 === 0);
-            return (
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* Completed sessions as glowing amber dots */}
+            {Array.from({ length: completedSessionsToday }).map((_, idx) => {
+              const isEndOfBlock = (idx + 1) % 4 === 0 && idx + 1 < completedSessionsToday;
+              return (
+                <React.Fragment key={idx}>
+                  <div
+                    className="w-3.5 h-3.5 rounded-full bg-[#d99b5a] shadow-sm shadow-[#d99b5a]/50 ring-2 ring-[#d99b5a]/25 transition-all duration-300 hover:scale-125"
+                    title={`Ukończona sesja ${idx + 1}`}
+                  />
+                  {isEndOfBlock && (
+                    <div className="w-[1px] h-3 bg-[#382b20] mx-1 opacity-70" />
+                  )}
+                </React.Fragment>
+              );
+            })}
+
+            {/* Current session in progress / upcoming */}
+            {mode === 'focus' ? (
               <div
-                key={idx}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  isCompleted
-                    ? 'bg-[#d99b5a] shadow-sm shadow-[#d99b5a]/40 ring-2 ring-[#d99b5a]/20'
-                    : 'bg-[#211812] border border-[#2e231c]'
+                className={`w-3.5 h-3.5 rounded-full border border-[#d99b5a] transition-all duration-300 ${
+                  isRunning
+                    ? 'bg-[#d99b5a]/30 animate-pulse shadow-sm shadow-[#d99b5a]/30'
+                    : 'bg-[#211812] border-dashed border-[#d99b5a]/60'
                 }`}
-                title={`Sesja ${idx + 1} z 4`}
+                title={`Sesja ${completedSessionsToday + 1} (${isRunning ? 'w toku' : 'oczekuje na start'})`}
               />
-            );
-          })}
+            ) : (
+              <div
+                className="w-3.5 h-3.5 rounded-full border border-[#7ec29a] bg-[#7ec29a]/25 animate-pulse transition-all duration-300"
+                title={`Przerwa po ${completedSessionsToday}. sesji`}
+              />
+            )}
+          </div>
         </div>
       </div>
 
