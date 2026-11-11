@@ -44,6 +44,73 @@ const PRIORITY_BADGES: Record<Priority, { label: string; className: string }> = 
   },
 };
 
+function getDaysRemainingInfo(
+  dueDate?: string,
+  dueTime?: string,
+  isDone?: boolean,
+  isPaid?: boolean
+): { text: string; className: string } | null {
+  if (isPaid) {
+    return {
+      text: dueTime ? `opłacone • godz. ${dueTime}` : 'opłacone',
+      className: 'text-[#7ec29a]',
+    };
+  }
+  if (isDone) {
+    return {
+      text: dueTime ? `gotowe • godz. ${dueTime}` : 'gotowe',
+      className: 'text-[#7ec29a]',
+    };
+  }
+
+  if (!dueDate) {
+    if (dueTime) return { text: `godz. ${dueTime}`, className: 'text-[#d99b5a]' };
+    return null;
+  }
+
+  const parts = dueDate.split('-').map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) {
+    if (dueTime) return { text: `godz. ${dueTime}`, className: 'text-[#d99b5a]' };
+    return null;
+  }
+
+  const due = new Date(parts[0], parts[1] - 1, parts[2]);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffTime = due.getTime() - today.getTime();
+  const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+  let label = '';
+  let colorClass = 'text-[#d99b5a]';
+
+  if (diffDays < 0) {
+    const abs = Math.abs(diffDays);
+    label = abs === 1 ? '1 dzień po terminie' : `${abs} dni po terminie`;
+    colorClass = 'text-[#e07a68]';
+  } else if (diffDays === 0) {
+    label = 'termin dzisiaj';
+    colorClass = 'text-[#e07a68] font-semibold';
+  } else if (diffDays === 1) {
+    label = 'został 1 dzień (jutro)';
+    colorClass = 'text-[#d99b5a] font-semibold';
+  } else {
+    const lastDigit = diffDays % 10;
+    const lastTwo = diffDays % 100;
+    if (lastDigit >= 2 && lastDigit <= 4 && (lastTwo < 10 || lastTwo >= 20)) {
+      label = `zostały ${diffDays} dni`;
+    } else {
+      label = `zostało ${diffDays} dni`;
+    }
+    colorClass = 'text-[#d99b5a]';
+  }
+
+  if (dueTime) {
+    label = `${label} • godz. ${dueTime}`;
+  }
+
+  return { text: label, className: colorClass };
+}
+
 export const TaskTable: React.FC<TaskTableProps> = ({
   tasks,
   onUpdateStatus,
@@ -55,7 +122,8 @@ export const TaskTable: React.FC<TaskTableProps> = ({
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
   const [emailSentStatus, setEmailSentStatus] = useState<Record<string, boolean>>({});
-  const todayStr = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   const toggleRowExpanded = (id: string) => {
     setExpandedRowId((prev) => (prev === id ? null : id));
@@ -190,6 +258,12 @@ export const TaskTable: React.FC<TaskTableProps> = ({
               const hasSubtasks = task.subtasks.length > 0;
               const isExpanded = expandedRowId === task.id;
               const isPersonal = task.category === 'personal';
+              const daysRemainingInfo = getDaysRemainingInfo(
+                task.dueDate || task.startDate,
+                task.dueTime,
+                isDone,
+                isPaid
+              );
 
               return (
                 <React.Fragment key={task.id}>
@@ -336,9 +410,11 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                             </span>
                           )}
                         </div>
-                        {task.dueTime && (
-                          <span className="text-[10px] text-[#d99b5a] font-mono">
-                            godz. {task.dueTime}
+                        {daysRemainingInfo && (
+                          <span
+                            className={`text-[10px] font-mono mt-0.5 block ${daysRemainingInfo.className}`}
+                          >
+                            {daysRemainingInfo.text}
                           </span>
                         )}
                       </div>
