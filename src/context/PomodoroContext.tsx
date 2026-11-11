@@ -29,14 +29,6 @@ export const POMODORO_PRESETS: Preset[] = [
     shortBreak: 10,
     longBreak: 20,
   },
-  {
-    id: 'sprint',
-    name: 'Szybki Sprint',
-    desc: '15 min na małe poprawki • 3 min przerwy',
-    focus: 15,
-    shortBreak: 3,
-    longBreak: 10,
-  },
 ];
 
 interface PomodoroContextType {
@@ -80,7 +72,9 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const saved = localStorage.getItem(STORAGE_KEY_STATE);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.presetId) return parsed.presetId;
+        if (parsed.presetId && POMODORO_PRESETS.some((p) => p.id === parsed.presetId)) {
+          return parsed.presetId;
+        }
       }
     } catch {}
     return 'classic';

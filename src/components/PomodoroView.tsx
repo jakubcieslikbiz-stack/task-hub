@@ -283,7 +283,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
             <span className="text-xs text-[#9e8f82]">Wybierz rytm pracy</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {POMODORO_PRESETS.map((preset: Preset) => {
               const isSelected = selectedPresetId === preset.id;
               return (
