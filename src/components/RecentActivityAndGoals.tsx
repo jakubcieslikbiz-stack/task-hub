@@ -2,7 +2,6 @@ import React from 'react';
 import type { Task } from '../types';
 import {
   Target,
-  Layers,
   Cpu,
   ChevronRight
 } from 'lucide-react';
@@ -26,17 +25,11 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
   const q4RevenueTarget = 20000;
   const q4RevenueProgress = Math.min(100, Math.round((totalPaidRevenue / q4RevenueTarget) * 100));
 
-  const monthlyProjectsTarget = 6;
-  const completedProjectsCount = tasks.filter((t) => t.status === 'done' || t.status === 'paid').length;
-  const monthlyProjectsProgress = Math.min(100, Math.round((completedProjectsCount / monthlyProjectsTarget) * 100));
-
   const hardwareFundTarget = 15000;
   const hardwareFundCurrent = Math.min(hardwareFundTarget, Math.round(totalPaidRevenue * 0.35));
   const hardwareFundProgress = Math.min(100, Math.round((hardwareFundCurrent / hardwareFundTarget) * 100));
 
-  const averageProgress = Math.round(
-    (q4RevenueProgress + monthlyProjectsProgress + hardwareFundProgress) / 3
-  );
+  const averageProgress = Math.round((q4RevenueProgress + hardwareFundProgress) / 2);
 
   return (
     <div className="mt-5">
@@ -54,7 +47,7 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
           <div className="flex items-center gap-4">
             <div className="text-right">
               <span className="text-[10px] font-mono uppercase text-[#7a6b5e] block">
-                3 aktywne cele
+                2 aktywne cele
               </span>
               <span className="text-sm font-medium text-[#7ec29a] font-mono">
                 {averageProgress}% średni postęp
@@ -72,8 +65,8 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
           </div>
         </div>
 
-        {/* 3 Goals Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* 2 Goals Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Goal 1: Q4 Bookings / Przychody */}
           <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] hover:border-[#3d2f24] space-y-2.5 flex flex-col justify-between transition-all duration-200 card-hover-lift">
             <div className="flex items-center justify-between text-xs">
@@ -100,33 +93,7 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
             </div>
           </div>
 
-          {/* Goal 2: Zrealizowane projekty 3D */}
-          <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] hover:border-[#3d2f24] space-y-2.5 flex flex-col justify-between transition-all duration-200 card-hover-lift">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-[#f5ede4] font-medium flex items-center gap-1.5">
-                <Layers className="w-3.5 h-3.5 text-[#7ec29a]" />
-                Zrealizowane wizualizacje
-              </span>
-              <span className="font-mono text-[#7ec29a] font-medium">
-                {completedProjectsCount} / {monthlyProjectsTarget}
-              </span>
-            </div>
-
-            {/* Progress bar */}
-            <div className="w-full h-2 rounded-full bg-[#251b14] overflow-hidden my-1">
-              <div
-                className="h-full rounded-full bg-[#7ec29a] transition-all duration-700 shadow-sm"
-                style={{ width: `${monthlyProjectsProgress}%` }}
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-[11px] text-[#9e8f82] font-mono pt-0.5">
-              <span>{completedProjectsCount} ukończone</span>
-              <span>cel: {monthlyProjectsTarget} zleceń</span>
-            </div>
-          </div>
-
-          {/* Goal 3: Hardware Fund (GPU RTX / Stacja renderująca) */}
+          {/* Goal 2: Hardware Fund (GPU RTX / Stacja renderująca) */}
           <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] hover:border-[#3d2f24] space-y-2.5 flex flex-col justify-between transition-all duration-200 card-hover-lift">
             <div className="flex items-center justify-between text-xs">
               <span className="text-[#f5ede4] font-medium flex items-center gap-1.5">
