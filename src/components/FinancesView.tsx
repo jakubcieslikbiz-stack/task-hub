@@ -204,8 +204,8 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
         </div>
       </div>
 
-      {/* KPI Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPI Stats Grid - 2 columns on vertical/tablet screens, 4 columns on wide landscape */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {/* Zarobki (Opłacone) */}
         <div className="glass-panel border border-[#7ec29a]/30 rounded-3xl p-5 shadow-2xl flex flex-col justify-between stagger-1">
           <div className="flex items-center justify-between text-xs text-[#7ec29a] font-medium">
@@ -268,45 +268,66 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
         </div>
       </div>
 
-      {/* Automatic Monthly Reports Section (23:50 scheduler) */}
-      <div className="glass-panel border border-[#382b20] rounded-3xl p-6 shadow-2xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2e231c]">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-[#d99b5a]/15 border border-[#d99b5a]/30 flex items-center justify-center text-[#d99b5a]">
+      {/* Automatic Monthly Reports Section (Responsive for vertical and horizontal monitors) */}
+      <div className="glass-panel border border-[#382b20] rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#2e231c]">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-[#d99b5a]/15 border border-[#d99b5a]/30 flex items-center justify-center text-[#d99b5a] shrink-0">
               <FileCheck2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-medium text-[#f5ede4] flex items-center gap-2">
-                Automatyczne Raporty Miesięczne
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-medium text-[#f5ede4]">
+                  Automatyczne Raporty Miesięczne
+                </h3>
                 <span className="px-2 py-0.5 rounded-full bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30 text-[10px] font-mono">
                   Harmonogram 23:50
                 </span>
-              </h3>
-              <p className="text-xs text-[#9e8f82] font-light mt-0.5">
-                Raport generuje się automatycznie w ostatni dzień miesiąca o godz. 23:50
+              </div>
+              <p className="text-xs text-[#9e8f82] font-light mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                <span>Generowanie w ostatni dzień miesiąca</span>
+                <span className="text-[#55463c] hidden sm:inline">•</span>
+                <span className="text-[11px] font-mono text-[#9e8f82]">
+                  Najbliższy: <strong className="text-[#d99b5a]">{nextScheduledDateStr}</strong>
+                </span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-[#9e8f82] font-mono hidden md:inline">
-              Najbliższy automatyczny raport: <strong className="text-[#d99b5a]">{nextScheduledDateStr}</strong>
-            </span>
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleGeneratePreviewReport}
-              className="px-4 py-2 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-semibold shadow-md transition-all active:scale-95 flex items-center gap-1.5"
+              className="px-4 py-2 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-semibold shadow-md transition-all active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#d99b5a]" />
-              <span>Generuj raport za ten miesiąc (Podgląd)</span>
+              <span>Podgląd bieżącego raportu</span>
             </button>
           </div>
         </div>
 
         {/* Reports Archive List */}
-        <div className="space-y-2">
+        <div>
           {reports.length === 0 ? (
-            <div className="py-8 text-center text-xs text-[#7a6b5e] border border-dashed border-[#2e231c] rounded-2xl">
-              Brak wygenerowanych raportów. Kliknij powyższy przycisk, aby wygenerować raport za bieżący miesiąc lub poczekaj na automatyczne wygenerowanie na koniec miesiąca o 23:50.
+            <div className="py-6 px-5 rounded-2xl bg-[#140f0c]/60 border border-[#2b211a] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+              <div className="flex items-center gap-3.5 text-center sm:text-left">
+                <div className="w-9 h-9 rounded-full bg-[#251b14] border border-[#382b20] flex items-center justify-center text-[#7a6b5e] shrink-0 mx-auto sm:mx-0">
+                  <FileText className="w-4 h-4 text-[#d99b5a]" />
+                </div>
+                <div>
+                  <span className="font-medium text-[#f5ede4] block text-sm">
+                    Brak zarchiwizowanych raportów
+                  </span>
+                  <span className="text-xs text-[#9e8f82] mt-0.5 block">
+                    Raport wygeneruje się samoczynnie <strong className="text-[#d99b5a] font-mono">{nextScheduledDateStr}</strong> lub możesz utworzyć podgląd już teraz.
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={handleGeneratePreviewReport}
+                className="px-4 py-2 rounded-full bg-[#251b14] hover:bg-[#322319] text-[#d99b5a] hover:text-[#f1c38e] border border-[#382b20] text-xs font-medium transition-all shrink-0 active:scale-95 whitespace-nowrap"
+              >
+                Wygeneruj teraz →
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
