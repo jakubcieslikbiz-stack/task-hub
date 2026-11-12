@@ -337,12 +337,6 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                                 {category.name}
                               </span>
                             )}
-                            {task.isWaitingForFeedback && !isDone && !isPaid && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-[#7c3aed]/25 text-[#d8b4fe] border border-[#a855f7]/40 flex items-center gap-1">
-                                <MessageSquare className="w-2.5 h-2.5 text-[#c084fc]" />
-                                Czekam na uwagi
-                              </span>
-                            )}
                             {hasSubtasks && (
                               <span className="text-[10px] font-mono text-[#d99b5a]">
                                 • {completedSubtasks}/{task.subtasks.length} podzadań
@@ -412,26 +406,17 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                               ? 'Włączone: Czekam na uwagi klienta (kliknij, aby wyłączyć)'
                               : 'Włącz: Czekam na uwagi klienta (zlecenie poleci na dół listy w toku)'
                           }
-                          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full border transition-all duration-200 active:scale-95 ${
+                          className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 transition-all duration-200 ease-in-out focus:outline-none active:scale-90 ${
                             task.isWaitingForFeedback
-                              ? 'bg-[#7c3aed]/25 text-[#e9d5ff] border-[#a855f7]/60 shadow-sm shadow-[#a855f7]/20 ring-1 ring-[#a855f7]/30'
-                              : 'bg-[#140f0c] text-[#857567] border-[#2e231c] hover:border-[#a855f7]/40 hover:text-[#d8b4fe]'
+                              ? 'bg-[#9333ea] border-[#a855f7] shadow-sm shadow-[#9333ea]/30'
+                              : 'bg-[#201813] border-[#382b20] hover:border-[#a855f7]/50'
                           }`}
                         >
                           <span
-                            className={`w-6 h-3.5 rounded-full flex items-center p-0.5 transition-colors duration-200 ${
-                              task.isWaitingForFeedback ? 'bg-[#9333ea]' : 'bg-[#2b211a]'
+                            className={`pointer-events-none inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out mt-[1px] ml-[1px] ${
+                              task.isWaitingForFeedback ? 'translate-x-4' : 'translate-x-0 bg-[#857567]'
                             }`}
-                          >
-                            <span
-                              className={`w-2.5 h-2.5 rounded-full bg-white transition-transform duration-200 ${
-                                task.isWaitingForFeedback ? 'translate-x-2.5 shadow-sm' : 'translate-x-0 bg-[#857567]'
-                              }`}
-                            />
-                          </span>
-                          <span className="text-[10px] font-medium hidden sm:inline">
-                            {task.isWaitingForFeedback ? 'Czekam' : 'Nie'}
-                          </span>
+                          />
                         </button>
                       ) : (
                         <span className="text-[#45372d] text-xs">—</span>

@@ -216,8 +216,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   ? 'bg-[#7ec29a]/20 text-[#9ee2b9] border-[#7ec29a]/40'
                   : isDone
                   ? 'bg-[#251b14] text-[#9e8f82] border-[#382b20]'
-                  : task.isWaitingForFeedback
-                  ? 'bg-[#7c3aed]/20 text-[#d8b4fe] border-[#7c3aed]/40'
                   : task.status === 'in_progress'
                   ? 'bg-[#d99b5a]/20 text-[#f1c38e] border-[#d99b5a]/40'
                   : 'bg-[#251b14] text-[#9e8f82] border-[#382b20]'
@@ -227,8 +225,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 ? 'Opłacone ✓'
                 : isDone
                 ? 'Gotowe'
-                : task.isWaitingForFeedback
-                ? 'W toku • Czeka na uwagi'
                 : task.status === 'in_progress'
                 ? 'W toku'
                 : 'Do zrobienia'}
