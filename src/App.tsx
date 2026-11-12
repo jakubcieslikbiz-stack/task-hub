@@ -12,6 +12,7 @@ import { FinancesView } from './components/FinancesView';
 import { ImageConverterView } from './components/ImageConverterView';
 import { DwgConverterView } from './components/DwgConverterView';
 import { EmailOfferDrafterView } from './components/EmailOfferDrafterView';
+import { EmailInboxTestView } from './components/EmailInboxTestView';
 import { PublicPortfolioView } from './components/PublicPortfolioView';
 import { PortfolioManagerView } from './components/PortfolioManagerView';
 import { PomodoroView } from './components/PomodoroView';
@@ -548,17 +549,22 @@ export function App() {
     emailReminderScheduledAt?: string;
     emailReminderSentAt?: string;
     emailReminderId?: string;
+    description?: string;
+    notes?: string;
+    subtasks?: string[];
   }) => {
     const todayStr = new Date().toISOString().split('T')[0];
     const category = taskData.category || (taskData.price ? 'work' : 'personal');
 
     const notesParts: string[] = [];
+    if (taskData.notes) notesParts.push(taskData.notes);
     if (taskData.dueTime) notesParts.push(`Godzina: ${taskData.dueTime}`);
     if (taskData.reminderTime) notesParts.push(`Przypomnienie: ${taskData.reminderTime}`);
 
     const newTask: Task = {
       id: Date.now().toString(),
       title: taskData.name,
+      description: taskData.description,
       price: taskData.price,
       startDate: taskData.startDate || todayStr,
       dueDate: taskData.endDate || todayStr,
@@ -567,7 +573,11 @@ export function App() {
       category,
       priority: 'high',
       status: 'in_progress',
-      subtasks: [],
+      subtasks: (taskData.subtasks || []).map((st, i) => ({
+        id: `${Date.now()}-${i}`,
+        title: st,
+        completed: false,
+      })),
       notes: notesParts.length > 0 ? notesParts.join(' • ') : undefined,
       remindByEmail: taskData.remindByEmail,
       emailReminderScheduledAt: taskData.emailReminderScheduledAt,
@@ -1073,6 +1083,12 @@ export function App() {
             />
           ) : currentView === 'offers' ? (
             <EmailOfferDrafterView apiKey={apiKey} />
+          ) : currentView === 'test_inbox' ? (
+            <EmailInboxTestView
+              apiKey={apiKey}
+              onAddTask={handleAiAddTask}
+              onNavigateToTasks={() => setCurrentView('all')}
+            />
           ) : currentView === 'converter' ? (
             <ImageConverterView />
           ) : currentView === 'dwg_converter' ? (

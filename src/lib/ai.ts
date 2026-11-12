@@ -176,6 +176,96 @@ Przekształć opis użytkownika w JSON:
   };
 }
 
+export interface ParsedEmailTask {
+  title: string;
+  client?: string;
+  price?: number;
+  category: 'work' | 'personal';
+  priority: Priority;
+  status: Status;
+  startDate: string;
+  dueDate?: string;
+  description: string;
+  notes?: string;
+  subtasks: string[];
+  confidenceSummary: string;
+}
+
+export async function parseEmailToTaskWithOpenAI(
+  email: { sender?: string; subject?: string; body: string },
+  apiKey: string
+): Promise<ParsedEmailTask> {
+  const today = new Date().toISOString().split('T')[0];
+  const dayOfWeek = new Date().toLocaleDateString('pl-PL', { weekday: 'long' });
+
+  const systemPrompt = `Jesteś inteligentnym asystentem pocztowym dla studia graficznego i architektonicznego JC Studio.
+Dzisiejsza data: ${today} (${dayOfWeek}).
+Twoim zadaniem jest przeanalizowanie otrzymanej wiadomości e-mail (od klienta, współpracownika lub prywatnej) i wyekstrahowanie konkretnego zadania/zlecenia do formatu JSON.
+
+Zasady analizy:
+1. "title": Zwięzły, konkretny tytuł projektu/zlecenia (np. "Wizualizacja wnętrz apartamentu — Mokotów", "Modelowanie 3D krzesła", "Wizyta u dentysty"). Jeśli to odpowiedź/przekazanie maila, usuń przedrostki typu "Fwd:", "Re:".
+2. "client": Imię i nazwisko lub nazwa firmy klienta (wyciągnięte z pola Od/Sender lub podpisu na końcu maila).
+3. "price": Budżet lub wycena w PLN jako liczba (np. 4200). Jeśli podano inną walutę (np. EUR), przelicz lub podaj wartość, a jeśli brak ceny -> null.
+4. "category": "work" dla zleceń komercyjnych (3D, architektura, grafika, rendery) lub "personal" dla spraw prywatnych (fryzjer, lekarz, rachunki, zakupy).
+5. "priority": "low" | "medium" | "high" | "urgent" (na podstawie tonu wiadomości, terminów i rangi sprawy).
+6. "status": domyślnie "in_progress".
+7. "startDate": "${today}".
+8. "dueDate": Data końcowa w formacie YYYY-MM-DD. Jeśli w treści podano np. "do 28 listopada" lub "za 2 tygodnie", dokładnie oblicz datę YYYY-MM-DD bazując na ${today}. Jeśli brak terminu -> null.
+9. "description": Zwięzłe 1-2 zdaniowe podsumowanie zakresu prac.
+10. "notes": Kluczowe wytyczne, uwagi techniczne, linki lub ustalenia z maila (np. "Pliki DWG na dysku, 4 ujęcia w 4K, tonacja dzienna").
+11. "subtasks": Tablica konkretnych kroków do wykonania (np. ["Sprawdzenie rzutów DWG", "Modelowanie bryły", "Oświetlenie i materiały", "Render próbny do akceptacji"]).
+12. "confidenceSummary": 1 zdanie po polsku z krótkim wyjaśnieniem, co AI zrozumiało z maila.
+
+Odpowiedz TYLKO i wyłącznie czystym obiektem JSON.`;
+
+  const userContent = `OD (Nadawca): ${email.sender || 'Nieznany'}
+TEMAT: ${email.subject || 'Brak tematu'}
+TREŚĆ:
+${email.body || '(Brak treści)'}`;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey.trim()}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent },
+      ],
+      temperature: 0.1,
+      response_format: { type: 'json_object' },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData?.error?.message || `Błąd OpenAI (${response.status})`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error('Pusta odpowiedź z OpenAI.');
+
+  const parsed = JSON.parse(content);
+  return {
+    title: parsed.title || email.subject || 'Nowe zlecenie z poczty',
+    client: parsed.client || undefined,
+    price: typeof parsed.price === 'number' ? parsed.price : undefined,
+    category: parsed.category === 'personal' ? 'personal' : 'work',
+    priority: parsed.priority || 'high',
+    status: 'in_progress',
+    startDate: parsed.startDate || today,
+    dueDate: parsed.dueDate || undefined,
+    description: parsed.description || 'Zadanie utworzone z przekazanego e-maila.',
+    notes: parsed.notes || undefined,
+    subtasks: Array.isArray(parsed.subtasks) ? parsed.subtasks : [],
+    confidenceSummary: parsed.confidenceSummary || 'Pomyślnie przetworzono wiadomość e-mail.',
+  };
+}
+
 export interface DraftEmailParams {
   preset: string;
   clientMessage?: string;
