@@ -18,6 +18,7 @@ import {
   Loader2,
   Check,
   Clock,
+  MessageSquare,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -28,6 +29,7 @@ interface TaskCardProps {
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
+  onToggleWaitingForFeedback?: (id: string) => void;
 }
 
 const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; badge: string }> = {
@@ -44,6 +46,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   onToggleSubtask,
   onEdit,
   onDelete,
+  onToggleWaitingForFeedback,
 }) => {
   const [showSubtasks, setShowSubtasks] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -102,7 +105,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   return (
     <div
       className={`group relative rounded-3xl border transition-all duration-200 card-hover-lift glass-panel p-4 sm:p-5 shadow-2xl ${
-        task.category === 'personal'
+        task.isWaitingForFeedback && !isDone && !isPaid
+          ? 'border-[#8a5cb8]/50 bg-[#1c1324]/90 hover:bg-[#251930] shadow-[#8a5cb8]/10'
+          : task.category === 'personal'
           ? isPaid
             ? 'border-[#7ec29a]/40 bg-[#28211a]'
             : isDone
@@ -168,6 +173,42 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
           {/* Badges and metadata */}
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+            {/* Przełącznik: Czekam na uwagi */}
+            {onToggleWaitingForFeedback && !isDone && !isPaid && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleWaitingForFeedback(task.id);
+                }}
+                className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full border text-[11px] font-medium transition-all active:scale-95 ${
+                  task.isWaitingForFeedback
+                    ? 'bg-[#7c3aed]/25 text-[#e9d5ff] border-[#a855f7]/60 shadow-sm shadow-[#a855f7]/20 ring-1 ring-[#a855f7]/30'
+                    : 'bg-[#1e1713] text-[#9e8f82] border-[#2e231c] hover:border-[#a855f7]/40 hover:text-[#d8b4fe]'
+                }`}
+                title={
+                  task.isWaitingForFeedback
+                    ? 'Włączone: Czekam na uwagi klienta (zlecenie na dole listy). Kliknij, aby wyłączyć.'
+                    : 'Kliknij, aby włączyć: Czekam na uwagi klienta (zlecenie poleci na dół listy w toku).'
+                }
+              >
+                <MessageSquare className={`w-3 h-3 ${task.isWaitingForFeedback ? 'text-[#c084fc]' : 'text-[#7a6b5e]'}`} />
+                <span>Czekam na uwagi</span>
+                {/* Mini przełącznik iOS-style */}
+                <span
+                  className={`w-6 h-3.5 rounded-full flex items-center p-0.5 transition-colors duration-200 ${
+                    task.isWaitingForFeedback ? 'bg-[#9333ea]' : 'bg-[#2b211a]'
+                  }`}
+                >
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full bg-white transition-transform duration-200 ${
+                      task.isWaitingForFeedback ? 'translate-x-2.5 shadow-sm' : 'translate-x-0 bg-[#857567]'
+                    }`}
+                  />
+                </span>
+              </button>
+            )}
+
             {/* Status Badge */}
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-[11px] font-medium ${
@@ -175,12 +216,22 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   ? 'bg-[#7ec29a]/20 text-[#9ee2b9] border-[#7ec29a]/40'
                   : isDone
                   ? 'bg-[#251b14] text-[#9e8f82] border-[#382b20]'
+                  : task.isWaitingForFeedback
+                  ? 'bg-[#7c3aed]/20 text-[#d8b4fe] border-[#7c3aed]/40'
                   : task.status === 'in_progress'
                   ? 'bg-[#d99b5a]/20 text-[#f1c38e] border-[#d99b5a]/40'
                   : 'bg-[#251b14] text-[#9e8f82] border-[#382b20]'
               }`}
             >
-              {isPaid ? 'Opłacone ✓' : isDone ? 'Gotowe' : task.status === 'in_progress' ? 'W toku' : 'Do zrobienia'}
+              {isPaid
+                ? 'Opłacone ✓'
+                : isDone
+                ? 'Gotowe'
+                : task.isWaitingForFeedback
+                ? 'W toku • Czeka na uwagi'
+                : task.status === 'in_progress'
+                ? 'W toku'
+                : 'Do zrobienia'}
             </span>
 
             {/* Priority */}
@@ -359,6 +410,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   <Mail className="w-4 h-4 text-[#d99b5a]" />
                   <span>Wyślij e-mail</span>
                 </button>
+
+                {onToggleWaitingForFeedback && !isDone && !isPaid && (
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      onToggleWaitingForFeedback(task.id);
+                    }}
+                    className="flex items-center gap-2.5 w-full px-3.5 py-2 hover:bg-[#251b14] text-left transition-colors text-[#d8b4fe]"
+                  >
+                    <MessageSquare className="w-4 h-4 text-[#c084fc]" />
+                    <span>{task.isWaitingForFeedback ? 'Wyłącz: Czekam na uwagi' : 'Włącz: Czekam na uwagi'}</span>
+                  </button>
+                )}
 
                 <div className="border-t border-[#2e231c] my-1" />
 

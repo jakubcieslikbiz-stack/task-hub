@@ -12,6 +12,7 @@ import {
   Loader2,
   Plus,
   Clock,
+  MessageSquare,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -23,6 +24,7 @@ interface TaskTableProps {
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
   onOpenNew?: () => void;
+  onToggleWaitingForFeedback?: (id: string) => void;
 }
 
 const PRIORITY_BADGES: Record<Priority, { label: string; className: string }> = {
@@ -118,6 +120,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
   onEdit,
   onDelete,
   onOpenNew,
+  onToggleWaitingForFeedback,
 }) => {
   const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
   const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
@@ -217,6 +220,12 @@ export const TaskTable: React.FC<TaskTableProps> = ({
               <th className="py-4 px-4 font-normal">Budżet</th>
               <th className="py-4 px-4 font-normal text-center">Gotowe</th>
               <th className="py-4 px-4 font-normal text-center">Opłacone</th>
+              <th className="py-4 px-4 font-normal text-center">
+                <span className="inline-flex items-center gap-1">
+                  <MessageSquare className="w-3 h-3 text-[#c084fc]" />
+                  Czekam na uwagi
+                </span>
+              </th>
               <th className="py-4 px-4 font-normal">
                 <span className="inline-flex items-center gap-1 text-[#f5ede4]">
                   Termin (DDL)
@@ -269,7 +278,9 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                 <React.Fragment key={task.id}>
                   <tr
                     className={`group transition-colors ${
-                      isPersonal
+                      task.isWaitingForFeedback && !isDone && !isPaid
+                        ? 'bg-[#22162a]/90 hover:bg-[#2c1d36] border-l-4 border-l-[#a855f7]'
+                        : isPersonal
                         ? isPaid
                           ? 'bg-[#2a2119]/85 hover:bg-[#352a20]'
                           : isDone
@@ -324,6 +335,12 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                                 }`}
                               >
                                 {category.name}
+                              </span>
+                            )}
+                            {task.isWaitingForFeedback && !isDone && !isPaid && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-[#7c3aed]/25 text-[#d8b4fe] border border-[#a855f7]/40 flex items-center gap-1">
+                                <MessageSquare className="w-2.5 h-2.5 text-[#c084fc]" />
+                                Czekam na uwagi
                               </span>
                             )}
                             {hasSubtasks && (
@@ -382,6 +399,43 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                       >
                         {isPaid && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                       </button>
+                    </td>
+
+                    {/* CZEKAM NA UWAGI */}
+                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                      {!isDone && !isPaid && onToggleWaitingForFeedback ? (
+                        <button
+                          type="button"
+                          onClick={() => onToggleWaitingForFeedback(task.id)}
+                          title={
+                            task.isWaitingForFeedback
+                              ? 'Włączone: Czekam na uwagi klienta (kliknij, aby wyłączyć)'
+                              : 'Włącz: Czekam na uwagi klienta (zlecenie poleci na dół listy w toku)'
+                          }
+                          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full border transition-all duration-200 active:scale-95 ${
+                            task.isWaitingForFeedback
+                              ? 'bg-[#7c3aed]/25 text-[#e9d5ff] border-[#a855f7]/60 shadow-sm shadow-[#a855f7]/20 ring-1 ring-[#a855f7]/30'
+                              : 'bg-[#140f0c] text-[#857567] border-[#2e231c] hover:border-[#a855f7]/40 hover:text-[#d8b4fe]'
+                          }`}
+                        >
+                          <span
+                            className={`w-6 h-3.5 rounded-full flex items-center p-0.5 transition-colors duration-200 ${
+                              task.isWaitingForFeedback ? 'bg-[#9333ea]' : 'bg-[#2b211a]'
+                            }`}
+                          >
+                            <span
+                              className={`w-2.5 h-2.5 rounded-full bg-white transition-transform duration-200 ${
+                                task.isWaitingForFeedback ? 'translate-x-2.5 shadow-sm' : 'translate-x-0 bg-[#857567]'
+                              }`}
+                            />
+                          </span>
+                          <span className="text-[10px] font-medium hidden sm:inline">
+                            {task.isWaitingForFeedback ? 'Czekam' : 'Nie'}
+                          </span>
+                        </button>
+                      ) : (
+                        <span className="text-[#45372d] text-xs">—</span>
+                      )}
                     </td>
 
                     {/* TERMIN */}

@@ -24,7 +24,17 @@ export function sortTasksByClosestDeadline(tasksList: Task[]): Task[] {
       return aIsActive ? -1 : 1;
     }
 
-    // 2. Zadania z terminem przed zadaniami bez terminu
+    // 2. Wśród zadań aktywnych: te bez oczekiwania na uwagi idą na początek,
+    // a oznaczone jako "Czekam na uwagi" (isWaitingForFeedback) lecą na sam dół aktywnych
+    if (aIsActive && bIsActive) {
+      const aWaiting = Boolean(a.isWaitingForFeedback);
+      const bWaiting = Boolean(b.isWaitingForFeedback);
+      if (aWaiting !== bWaiting) {
+        return aWaiting ? 1 : -1;
+      }
+    }
+
+    // 3. Zadania z terminem przed zadaniami bez terminu
     const aHasDue = Boolean(a.dueDate && a.dueDate.trim());
     const bHasDue = Boolean(b.dueDate && b.dueDate.trim());
     if (aHasDue && !bHasDue) return -1;

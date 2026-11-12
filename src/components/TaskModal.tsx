@@ -9,7 +9,7 @@ import {
   cancelScheduledTaskEmail,
 } from '../lib/email';
 import { MiniCalendarPicker } from './MiniCalendarPicker';
-import { X, Plus, Trash, DollarSign, Mail } from 'lucide-react';
+import { X, Plus, Trash, DollarSign, Mail, MessageSquare } from 'lucide-react';
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -30,6 +30,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [category, setCategory] = useState(CATEGORIES[0].id);
   const [priority, setPriority] = useState<Priority>('medium');
   const [status, setStatus] = useState<Status>('in_progress');
+  const [isWaitingForFeedback, setIsWaitingForFeedback] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
@@ -51,6 +52,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setCategory(initialTask.category || CATEGORIES[0].id);
       setPriority(initialTask.priority || 'medium');
       setStatus(initialTask.status || 'in_progress');
+      setIsWaitingForFeedback(Boolean(initialTask.isWaitingForFeedback));
       setStartDate(typeof initialTask.startDate === 'string' ? initialTask.startDate : '');
       setDueDate(typeof initialTask.dueDate === 'string' ? initialTask.dueDate : '');
       setNotes(initialTask.notes || '');
@@ -76,6 +78,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setCategory(CATEGORIES[0].id);
       setPriority('medium');
       setStatus('in_progress');
+      setIsWaitingForFeedback(false);
       setStartDate(todayStr);
       setDueDate(todayStr);
       setNotes('');
@@ -165,6 +168,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       category,
       priority,
       status,
+      isWaitingForFeedback,
       startDate: startDate || undefined,
       dueDate: dueDate || undefined,
       notes: notes.trim() || undefined,
@@ -247,6 +251,35 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 <option value="todo" className="bg-[#140f0c]">Do zrobienia</option>
               </select>
             </div>
+          </div>
+
+          {/* Przełącznik: Czekam na uwagi */}
+          <div className="p-3.5 rounded-2xl bg-[#1e1713] border border-[#2e231c] flex items-center justify-between gap-3">
+            <div>
+              <label
+                className="text-xs font-medium text-[#f5ede4] flex items-center gap-1.5 cursor-pointer"
+                onClick={() => setIsWaitingForFeedback(!isWaitingForFeedback)}
+              >
+                <MessageSquare className="w-3.5 h-3.5 text-[#c084fc]" />
+                Czekam na uwagi klienta
+              </label>
+              <p className="text-[11px] text-[#9e8f82] font-light mt-0.5">
+                Zlecenie pozostaje w toku, ale leci na sam dół listy i zyskuje fioletowy odcień
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsWaitingForFeedback(!isWaitingForFeedback)}
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                isWaitingForFeedback ? 'bg-[#9333ea]' : 'bg-[#2b211a]'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                  isWaitingForFeedback ? 'translate-x-4' : 'translate-x-0 bg-[#857567]'
+                }`}
+              />
+            </button>
           </div>
 
           {/* Dates: Start Date & Deadline with MiniCalendarPicker */}

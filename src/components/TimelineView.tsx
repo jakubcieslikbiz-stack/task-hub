@@ -249,10 +249,16 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
                           )}
                           <span
                             className={`text-[9px] uppercase ${
-                              isPaid ? 'text-[#7ec29a]' : isDone ? 'text-[#9e8f82]' : 'text-[#d99b5a]'
+                              isPaid
+                                ? 'text-[#7ec29a]'
+                                : isDone
+                                ? 'text-[#9e8f82]'
+                                : task.isWaitingForFeedback
+                                ? 'text-[#c084fc]'
+                                : 'text-[#d99b5a]'
                             }`}
                           >
-                            • {isPaid ? 'Opłacone' : isDone ? 'Gotowe' : 'W toku'}
+                            • {isPaid ? 'Opłacone' : isDone ? 'Gotowe' : task.isWaitingForFeedback ? 'Czekam na uwagi' : 'W toku'}
                           </span>
                         </div>
                       </div>

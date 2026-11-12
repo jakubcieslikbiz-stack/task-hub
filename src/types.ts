@@ -20,6 +20,7 @@ export interface Task {
   category: string;
   priority: Priority;
   status: Status;        // todo | in_progress | done | paid
+  isWaitingForFeedback?: boolean; // Czekam na uwagi od klienta (leci na dół listy w toku)
   notes?: string;        // Uwagi do projektu
   remindByEmail?: boolean; // Czy wysłać/oznaczyć przypomnienie e-mail
   emailReminderSentAt?: string; // Data i czas faktycznego wysłania przypomnienia
