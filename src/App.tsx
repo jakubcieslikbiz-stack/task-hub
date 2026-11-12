@@ -39,14 +39,31 @@ import { sortTasksByClosestDeadline } from './utils/taskSort';
 
 const DEFAULT_API_KEY = (import.meta.env.VITE_OPENAI_API_KEY as string) || '';
 
+const cleanAiNotes = (notes?: string): string | undefined => {
+  if (!notes) return undefined;
+  const cleaned = notes
+    .replace(/(^|\s*•\s*|\s*\|\s*)Dodane przez Asystenta AI\s*(✨)?/gi, '')
+    .trim();
+  return cleaned.length > 0 ? cleaned : undefined;
+};
+
+const sanitizeTasks = (tasksList: Task[]): Task[] => {
+  return tasksList.map((t) =>
+    t.notes && /Dodane przez Asystenta AI/i.test(t.notes)
+      ? { ...t, notes: cleanAiNotes(t.notes) }
+      : t
+  );
+};
+
 export function App() {
   // Tasks state
   const [tasks, setTasks] = useState<Task[]>(() => {
     try {
       const saved = localStorage.getItem('taskhub_tasks');
-      return saved ? JSON.parse(saved) : INITIAL_TASKS;
+      const loaded = saved ? JSON.parse(saved) : INITIAL_TASKS;
+      return sanitizeTasks(loaded);
     } catch {
-      return INITIAL_TASKS;
+      return sanitizeTasks(INITIAL_TASKS);
     }
   });
 
@@ -365,7 +382,12 @@ export function App() {
           const authRow = data.find((r) => r.key === 'auth');
 
           if (tasksRow && Array.isArray(tasksRow.data)) {
-            setTasks(tasksRow.data);
+            const sanitized = sanitizeTasks(tasksRow.data);
+            setTasks(sanitized);
+            // Jeśli któreś miały starą notatkę AI, zaktualizuj też w chmurze
+            if (JSON.stringify(sanitized) !== JSON.stringify(tasksRow.data)) {
+              syncTasksToCloud(sanitized);
+            }
           }
           if (notesRow && Array.isArray(notesRow.data)) {
             setNotes(notesRow.data);
@@ -532,7 +554,6 @@ export function App() {
     const notesParts: string[] = [];
     if (taskData.dueTime) notesParts.push(`Godzina: ${taskData.dueTime}`);
     if (taskData.reminderTime) notesParts.push(`Przypomnienie: ${taskData.reminderTime}`);
-    notesParts.push('Dodane przez Asystenta AI ✨');
 
     const newTask: Task = {
       id: Date.now().toString(),
@@ -546,7 +567,7 @@ export function App() {
       priority: 'high',
       status: 'in_progress',
       subtasks: [],
-      notes: notesParts.join(' • '),
+      notes: notesParts.length > 0 ? notesParts.join(' • ') : undefined,
       remindByEmail: taskData.remindByEmail,
       emailReminderScheduledAt: taskData.emailReminderScheduledAt,
       emailReminderSentAt: taskData.emailReminderSentAt,
