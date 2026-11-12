@@ -41,8 +41,7 @@ export type ViewMode =
   | 'converter'
   | 'dwg_converter'
   | 'offers'
-  | 'portfolio_manager'
-  | 'test_inbox';
+  | 'portfolio_manager';
 
 export interface PortfolioProject {
   id: string;

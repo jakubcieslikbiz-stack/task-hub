@@ -12,7 +12,6 @@ import { FinancesView } from './components/FinancesView';
 import { ImageConverterView } from './components/ImageConverterView';
 import { DwgConverterView } from './components/DwgConverterView';
 import { EmailOfferDrafterView } from './components/EmailOfferDrafterView';
-import { EmailInboxTestView } from './components/EmailInboxTestView';
 import { PublicPortfolioView } from './components/PublicPortfolioView';
 import { PortfolioManagerView } from './components/PortfolioManagerView';
 import { PomodoroView } from './components/PomodoroView';
@@ -1083,12 +1082,6 @@ export function App() {
             />
           ) : currentView === 'offers' ? (
             <EmailOfferDrafterView apiKey={apiKey} />
-          ) : currentView === 'test_inbox' ? (
-            <EmailInboxTestView
-              apiKey={apiKey}
-              onAddTask={handleAiAddTask}
-              onNavigateToTasks={() => setCurrentView('all')}
-            />
           ) : currentView === 'converter' ? (
             <ImageConverterView />
           ) : currentView === 'dwg_converter' ? (

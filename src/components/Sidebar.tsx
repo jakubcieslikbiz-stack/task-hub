@@ -14,7 +14,6 @@ import {
   Image as ImageIcon,
   DraftingCompass,
   MailCheck,
-  Inbox,
   Globe,
   Plus,
   Search,
@@ -236,21 +235,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <MailCheck className="w-4 h-4" />
           <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
             Oferty & E-mail AI
-          </span>
-        </button>
-
-        <button
-          onClick={() => handleNav('test_inbox')}
-          title="Poczta do Zadań AI (Test)"
-          className={`group relative p-2.5 rounded-full transition-all ${
-            currentView === 'test_inbox'
-              ? 'bg-[#2a1e16] text-[#c084fc] border border-[#a855f7]/50 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
-              : 'text-[#9e8f82] hover:text-[#c084fc] hover:bg-[#221a14]/60'
-          }`}
-        >
-          <Inbox className="w-4 h-4" />
-          <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-            Poczta AI (Test)
           </span>
         </button>
 
