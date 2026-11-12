@@ -34,6 +34,7 @@ export interface Task {
 export type ViewMode =
   | 'today'
   | 'all'
+  | 'personal'
   | 'pomodoro'
   | 'timeline'
   | 'finances'

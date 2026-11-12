@@ -134,6 +134,7 @@ export function App() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [defaultStatusForNewTask, setDefaultStatusForNewTask] = useState<Status>('in_progress');
+  const [defaultCategoryForNewTask, setDefaultCategoryForNewTask] = useState<string>('work');
   const [autoReportNotice, setAutoReportNotice] = useState<string | null>(null);
 
   // Authentication & Security state (Haszowane hasło PBKDF2)
@@ -742,8 +743,9 @@ export function App() {
     setIsTaskModalOpen(true);
   };
 
-  const handleOpenNew = (status: Status = 'in_progress') => {
+  const handleOpenNew = (status: Status = 'in_progress', category?: string) => {
     setDefaultStatusForNewTask(status);
+    setDefaultCategoryForNewTask(category || (currentView === 'personal' ? 'personal' : 'work'));
     setEditingTask(null);
     setIsTaskModalOpen(true);
   };
@@ -808,6 +810,16 @@ export function App() {
         const isDueToday = task.dueDate === todayStr;
         const isInProgress = task.status === 'in_progress';
         if (!isDueToday && !isInProgress) return false;
+      }
+
+      if (currentView === 'all') {
+        // Tylko zlecenia i projekty komercyjne - wykluczamy sprawy osobiste
+        if (task.category === 'personal') return false;
+      }
+
+      if (currentView === 'personal') {
+        // Tylko sprawy osobiste
+        if (task.category !== 'personal') return false;
       }
 
       if (selectedCategory && task.category !== selectedCategory) {
@@ -914,11 +926,12 @@ export function App() {
         onSelectCategory={setSelectedCategory}
         todayCount={todayTasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
         totalCount={tasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
+        personalCount={tasks.filter((t) => t.category === 'personal' && t.status !== 'done' && t.status !== 'paid').length}
         monthlyRevenue={monthlyPaid}
         onOpenPhoneModal={() => setIsPhoneModalOpen(true)}
         onExportData={handleExportData}
         onImportData={() => fileInputRef.current?.click()}
-        onOpenNewTaskModal={() => handleOpenNew('in_progress')}
+        onOpenNewTaskModal={() => handleOpenNew('in_progress', currentView === 'personal' ? 'personal' : 'work')}
         onToggleSearch={() => {
           const el = document.querySelector('input[placeholder*="Szukaj"]') as HTMLInputElement;
           el?.focus();
@@ -1077,7 +1090,7 @@ export function App() {
             />
           ) : currentView === 'pomodoro' ? (
             <PomodoroView tasks={tasks} />
-          ) : currentView === 'all' ? (
+          ) : currentView === 'all' || currentView === 'personal' ? (
             <div className="space-y-4">
               {/* Filter pills: Status, Category & Layout Switcher */}
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-[#2e231c]">
@@ -1155,35 +1168,37 @@ export function App() {
                   </div>
                 </div>
 
-                {/* Categories filter */}
-                <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
-                  <button
-                    onClick={() => setSelectedCategory(null)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
-                      selectedCategory === null
-                        ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
-                        : 'glass-pill text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4] hover:bg-[#251b14]'
-                    }`}
-                  >
-                    Wszystkie kategorie
-                  </button>
-                  {CATEGORIES.map((cat) => {
-                    const isSelected = selectedCategory === cat.id;
-                    return (
-                      <button
-                        key={cat.id}
-                        onClick={() => setSelectedCategory(isSelected ? null : cat.id)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
-                          isSelected
-                            ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
-                            : `${cat.color} hover:opacity-100`
-                        }`}
-                      >
-                        {cat.name}
-                      </button>
-                    );
-                  })}
-                </div>
+                {/* Categories filter (only for Zlecenia & Projekty) */}
+                {currentView === 'all' && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
+                    <button
+                      onClick={() => setSelectedCategory(null)}
+                      className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
+                        selectedCategory === null
+                          ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
+                          : 'glass-pill text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4] hover:bg-[#251b14]'
+                      }`}
+                    >
+                      Wszystkie kategorie
+                    </button>
+                    {CATEGORIES.filter((c) => c.id !== 'personal').map((cat) => {
+                      const isSelected = selectedCategory === cat.id;
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => setSelectedCategory(isSelected ? null : cat.id)}
+                          className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
+                            isSelected
+                              ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
+                              : `${cat.color} hover:opacity-100`
+                          }`}
+                        >
+                          {cat.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* View Rendering: Table (Default) or Cards */}
@@ -1195,20 +1210,24 @@ export function App() {
                   onToggleSubtask={handleToggleSubtask}
                   onEdit={handleOpenEdit}
                   onDelete={handleDeleteTask}
-                  onOpenNew={() => handleOpenNew('in_progress')}
+                  onOpenNew={() => handleOpenNew('in_progress', currentView === 'personal' ? 'personal' : 'work')}
                   onToggleWaitingForFeedback={handleToggleWaitingForFeedback}
                 />
               ) : filteredTasks.length === 0 ? (
                 <div className="py-16 text-center flex flex-col items-center justify-center border border-dashed border-[#2e231c] rounded-3xl p-6">
-                  <h3 className="text-base font-light text-[#f5ede4]">Brak zleceń do wyświetlenia</h3>
+                  <h3 className="text-base font-light text-[#f5ede4]">
+                    {currentView === 'personal' ? 'Brak spraw osobistych' : 'Brak zleceń do wyświetlenia'}
+                  </h3>
                   <p className="text-xs text-[#9e8f82] max-w-sm mt-1">
-                    Nie znaleziono zleceń spełniających wybrane kryteria filtrów.
+                    {currentView === 'personal'
+                      ? 'Nie masz obecnie żadnych prywatnych spraw ani wizyt w tej sekcji.'
+                      : 'Nie znaleziono zleceń spełniających wybrane kryteria filtrów.'}
                   </p>
                   <button
-                    onClick={() => handleOpenNew('in_progress')}
+                    onClick={() => handleOpenNew('in_progress', currentView === 'personal' ? 'personal' : 'work')}
                     className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md transition-all active:scale-95"
                   >
-                    + Dodaj nowe zlecenie
+                    + {currentView === 'personal' ? 'Dodaj sprawę osobistą' : 'Dodaj nowe zlecenie'}
                   </button>
                 </div>
               ) : (
@@ -1293,6 +1312,7 @@ export function App() {
           }}
           onSave={handleSaveTask}
           initialTask={editingTask}
+          defaultCategory={defaultCategoryForNewTask}
         />
       </ErrorBoundary>
 

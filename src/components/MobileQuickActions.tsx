@@ -15,6 +15,7 @@ import {
   DraftingCompass,
   Globe,
   Sparkles,
+  User,
 } from 'lucide-react';
 import { executeAiCommand, speakText } from '../lib/ai';
 import {
@@ -49,6 +50,7 @@ interface MobileQuickActionsProps {
 const VIEW_ICONS: Record<ViewMode, React.ReactNode> = {
   today: <Calendar className="w-4 h-4" />,
   all: <CheckSquare className="w-4 h-4" />,
+  personal: <User className="w-4 h-4 text-[#7ec29a]" />,
   pomodoro: <Timer className="w-4 h-4" />,
   timeline: <Clock className="w-4 h-4" />,
   finances: <DollarSign className="w-4 h-4 text-[#7ec29a]" />,

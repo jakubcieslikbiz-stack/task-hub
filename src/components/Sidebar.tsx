@@ -20,6 +20,7 @@ import {
   Tag,
   Lock,
   KeyRound,
+  User,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -29,6 +30,7 @@ interface SidebarProps {
   onSelectCategory: (catId: string | null) => void;
   todayCount: number;
   totalCount: number;
+  personalCount?: number;
   monthlyRevenue: number;
   onOpenPhoneModal: () => void;
   onExportData: () => void;
@@ -48,6 +50,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectCategory,
   todayCount,
   totalCount: _totalCount,
+  personalCount = 0,
   monthlyRevenue: _monthlyRevenue,
   onOpenPhoneModal,
   onExportData,
@@ -147,6 +150,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <CheckSquare className="w-4 h-4" />
           <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
             Zlecenia & Projekty
+          </span>
+        </button>
+
+        <button
+          onClick={() => handleNav('personal')}
+          title="Sprawy Osobiste"
+          className={`group relative p-2.5 rounded-full transition-all ${
+            currentView === 'personal'
+              ? 'bg-[#2a1e16] text-[#7ec29a] border border-[#7ec29a]/40 shadow-sm'
+              : 'text-[#9e8f82] hover:text-[#7ec29a] hover:bg-[#221a14]/60'
+          }`}
+        >
+          <User className="w-4 h-4" />
+          {personalCount > 0 && (
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#7ec29a]" />
+          )}
+          <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Sprawy Osobiste {personalCount > 0 ? `(${personalCount})` : ''}
           </span>
         </button>
 

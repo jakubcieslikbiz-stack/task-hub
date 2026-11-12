@@ -16,6 +16,7 @@ interface TaskModalProps {
   onClose: () => void;
   onSave: (task: Omit<Task, 'id' | 'createdAt'> & { id?: string }) => void;
   initialTask?: Task | null;
+  defaultCategory?: string;
 }
 
 export const TaskModal: React.FC<TaskModalProps> = ({
@@ -23,6 +24,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   onClose,
   onSave,
   initialTask,
+  defaultCategory,
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -75,7 +77,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setTitle('');
       setDescription('');
       setPrice('');
-      setCategory(CATEGORIES[0].id);
+      setCategory(defaultCategory || CATEGORIES[0].id);
       setPriority('medium');
       setStatus('in_progress');
       setIsWaitingForFeedback(false);
@@ -190,7 +192,11 @@ export const TaskModal: React.FC<TaskModalProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-[#2e231c] flex items-center justify-between">
           <h2 className="text-base font-medium text-[#f5ede4]">
-            {initialTask ? 'Edytuj zlecenie / zadanie' : 'Nowe zlecenie (JC Studio)'}
+            {initialTask
+              ? 'Edytuj zlecenie / zadanie'
+              : defaultCategory === 'personal'
+              ? 'Nowa sprawa osobista'
+              : 'Nowe zlecenie (JC Studio)'}
           </h2>
           <button
             onClick={onClose}

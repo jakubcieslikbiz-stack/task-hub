@@ -81,9 +81,10 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
 
   const isCurrentMonth = currentYear === now.getFullYear() && currentMonth === now.getMonth();
 
-  // Filter tasks belonging to selected month (from 1st to last day)
+  // Filter tasks belonging to selected month (from 1st to last day, excluding personal errands)
   const ym = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
   const monthTasks = tasks.filter((t) => {
+    if (t.category === 'personal') return false;
     const createdYm = t.createdAt ? t.createdAt.slice(0, 7) : '';
     const dueYm = t.dueDate ? t.dueDate.slice(0, 7) : '';
     const startYm = t.startDate ? t.startDate.slice(0, 7) : '';

@@ -63,6 +63,7 @@ export const getTaskMonthlyDate = (t: Task): string => {
 export const filterTasksForMonth = (tasks: Task[], year: number, month: number): Task[] => {
   const ym = `${year}-${String(month).padStart(2, '0')}`;
   return tasks.filter((t) => {
+    if (t.category === 'personal') return false;
     const cashDate = getTaskMonthlyDate(t);
     if (cashDate && cashDate.startsWith(ym)) return true;
     const createdYm = t.createdAt ? t.createdAt.slice(0, 7) : '';
