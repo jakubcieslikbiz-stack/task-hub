@@ -11,8 +11,11 @@ import {
   Maximize2,
   ArrowRight,
   Eye,
-  X
+  X,
+  FileText,
+  Loader2,
 } from 'lucide-react';
+import { convertPdfToPng } from '../lib/pdfToPng';
 
 export type TargetFormat = 'png' | 'jpeg' | 'webp' | 'bmp' | 'ico';
 
@@ -86,6 +89,8 @@ export const ImageConverterView: React.FC = () => {
   const [bgForJpg, setBgForJpg] = useState<'white' | 'black' | 'transparent'>('white');
   const [isDragging, setIsDragging] = useState(false);
   const [isConvertingAll, setIsConvertingAll] = useState(false);
+  const [isProcessingPdf, setIsProcessingPdf] = useState(false);
+  const [pdfProgressText, setPdfProgressText] = useState<string>('');
   const [previewModalUrl, setPreviewModalUrl] = useState<{ url: string; title: string } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -99,18 +104,27 @@ export const ImageConverterView: React.FC = () => {
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
   };
 
-  // Add files to queue
-  const addFiles = useCallback((files: FileList | File[]) => {
-    const newItems: Promise<ImageItem>[] = Array.from(files)
-      .filter((file) => file.type.startsWith('image/') || /\.(png|jpe?g|webp|svg|gif|bmp|avif|ico)$/i.test(file.name))
-      .map(async (file) => {
+  // Add files to queue (images and PDFs)
+  const addFiles = useCallback(async (files: FileList | File[]) => {
+    const fileList = Array.from(files);
+    const pdfFiles = fileList.filter(
+      (file) => file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
+    );
+    const imageFiles = fileList.filter(
+      (file) =>
+        file.type.startsWith('image/') ||
+        /\.(png|jpe?g|webp|svg|gif|bmp|avif|ico)$/i.test(file.name)
+    );
+
+    const loadedItems: ImageItem[] = [];
+
+    // 1. Process regular images
+    if (imageFiles.length > 0) {
+      const imagePromises = imageFiles.map(async (file) => {
         const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
         const previewUrl = URL.createObjectURL(file);
-
-        // Extract format from extension or mime
         const ext = file.name.split('.').pop()?.toLowerCase() || 'png';
 
-        // Read dimensions
         const { width, height } = await new Promise<{ width: number; height: number }>((resolve) => {
           const img = new Image();
           img.onload = () => resolve({ width: img.naturalWidth || img.width, height: img.naturalHeight || img.height });
@@ -134,9 +148,51 @@ export const ImageConverterView: React.FC = () => {
         };
       });
 
-    Promise.all(newItems).then((loadedItems) => {
+      const processedImages = await Promise.all(imagePromises);
+      loadedItems.push(...processedImages);
+    }
+
+    // 2. Process PDF files -> Render every page to crisp high-res PNG (2.0x scale ~ 300 DPI)
+    if (pdfFiles.length > 0) {
+      setIsProcessingPdf(true);
+      try {
+        for (const pdfFile of pdfFiles) {
+          setPdfProgressText(`Konwertowanie ${pdfFile.name} do PNG...`);
+          const pages = await convertPdfToPng(pdfFile, 2.0);
+          for (const page of pages) {
+            const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+            loadedItems.push({
+              id,
+              file: new File([page.blob], page.name, { type: 'image/png' }),
+              originalName: page.name,
+              originalSize: page.blob.size,
+              originalFormat: 'PDF',
+              previewUrl: page.previewUrl,
+              width: page.width,
+              height: page.height,
+              targetFormat: 'png',
+              quality: globalQuality,
+              scale: 1,
+              status: 'done', // Converted to PNG directly!
+              convertedBlob: page.blob,
+              convertedUrl: page.previewUrl,
+              convertedSize: page.blob.size,
+              convertedWidth: page.width,
+              convertedHeight: page.height,
+            });
+          }
+        }
+      } catch (err: any) {
+        console.error('Błąd konwersji PDF do PNG:', err);
+      } finally {
+        setIsProcessingPdf(false);
+        setPdfProgressText('');
+      }
+    }
+
+    if (loadedItems.length > 0) {
       setItems((prev) => [...prev, ...loadedItems]);
-    });
+    }
   }, [globalFormat, globalQuality, globalScale]);
 
   // Support Clipboard Paste (Ctrl+V)
@@ -147,8 +203,9 @@ export const ImageConverterView: React.FC = () => {
 
       const pastedFiles: File[] = [];
       for (let i = 0; i < clipboardItems.length; i++) {
-        if (clipboardItems[i].type.startsWith('image/')) {
-          const file = clipboardItems[i].getAsFile();
+        const item = clipboardItems[i];
+        if (item.type.startsWith('image/') || item.type === 'application/pdf') {
+          const file = item.getAsFile();
           if (file) pastedFiles.push(file);
         }
       }
@@ -525,6 +582,21 @@ export const ImageConverterView: React.FC = () => {
         </div>
       </div>
 
+      {/* PDF Processing Progress Alert */}
+      {isProcessingPdf && (
+        <div className="p-4 rounded-2xl bg-[#d99b5a]/15 border border-[#d99b5a]/30 flex items-center gap-3 text-sm text-[#f5ede4] animate-pulse shadow-xl">
+          <Loader2 className="w-5 h-5 text-[#d99b5a] animate-spin shrink-0" />
+          <div className="flex-1">
+            <span className="font-medium text-[#f1c38e] block">
+              Przetwarzanie stron PDF do formatu PNG...
+            </span>
+            <span className="text-xs text-[#9e8f82]">
+              {pdfProgressText || 'Renderowanie wektorowych stron do wysokiej rozdzielczości (300 DPI)'}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Drag & Drop Zone */}
       <div
         onDragOver={handleDragOver}
@@ -541,7 +613,7 @@ export const ImageConverterView: React.FC = () => {
           ref={fileInputRef}
           type="file"
           multiple
-          accept="image/*,.svg,.ico,.bmp,.webp,.avif"
+          accept="image/*,.svg,.ico,.bmp,.webp,.avif,.pdf,application/pdf"
           className="hidden"
           onChange={(e) => {
             if (e.target.files) addFiles(e.target.files);
@@ -555,13 +627,17 @@ export const ImageConverterView: React.FC = () => {
           </div>
 
           <h3 className="text-base sm:text-lg font-light text-[#f5ede4] mb-1">
-            Przeciągnij i upuść pliki graficzne tutaj
+            Przeciągnij i upuść pliki graficzne lub PDF tutaj
           </h3>
           <p className="text-xs sm:text-sm text-[#9e8f82] mb-4 font-light">
             lub kliknij, aby wybrać z dysku komputera lub telefonu
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-1.5 text-[11px] text-[#7a6b5e]">
+            <span className="px-2 py-0.5 rounded bg-[#d99b5a]/20 text-[#f1c38e] border border-[#d99b5a]/40 font-semibold flex items-center gap-1">
+              <FileText className="w-3 h-3 text-[#d99b5a]" />
+              PDF → PNG
+            </span>
             <span className="px-2 py-0.5 rounded bg-[#1e1713] border border-[#2e231c]">PNG</span>
             <span className="px-2 py-0.5 rounded bg-[#1e1713] border border-[#2e231c]">JPG</span>
             <span className="px-2 py-0.5 rounded bg-[#1e1713] border border-[#2e231c]">WEBP</span>
@@ -572,7 +648,7 @@ export const ImageConverterView: React.FC = () => {
           </div>
 
           <p className="text-[11px] text-[#d99b5a]/80 mt-3 font-light">
-            💡 Wskazówka: możesz też wcisnąć <strong className="text-[#f5ede4]">Ctrl + V</strong> w dowolnym miejscu, aby wkleić zrzut ekranu!
+            💡 Wskazówka: pliki PDF są automatycznie renderowane do ostrego PNG (każda strona jako osobna grafika)! Możesz też wcisnąć <strong className="text-[#f5ede4]">Ctrl + V</strong> w dowolnym miejscu, aby wkleić zrzut ekranu.
           </p>
         </div>
       </div>
@@ -671,7 +747,13 @@ export const ImageConverterView: React.FC = () => {
                         <h4 className="text-sm font-medium text-[#f5ede4] truncate" title={item.originalName}>
                           {item.originalName}
                         </h4>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#1e1713] border border-[#2e231c] text-[#9e8f82]">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                            item.originalFormat === 'PDF'
+                              ? 'bg-[#e07a68]/20 text-[#f19b8c] border border-[#e07a68]/40 font-semibold'
+                              : 'bg-[#1e1713] border border-[#2e231c] text-[#9e8f82]'
+                          }`}
+                        >
                           {item.originalFormat}
                         </span>
                       </div>

@@ -219,7 +219,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={() => handleNav('converter')}
-          title="Konwerter Grafiki"
+          title="Konwerter Grafiki & PDF"
           className={`group relative p-2.5 rounded-full transition-all ${
             currentView === 'converter'
               ? 'bg-[#2a1e16] text-[#f5ede4] border border-[#3d2c20]'
@@ -228,7 +228,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <ImageIcon className="w-4 h-4" />
           <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-            Konwerter Grafiki
+            Konwerter Grafiki & PDF
           </span>
         </button>
 

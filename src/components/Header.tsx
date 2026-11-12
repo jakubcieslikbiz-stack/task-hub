@@ -28,7 +28,7 @@ const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string; short: st
   pomodoro: { title: 'Pomodoro Focus Timer', subtitle: 'Sesje głębokiej pracy nad ujęciami 3D z regenerującymi przerwami dla wzroku', short: 'Pomodoro' },
   timeline: { title: 'Timeline tygodnia', subtitle: 'Wizualny harmonogram Gantta na poszczególne dni', short: 'Schedule' },
   finances: { title: 'Finanse & Koszty', subtitle: 'Rozliczenia zleceń, podatki i zysk netto na czysto', short: 'Finance' },
-  converter: { title: 'Konwerter Grafiki', subtitle: 'Błyskawiczna konwersja PNG, JPG, WEBP, SVG bez wysyłania do sieci', short: 'Narzędzia' },
+  converter: { title: 'Konwerter Grafiki & PDF', subtitle: 'Błyskawiczna konwersja PNG, JPG, WEBP, SVG oraz PDF → PNG bez wysyłania do sieci', short: 'Narzędzia' },
   dwg_converter: { title: 'Konwerter DWG & DXF → PDF', subtitle: 'Lokalna konwersja projektów CAD (DWG / DXF) do wektorowego PDF bez wysyłania plików na serwery', short: 'CAD & DWG' },
   offers: { title: 'Asystent Ofert & E-mail AI', subtitle: 'Twórz profesjonalne wyceny, oferty i odpowiedzi na zapytania klientów', short: 'Oferty AI' },
   portfolio_manager: { title: 'Zarządzaj Portfolio Klienta', subtitle: 'Dodawaj projekty i udostępniaj link do dedykowanej wizytówki JC Studio', short: 'Portfolio' },
