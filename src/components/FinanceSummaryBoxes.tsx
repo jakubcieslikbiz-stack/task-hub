@@ -14,8 +14,8 @@ import {
 interface FinanceSummaryBoxesProps {
   tasks: Task[];
   costs: MonthlyCosts;
-  statusFilter: 'all' | 'in_progress' | 'waiting' | 'done' | 'paid';
-  onFilterChange: (filter: 'all' | 'in_progress' | 'waiting' | 'done' | 'paid') => void;
+  statusFilter: 'all' | 'in_progress' | 'done' | 'paid';
+  onFilterChange: (filter: 'all' | 'in_progress' | 'done' | 'paid') => void;
   onSaveCosts: (costs: MonthlyCosts) => void;
   onOpenFinancesView: () => void;
 }

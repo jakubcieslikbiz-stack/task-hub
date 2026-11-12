@@ -125,7 +125,7 @@ export function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'waiting' | 'done' | 'paid'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'done' | 'paid'>('all');
   const [tasksLayoutMode, setTasksLayoutMode] = useState<'table' | 'cards'>('table');
 
   // Modals state
@@ -815,7 +815,6 @@ export function App() {
       }
 
       if (statusFilter === 'in_progress' && task.status !== 'in_progress') return false;
-      if (statusFilter === 'waiting' && (!task.isWaitingForFeedback || task.status === 'done' || task.status === 'paid')) return false;
       if (statusFilter === 'done' && task.status !== 'done') return false;
       if (statusFilter === 'paid' && task.status !== 'paid') return false;
 
@@ -1104,22 +1103,6 @@ export function App() {
                       }`}
                     >
                       W toku
-                    </button>
-                    <button
-                      onClick={() => setStatusFilter('waiting')}
-                      className={`px-3 py-1 rounded-full transition-all flex items-center gap-1.5 ${
-                        statusFilter === 'waiting'
-                          ? 'bg-[#9333ea] text-white font-medium shadow-sm'
-                          : 'text-[#9e8f82] hover:text-[#d8b4fe]'
-                      }`}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#c084fc]" />
-                      <span>Czekam na uwagi</span>
-                      {tasks.filter((t) => t.isWaitingForFeedback && t.status !== 'done' && t.status !== 'paid').length > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#7c3aed]/50 text-white font-mono">
-                          {tasks.filter((t) => t.isWaitingForFeedback && t.status !== 'done' && t.status !== 'paid').length}
-                        </span>
-                      )}
                     </button>
                     <button
                       onClick={() => setStatusFilter('done')}
