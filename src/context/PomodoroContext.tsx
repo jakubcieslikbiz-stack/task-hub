@@ -12,6 +12,13 @@ export interface Preset {
   longBreak: number;
 }
 
+export interface CompletedSessionItem {
+  id: string;
+  duration: number; // in minutes
+  isLong: boolean;
+  completedAt: string;
+}
+
 export const POMODORO_PRESETS: Preset[] = [
   {
     id: 'classic',
@@ -41,6 +48,7 @@ interface PomodoroContextType {
   soundEnabled: boolean;
   ambientSound: boolean;
   completedSessionsToday: number;
+  completedSessionItems: CompletedSessionItem[];
   totalFocusMinutesToday: number;
   progressPercent: number;
   formattedTime: string;
@@ -62,6 +70,7 @@ const PomodoroContext = createContext<PomodoroContextType | null>(null);
 
 const STORAGE_KEY_STATE = 'jc_pomodoro_active_state';
 const STORAGE_KEY_SESSIONS = 'jc_pomodoro_sessions';
+const STORAGE_KEY_SESSION_ITEMS = 'jc_pomodoro_session_items';
 const STORAGE_KEY_MINUTES = 'jc_pomodoro_minutes';
 const STORAGE_KEY_DATE = 'jc_pomodoro_date';
 
@@ -166,13 +175,47 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const ambientAudioCtxRef = useRef<AudioContext | null>(null);
   const ambientGainNodeRef = useRef<GainNode | null>(null);
 
-  // Daily stats
-  const [completedSessionsToday, setCompletedSessionsToday] = useState<number>(() => {
+  // Daily stats with individual session item tracking (short vs long)
+  const [completedSessionItems, setCompletedSessionItems] = useState<CompletedSessionItem[]>(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY_SESSIONS);
       const savedDate = localStorage.getItem(STORAGE_KEY_DATE);
       const today = new Date().toISOString().slice(0, 10);
-      if (savedDate === today && saved) return Number(saved);
+      if (savedDate === today) {
+        const savedItems = localStorage.getItem(STORAGE_KEY_SESSION_ITEMS);
+        if (savedItems) {
+          const parsed = JSON.parse(savedItems);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+        const savedSessions = localStorage.getItem(STORAGE_KEY_SESSIONS);
+        const legacyCount = savedSessions ? Number(savedSessions) : 0;
+        if (legacyCount > 0) {
+          return Array.from({ length: legacyCount }).map((_, i) => ({
+            id: `legacy-${i}`,
+            duration: 25,
+            isLong: false,
+            completedAt: new Date().toISOString(),
+          }));
+        }
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [completedSessionsToday, setCompletedSessionsToday] = useState<number>(() => {
+    try {
+      const savedDate = localStorage.getItem(STORAGE_KEY_DATE);
+      const today = new Date().toISOString().slice(0, 10);
+      if (savedDate === today) {
+        const savedItems = localStorage.getItem(STORAGE_KEY_SESSION_ITEMS);
+        if (savedItems) {
+          const parsed = JSON.parse(savedItems);
+          if (Array.isArray(parsed)) return parsed.length;
+        }
+        const saved = localStorage.getItem(STORAGE_KEY_SESSIONS);
+        if (saved) return Number(saved);
+      }
       return 0;
     } catch {
       return 0;
@@ -391,7 +434,17 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           sendCompletionNotification(mode);
 
           if (mode === 'focus') {
-            const newSessions = completedSessionsToday + 1;
+            const isLong = activePreset.focus >= 45 || activePreset.id === 'deep_flow';
+            const newItem: CompletedSessionItem = {
+              id: `${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+              duration: activePreset.focus,
+              isLong,
+              completedAt: new Date().toISOString(),
+            };
+            const updatedItems = [...completedSessionItems, newItem];
+            setCompletedSessionItems(updatedItems);
+
+            const newSessions = updatedItems.length;
             const newMinutes = totalFocusMinutesToday + activePreset.focus;
             setCompletedSessionsToday(newSessions);
             setTotalFocusMinutesToday(newMinutes);
@@ -399,6 +452,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             try {
               const today = new Date().toISOString().slice(0, 10);
               localStorage.setItem(STORAGE_KEY_DATE, today);
+              localStorage.setItem(STORAGE_KEY_SESSION_ITEMS, JSON.stringify(updatedItems));
               localStorage.setItem(STORAGE_KEY_SESSIONS, newSessions.toString());
               localStorage.setItem(STORAGE_KEY_MINUTES, newMinutes.toString());
             } catch {}
@@ -438,6 +492,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     mode,
     activePreset,
     completedSessionsToday,
+    completedSessionItems,
     totalFocusMinutesToday,
     playChime,
     sendCompletionNotification,
@@ -499,6 +554,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     soundEnabled,
     ambientSound,
     completedSessionsToday,
+    completedSessionItems,
     totalFocusMinutesToday,
     progressPercent,
     formattedTime,
