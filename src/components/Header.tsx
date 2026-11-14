@@ -47,19 +47,6 @@ export const Header: React.FC<HeaderProps> = ({
   const percent = totalTodayCount > 0 ? Math.round((completedTodayCount / totalTodayCount) * 100) : 0;
   const animPercent = useAnimatedCounter(percent, 1000);
 
-  const now = new Date();
-  const dateFormatted = now.toLocaleDateString('pl-PL', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-  const rawMonthYear = now.toLocaleDateString('pl-PL', {
-    month: 'long',
-    year: 'numeric',
-  });
-  const monthYearFormatted = rawMonthYear.charAt(0).toUpperCase() + rawMonthYear.slice(1);
-
   return (
     <header className="space-y-4 mb-6">
       {/* Main Title & Editorial Header Area */}
@@ -82,16 +69,6 @@ export const Header: React.FC<HeaderProps> = ({
           <p className="text-xs sm:text-sm text-[#9e8f82] mt-1 font-light max-w-xl">
             {subtitle}
           </p>
-        </div>
-
-        {/* Date / Month display (Right aligned) */}
-        <div className="text-left sm:text-right flex flex-col justify-end">
-          <span className="text-xs sm:text-sm font-mono text-[#f5ede4] tracking-wide block">
-            {monthYearFormatted}
-          </span>
-          <span className="text-[11px] text-[#7a6b5e] font-light capitalize block">
-            {dateFormatted}
-          </span>
         </div>
       </div>
 

@@ -42,7 +42,7 @@ import {
   clearSessionAuthentication,
   type AuthCredentials,
 } from './lib/auth';
-import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid, Lock, KeyRound, Loader2, Settings, Bell } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid, Lock, Loader2, Settings, Bell } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { checkAndAutoGenerateReports } from './lib/monthlyReport';
 import { sortTasksByClosestDeadline } from './utils/taskSort';
@@ -1126,13 +1126,6 @@ export function App() {
                 }`}
               >
                 <Settings className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => setIsChangePasswordOpen(true)}
-                title="Zmień hasło dostępu"
-                className="p-1 rounded-full text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#251b14] transition-colors"
-              >
-                <KeyRound className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={handleLockApp}

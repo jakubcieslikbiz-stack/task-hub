@@ -280,7 +280,13 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         {/* Card Header & Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2e231c]">
           <div>
-            <h3 className="text-base font-light text-[#f5ede4] tracking-tight">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-mono tracking-wider text-[#d99b5a] flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#d99b5a] animate-pulse" />
+                {now.toLocaleDateString('pl-PL', { month: 'long' }).toLowerCase()} - {String(curDate).padStart(2, '0')}.{String(curMonth + 1).padStart(2, '0')}
+              </span>
+            </div>
+            <h3 className="text-base font-light text-[#f5ede4] tracking-tight mt-0.5">
               Skumulowany przychód miesiąca JC Studio
             </h3>
           </div>

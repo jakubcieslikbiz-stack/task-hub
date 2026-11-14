@@ -25,6 +25,9 @@ import {
   CheckSquare,
   User,
   StickyNote,
+  Volume2,
+  VolumeX,
+  Mail,
 } from 'lucide-react';
 import {
   hashPassword,
@@ -33,6 +36,13 @@ import {
   backendChangePassword,
   type AuthCredentials,
 } from '../lib/auth';
+import {
+  getStoredResendKey,
+  setStoredResendKey,
+  getStoredRecipientEmail,
+  setStoredRecipientEmail,
+  sendTestEmail,
+} from '../lib/email';
 import type { MonthlyCosts } from '../types';
 
 interface SettingsViewProps {
@@ -94,6 +104,52 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     type: 'success' | 'error' | null;
     message: string;
   }>({ type: null, message: '' });
+
+  // Voice & Email states (moved from floating main bar to Settings)
+  const [voiceResponseEnabled, setVoiceResponseEnabled] = useState<boolean>(() => {
+    return localStorage.getItem('taskhub_voice_enabled') !== 'false';
+  });
+
+  const handleToggleVoiceResponse = (enabled: boolean) => {
+    setVoiceResponseEnabled(enabled);
+    localStorage.setItem('taskhub_voice_enabled', String(enabled));
+    window.dispatchEvent(new Event('taskhub_voice_changed'));
+  };
+
+  const [resendKeyInput, setResendKeyInput] = useState(() => getStoredResendKey());
+  const [showResendKey, setShowResendKey] = useState(false);
+  const [recipientEmailInput, setRecipientEmailInput] = useState(() => getStoredRecipientEmail());
+  const [isTestingEmail, setIsTestingEmail] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<{ type: 'success' | 'error' | null; message: string }>({
+    type: null,
+    message: '',
+  });
+
+  const handleSaveEmailSettings = () => {
+    setStoredResendKey(resendKeyInput);
+    setStoredRecipientEmail(recipientEmailInput);
+    setEmailStatus({ type: 'success', message: 'Zapisano ustawienia powiadomień e-mail!' });
+    setTimeout(() => setEmailStatus({ type: null, message: '' }), 3000);
+  };
+
+  const handleTestEmailSend = async () => {
+    setIsTestingEmail(true);
+    setEmailStatus({ type: null, message: '' });
+    try {
+      setStoredResendKey(resendKeyInput);
+      setStoredRecipientEmail(recipientEmailInput);
+      const res = await sendTestEmail();
+      if (res.success) {
+        setEmailStatus({ type: 'success', message: `Wysłano e-mail testowy na adres: ${recipientEmailInput}!` });
+      } else {
+        setEmailStatus({ type: 'error', message: res.error || 'Błąd wysyłki e-maila' });
+      }
+    } catch (err: any) {
+      setEmailStatus({ type: 'error', message: err.message || 'Wystąpił błąd podczas wysyłania' });
+    } finally {
+      setIsTestingEmail(false);
+    }
+  };
 
   // Costs state
   const [zusCost, setZusCost] = useState(costs.zus.toString());
@@ -494,6 +550,133 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <Check className="w-3.5 h-3.5" />
                 <span>Zapisz klucz</span>
               </button>
+            </div>
+
+            {/* Voice Response Setting (Moved from main screen) */}
+            <div className="pt-4 mt-2 border-t border-[#2e231c] flex items-center justify-between">
+              <div>
+                <span className="block text-[11px] font-mono text-[#8c7b6d] uppercase">
+                  Odpowiedzi głosowe asystenta (Lektorka)
+                </span>
+                <p className="text-[11px] text-[#7a6b5e] mt-0.5">
+                  Czytanie na głos odpowiedzi przez syntezator mowy
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleToggleVoiceResponse(!voiceResponseEnabled)}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                  voiceResponseEnabled
+                    ? 'bg-[#251b14] text-[#d99b5a] border border-[#d99b5a]/40 shadow-sm'
+                    : 'bg-[#140f0c] text-[#7a6b5e] border border-[#2e231c]'
+                }`}
+              >
+                {voiceResponseEnabled ? (
+                  <>
+                    <Volume2 className="w-3.5 h-3.5 text-[#d99b5a]" />
+                    <span>Głos aktywny</span>
+                  </>
+                ) : (
+                  <>
+                    <VolumeX className="w-3.5 h-3.5 text-[#7a6b5e]" />
+                    <span>Wyciszony</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Email Notifications (Resend API) */}
+            <div className="pt-4 mt-2 border-t border-[#2e231c] space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="block text-[11px] font-mono text-[#8c7b6d] uppercase">
+                    Powiadomienia E-mail (Resend)
+                  </span>
+                  <p className="text-[11px] text-[#7a6b5e] mt-0.5">
+                    Wysyłka przypomnień o terminach zleceń i opłat
+                  </p>
+                </div>
+                <div className="p-1.5 rounded-lg bg-[#251b14] text-[#d99b5a]">
+                  <Mail className="w-3.5 h-3.5" />
+                </div>
+              </div>
+
+              {emailStatus.message && (
+                <div
+                  className={`p-2.5 rounded-xl text-xs flex items-center gap-2 ${
+                    emailStatus.type === 'success'
+                      ? 'bg-[#142318] border border-[#7ec29a]/40 text-[#7ec29a]'
+                      : 'bg-[#2b1212] border border-red-500/40 text-red-300'
+                  }`}
+                >
+                  {emailStatus.type === 'success' ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                  )}
+                  <span>{emailStatus.message}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[10px] font-mono text-[#7a6b5e] uppercase mb-1">
+                  Adres e-mail odbiorcy powiadomień:
+                </label>
+                <input
+                  type="email"
+                  value={recipientEmailInput}
+                  onChange={(e) => setRecipientEmailInput(e.target.value)}
+                  placeholder="twoj.mail@example.com"
+                  className="w-full px-3 py-2 rounded-xl bg-[#140f0c] border border-[#2e231c] text-xs font-mono text-[#f5ede4] focus:outline-none focus:border-[#d99b5a]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono text-[#7a6b5e] uppercase mb-1">
+                  Klucz Resend API (opcjonalny, domyślnie wbudowany):
+                </label>
+                <div className="relative">
+                  <input
+                    type={showResendKey ? 'text' : 'password'}
+                    value={resendKeyInput}
+                    onChange={(e) => setResendKeyInput(e.target.value)}
+                    placeholder="re_..."
+                    className="w-full pl-3 pr-9 py-2 rounded-xl bg-[#140f0c] border border-[#2e231c] text-xs font-mono text-[#f5ede4] focus:outline-none focus:border-[#d99b5a]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowResendKey(!showResendKey)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#8c7b6d] hover:text-[#f5ede4]"
+                  >
+                    {showResendKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleTestEmailSend}
+                  disabled={isTestingEmail}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-[#251b14] hover:bg-[#33241b] text-[#d99b5a] border border-[#3d2c20] transition-colors active:scale-95 disabled:opacity-50"
+                >
+                  {isTestingEmail ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Mail className="w-3.5 h-3.5" />
+                  )}
+                  <span>Wyślij testowy e-mail</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSaveEmailSettings}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#251b14] hover:bg-[#33241b] text-[#7ec29a] border border-[#7ec29a]/30 transition-colors active:scale-95"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Zapisz e-mail</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
