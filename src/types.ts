@@ -2,6 +2,31 @@ export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
 export type Status = 'todo' | 'in_progress' | 'done' | 'paid';
 
+export type StickyNoteColor = 'honey' | 'mint' | 'lavender' | 'coral' | 'azure' | 'coffee';
+
+export interface FixedBillItem {
+  id: string;
+  title: string;
+  dueDayDescription: string;
+  reminderDayDescription: string;
+  dueDay: number; // 1-31, lub -1 dla ostatniego dnia miesiąca
+  reminderDay: number; // 1-31, lub -1 dla ostatniego dnia miesiąca
+  category: 'home' | 'utilities' | 'business' | 'finance' | 'other';
+  iconName: 'Home' | 'Zap' | 'Receipt' | 'TrendingDown' | 'Landmark' | 'FileText' | 'PiggyBank';
+  accountNumber?: string;
+  defaultAmount?: number;
+  notes?: string;
+}
+
+export interface MonthlyBillEntry {
+  amount: number;
+  paid: boolean;
+  paidAt?: string;
+  notes?: string;
+}
+
+export type MonthlyBillsData = Record<string, Record<string, MonthlyBillEntry>>;
+
 export interface Subtask {
   id: string;
   title: string;
@@ -29,6 +54,7 @@ export interface Task {
   subtasks: Subtask[];
   createdAt: string;
   completedAt?: string;
+  stickyColor?: StickyNoteColor; // Kolor karteczki samoprzylepnej dla spraw osobistych
 }
 
 export type ViewMode =

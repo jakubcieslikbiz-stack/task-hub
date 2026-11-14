@@ -25,7 +25,7 @@ interface HeaderProps {
 const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string; short: string }> = {
   today: { title: 'Mój Dzień', subtitle: 'Skup się na tym, co najważniejsze na dzisiaj', short: 'Overview' },
   all: { title: 'Zlecenia & Projekty', subtitle: 'Pełny przegląd zleceń, statusów i wycen JC Studio', short: 'Zlecenia' },
-  personal: { title: 'Sprawy Osobiste', subtitle: 'Prywatne sprawy, wizyty, fryzjer i codzienne plany oddzielone od zleceń 3D', short: 'Osobiste' },
+  personal: { title: 'Moje Sprawy & Opłaty', subtitle: 'Stałe rachunki comiesięczne (czynsz, prąd, ZUS) oraz prywatne plany, wizyty i karteczki', short: 'Moje Sprawy' },
   pomodoro: { title: 'Pomodoro Focus Timer', subtitle: 'Sesje głębokiej pracy nad ujęciami 3D z regenerującymi przerwami dla wzroku', short: 'Pomodoro' },
   timeline: { title: 'Timeline tygodnia', subtitle: 'Wizualny harmonogram Gantta na poszczególne dni', short: 'Schedule' },
   finances: { title: 'Finanse & Koszty', subtitle: 'Rozliczenia zleceń, podatki i zysk netto na czysto', short: 'Finance' },

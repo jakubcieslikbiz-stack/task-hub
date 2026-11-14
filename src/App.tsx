@@ -26,6 +26,15 @@ import { FinanceSummaryBoxes } from './components/FinanceSummaryBoxes';
 import { LockScreen } from './components/LockScreen';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { SettingsView } from './components/SettingsView';
+import { PersonalErrandsView } from './components/PersonalErrandsView';
+import {
+  getStoredFixedBills,
+  saveStoredFixedBills,
+  getStoredMonthlyBills,
+  saveStoredMonthlyBills,
+  getBillStatus,
+} from './data/fixedBills';
+import type { FixedBillItem, MonthlyBillsData, StickyNoteColor } from './types';
 import {
   getStoredCredentials,
   saveStoredCredentials,
@@ -33,7 +42,7 @@ import {
   clearSessionAuthentication,
   type AuthCredentials,
 } from './lib/auth';
-import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid, Lock, KeyRound, Loader2, Settings } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid, Lock, KeyRound, Loader2, Settings, Bell } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { checkAndAutoGenerateReports } from './lib/monthlyReport';
 import { sortTasksByClosestDeadline } from './utils/taskSort';
@@ -97,6 +106,10 @@ export function App() {
       return INITIAL_PORTFOLIO_PROJECTS;
     }
   });
+
+  // Personal recurring fixed bills & monthly records
+  const [fixedBills, setFixedBills] = useState<FixedBillItem[]>(() => getStoredFixedBills());
+  const [monthlyBills, setMonthlyBills] = useState<MonthlyBillsData>(() => getStoredMonthlyBills());
 
   // OpenAI API Key
   const [apiKey, setApiKey] = useState<string>(() => {
@@ -382,6 +395,8 @@ export function App() {
           const costsRow = data.find((r) => r.key === 'costs');
           const portfolioRow = data.find((r) => r.key === 'portfolio');
           const authRow = data.find((r) => r.key === 'auth');
+          const fixedBillsRow = data.find((r) => r.key === 'fixed_bills');
+          const monthlyBillsRow = data.find((r) => r.key === 'monthly_bills');
 
           if (tasksRow && Array.isArray(tasksRow.data)) {
             const sanitized = sanitizeTasks(tasksRow.data);
@@ -400,6 +415,14 @@ export function App() {
           if (portfolioRow && Array.isArray(portfolioRow.data)) {
             setPortfolioProjects(portfolioRow.data);
           }
+          if (fixedBillsRow && Array.isArray(fixedBillsRow.data)) {
+            setFixedBills(fixedBillsRow.data);
+            saveStoredFixedBills(fixedBillsRow.data);
+          }
+          if (monthlyBillsRow && monthlyBillsRow.data && typeof monthlyBillsRow.data === 'object') {
+            setMonthlyBills(monthlyBillsRow.data);
+            saveStoredMonthlyBills(monthlyBillsRow.data);
+          }
           if (authRow && authRow.data && authRow.data.hash && authRow.data.salt) {
             setAuthCredentials(authRow.data);
             saveStoredCredentials(authRow.data);
@@ -411,6 +434,8 @@ export function App() {
             { key: 'notes', data: notes },
             { key: 'costs', data: costs },
             { key: 'portfolio', data: portfolioProjects },
+            { key: 'fixed_bills', data: fixedBills },
+            { key: 'monthly_bills', data: monthlyBills },
           ]);
           setCloudSynced(true);
         }
@@ -444,6 +469,14 @@ export function App() {
           if (payload.new && payload.new.key === 'portfolio' && Array.isArray(payload.new.data)) {
             setPortfolioProjects(payload.new.data);
           }
+          if (payload.new && payload.new.key === 'fixed_bills' && Array.isArray(payload.new.data)) {
+            setFixedBills(payload.new.data);
+            saveStoredFixedBills(payload.new.data);
+          }
+          if (payload.new && payload.new.key === 'monthly_bills' && payload.new.data) {
+            setMonthlyBills(payload.new.data);
+            saveStoredMonthlyBills(payload.new.data);
+          }
           if (payload.new && payload.new.key === 'auth' && payload.new.data?.hash) {
             setAuthCredentials(payload.new.data);
             saveStoredCredentials(payload.new.data);
@@ -460,6 +493,29 @@ export function App() {
   }, []);
 
   // Sync helpers
+  const syncFixedBillsToCloud = useCallback(async (updatedBills: FixedBillItem[]) => {
+    if (!supabase || isInitialRemoteLoad.current) return;
+    try {
+      await supabase.from('taskhub_state').upsert({
+        key: 'fixed_bills',
+        data: updatedBills,
+        updated_at: new Date().toISOString(),
+      });
+      setCloudSynced(true);
+    } catch {}
+  }, []);
+
+  const syncMonthlyBillsToCloud = useCallback(async (updatedData: MonthlyBillsData) => {
+    if (!supabase || isInitialRemoteLoad.current) return;
+    try {
+      await supabase.from('taskhub_state').upsert({
+        key: 'monthly_bills',
+        data: updatedData,
+        updated_at: new Date().toISOString(),
+      });
+      setCloudSynced(true);
+    } catch {}
+  }, []);
   const syncTasksToCloud = useCallback(async (updatedTasks: Task[]) => {
     if (!supabase || isInitialRemoteLoad.current) return;
     try {
@@ -552,6 +608,7 @@ export function App() {
     description?: string;
     notes?: string;
     subtasks?: string[];
+    stickyColor?: StickyNoteColor;
   }) => {
     const todayStr = new Date().toISOString().split('T')[0];
     const category = taskData.category || (taskData.price ? 'work' : 'personal');
@@ -584,6 +641,7 @@ export function App() {
       emailReminderSentAt: taskData.emailReminderSentAt,
       emailReminderId: taskData.emailReminderId,
       createdAt: new Date().toISOString(),
+      stickyColor: taskData.stickyColor,
     };
     const updated = [newTask, ...tasks];
     setTasks(updated);
@@ -734,6 +792,7 @@ export function App() {
         subtasks: taskData.subtasks || [],
         createdAt: new Date().toISOString(),
         completedAt: isPaidOrDone ? new Date().toISOString() : undefined,
+        stickyColor: taskData.stickyColor,
       };
       updated = [newTask, ...tasks];
     }
@@ -766,9 +825,69 @@ export function App() {
     syncCostsToCloud(newCosts);
   };
 
+  // Fixed Monthly Bills Actions
+  const handleUpdateMonthlyBill = useCallback(
+    (
+      monthKey: string,
+      billId: string,
+      entry: { amount?: number; paid?: boolean; paidAt?: string; notes?: string }
+    ) => {
+      setMonthlyBills((prev) => {
+        const monthData = prev[monthKey] || {};
+        const existingEntry = monthData[billId] || { amount: 0, paid: false };
+        const updatedMonth = {
+          ...monthData,
+          [billId]: {
+            ...existingEntry,
+            ...entry,
+          },
+        };
+        const updated = {
+          ...prev,
+          [monthKey]: updatedMonth,
+        };
+        saveStoredMonthlyBills(updated);
+        syncMonthlyBillsToCloud(updated);
+        return updated;
+      });
+    },
+    [syncMonthlyBillsToCloud]
+  );
+
+  const handleAddFixedBill = useCallback(
+    (newBill: FixedBillItem) => {
+      setFixedBills((prev) => {
+        const updated = [...prev, newBill];
+        saveStoredFixedBills(updated);
+        syncFixedBillsToCloud(updated);
+        return updated;
+      });
+    },
+    [syncFixedBillsToCloud]
+  );
+
+  const handleDeleteFixedBill = useCallback(
+    (billId: string) => {
+      setFixedBills((prev) => {
+        const updated = prev.filter((b) => b.id !== billId);
+        saveStoredFixedBills(updated);
+        syncFixedBillsToCloud(updated);
+        return updated;
+      });
+    },
+    [syncFixedBillsToCloud]
+  );
+
   // Export / Import
   const handleExportData = () => {
-    const backup = { tasks, notes, costs, exportedAt: new Date().toISOString() };
+    const backup = {
+      tasks,
+      notes,
+      costs,
+      fixedBills,
+      monthlyBills,
+      exportedAt: new Date().toISOString(),
+    };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -797,6 +916,16 @@ export function App() {
         if (data.costs) {
           setCosts(data.costs);
           syncCostsToCloud(data.costs);
+        }
+        if (Array.isArray(data.fixedBills)) {
+          setFixedBills(data.fixedBills);
+          saveStoredFixedBills(data.fixedBills);
+          syncFixedBillsToCloud(data.fixedBills);
+        }
+        if (data.monthlyBills) {
+          setMonthlyBills(data.monthlyBills);
+          saveStoredMonthlyBills(data.monthlyBills);
+          syncMonthlyBillsToCloud(data.monthlyBills);
         }
         alert('Kopia zapasowa została pomyślnie zaimportowana!');
       } catch {
@@ -1072,14 +1201,59 @@ export function App() {
 
           {/* Interactive Financial & Order Status KPI Boxes (Kindra Overview Dashboard) */}
           {currentView === 'today' && (
-            <FinanceSummaryBoxes
-              tasks={tasks}
-              costs={costs}
-              statusFilter={statusFilter}
-              onFilterChange={setStatusFilter}
-              onSaveCosts={handleSaveCosts}
-              onOpenFinancesView={() => setCurrentView('finances')}
-            />
+            <>
+              <FinanceSummaryBoxes
+                tasks={tasks}
+                costs={costs}
+                statusFilter={statusFilter}
+                onFilterChange={setStatusFilter}
+                onSaveCosts={handleSaveCosts}
+                onOpenFinancesView={() => setCurrentView('finances')}
+              />
+
+              {/* Active Recurring Bills Reminder Banner on Mój Dzień */}
+              {(() => {
+                const todayDate = new Date();
+                const ym = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}`;
+                const curEntries = monthlyBills[ym] || {};
+                const activeAlerts = fixedBills.filter((bill) => {
+                  const entry = curEntries[bill.id];
+                  if (entry?.paid) return false;
+                  const statusInfo = getBillStatus(bill, entry, todayDate.getFullYear(), todayDate.getMonth());
+                  return statusInfo.status === 'reminder_active' || statusInfo.status === 'overdue';
+                });
+
+                if (activeAlerts.length === 0) return null;
+
+                return (
+                  <div
+                    onClick={() => setCurrentView('personal')}
+                    className="mt-4 p-4 rounded-3xl glass-panel border border-[#d99b5a]/40 bg-[#1e1510]/95 hover:bg-[#251912] transition-all cursor-pointer shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 group animate-in fade-in select-none"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-[#d99b5a]/20 text-[#d99b5a] border border-[#d99b5a]/40 flex items-center justify-center flex-shrink-0">
+                        <Bell className="w-5 h-5 animate-bounce" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-[#f5ede4] flex items-center gap-2">
+                          <span>Przypomnienie o opłatach: {activeAlerts.map((b) => b.title).join(', ')}</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#d99b5a]/20 text-[#d99b5a] font-bold">
+                            {activeAlerts.length} do zapłaty
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#9e8f82] mt-0.5">
+                          Termin płatności zbliża się lub upływa. Kliknij, aby uzupełnić kwoty i oznaczyć w Moich Sprawach.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-xs text-[#d99b5a] font-semibold group-hover:translate-x-1 transition-transform whitespace-nowrap self-end sm:self-auto flex items-center gap-1">
+                      <span>Przejdź do Moich Spraw</span>
+                      <span>→</span>
+                    </div>
+                  </div>
+                );
+              })()}
+            </>
           )}
 
           {/* Active Views */}
@@ -1153,7 +1327,20 @@ export function App() {
             />
           ) : currentView === 'pomodoro' ? (
             <PomodoroView tasks={tasks} />
-          ) : currentView === 'all' || currentView === 'personal' ? (
+          ) : currentView === 'personal' ? (
+            <PersonalErrandsView
+              tasks={tasks}
+              onAddTask={handleAiAddTask}
+              onUpdateTask={handleSaveTask}
+              onDeleteTask={handleDeleteTask}
+              onToggleStatus={handleToggleStatus}
+              fixedBills={fixedBills}
+              monthlyBills={monthlyBills}
+              onUpdateMonthlyBill={handleUpdateMonthlyBill}
+              onAddFixedBill={handleAddFixedBill}
+              onDeleteFixedBill={handleDeleteFixedBill}
+            />
+          ) : currentView === 'all' ? (
             <div className="space-y-4">
               {/* Filter pills: Status, Category & Layout Switcher */}
               <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-[#2e231c]">
@@ -1232,36 +1419,34 @@ export function App() {
                 </div>
 
                 {/* Categories filter (only for Zlecenia & Projekty) */}
-                {currentView === 'all' && (
-                  <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
-                    <button
-                      onClick={() => setSelectedCategory(null)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
-                        selectedCategory === null
-                          ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
-                          : 'glass-pill text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4] hover:bg-[#251b14]'
-                      }`}
-                    >
-                      Wszystkie kategorie
-                    </button>
-                    {CATEGORIES.filter((c) => c.id !== 'personal').map((cat) => {
-                      const isSelected = selectedCategory === cat.id;
-                      return (
-                        <button
-                          key={cat.id}
-                          onClick={() => setSelectedCategory(isSelected ? null : cat.id)}
-                          className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
-                            isSelected
-                              ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
-                              : `${cat.color} hover:opacity-100`
-                          }`}
-                        >
-                          {cat.name}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
+                  <button
+                    onClick={() => setSelectedCategory(null)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
+                      selectedCategory === null
+                        ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
+                        : 'glass-pill text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4] hover:bg-[#251b14]'
+                    }`}
+                  >
+                    Wszystkie kategorie
+                  </button>
+                  {CATEGORIES.filter((c) => c.id !== 'personal').map((cat) => {
+                    const isSelected = selectedCategory === cat.id;
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(isSelected ? null : cat.id)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium border whitespace-nowrap transition-all ${
+                          isSelected
+                            ? 'bg-[#f5ede4] text-[#120e0a] border-[#f5ede4] font-semibold shadow-sm'
+                            : `${cat.color} hover:opacity-100`
+                        }`}
+                      >
+                        {cat.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* View Rendering: Table (Default) or Cards */}
@@ -1273,24 +1458,22 @@ export function App() {
                   onToggleSubtask={handleToggleSubtask}
                   onEdit={handleOpenEdit}
                   onDelete={handleDeleteTask}
-                  onOpenNew={() => handleOpenNew('in_progress', currentView === 'personal' ? 'personal' : 'work')}
+                  onOpenNew={() => handleOpenNew('in_progress', 'work')}
                   onToggleWaitingForFeedback={handleToggleWaitingForFeedback}
                 />
               ) : filteredTasks.length === 0 ? (
                 <div className="py-16 text-center flex flex-col items-center justify-center border border-dashed border-[#2e231c] rounded-3xl p-6">
                   <h3 className="text-base font-light text-[#f5ede4]">
-                    {currentView === 'personal' ? 'Brak spraw osobistych' : 'Brak zleceń do wyświetlenia'}
+                    Brak zleceń do wyświetlenia
                   </h3>
                   <p className="text-xs text-[#9e8f82] max-w-sm mt-1">
-                    {currentView === 'personal'
-                      ? 'Nie masz obecnie żadnych prywatnych spraw ani wizyt w tej sekcji.'
-                      : 'Nie znaleziono zleceń spełniających wybrane kryteria filtrów.'}
+                    Nie znaleziono zleceń spełniających wybrane kryteria filtrów.
                   </p>
                   <button
-                    onClick={() => handleOpenNew('in_progress', currentView === 'personal' ? 'personal' : 'work')}
+                    onClick={() => handleOpenNew('in_progress', 'work')}
                     className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md transition-all active:scale-95"
                   >
-                    + {currentView === 'personal' ? 'Dodaj sprawę osobistą' : 'Dodaj nowe zlecenie'}
+                    + Dodaj nowe zlecenie
                   </button>
                 </div>
               ) : (
