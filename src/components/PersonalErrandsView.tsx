@@ -241,8 +241,6 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
   });
 
   const unpaidAmount = Math.max(0, totalDeclaredAmount - totalPaidAmount);
-  const progressPercent =
-    fixedBills.length > 0 ? Math.round((paidCount / fixedBills.length) * 100) : 0;
 
   // Amount update handler
   const handleAmountChange = (billId: string, valStr: string) => {
@@ -455,7 +453,7 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
         )}
 
         {/* Financial Summary Cards for the Month */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-2">
           {/* Box 1: Łącznie kwota */}
           <div className="p-3.5 rounded-2xl bg-[#1a1410]/80 border border-[#2e231c]">
             <span className="text-[10px] uppercase tracking-wider font-semibold text-[#9e8f82] block">
@@ -492,29 +490,6 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
             </div>
             <span className="text-[10px] text-[#9e8f82]">
               {fixedBills.length - paidCount} pozostało
-            </span>
-          </div>
-
-          {/* Box 4: Postęp płatności */}
-          <div className="p-3.5 rounded-2xl bg-[#1a1410]/80 border border-[#2e231c] flex flex-col justify-between">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase tracking-wider font-semibold text-[#9e8f82]">
-                Postęp miesiąca
-              </span>
-              <span className="text-xs font-bold font-mono text-[#f5ede4]">
-                {progressPercent}%
-              </span>
-            </div>
-            <div className="w-full h-2 rounded-full bg-[#251b14] overflow-hidden mt-2">
-              <div
-                className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-[#d99b5a] to-[#7ec29a]"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-            <span className="text-[10px] text-[#7a6b5e] mt-1">
-              {paidCount === fixedBills.length
-                ? 'Wszystko opłacone! 🎉'
-                : `${fixedBills.length - paidCount} do uregulowania`}
             </span>
           </div>
         </div>
