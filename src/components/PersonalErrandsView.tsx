@@ -28,6 +28,7 @@ import {
   Sparkles,
   AlertCircle,
   X,
+  Info,
   StickyNote as StickyIcon,
 } from 'lucide-react';
 
@@ -176,6 +177,9 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
 
   // Notification feedback
   const [alertNotice, setAlertNotice] = useState<string | null>(null);
+
+  // Active info popover for fixed bills
+  const [activeInfoBillId, setActiveInfoBillId] = useState<string | null>(null);
 
   // Filter personal errands tasks
   const personalTasks = tasks.filter((t) => t.category === 'personal');
@@ -579,20 +583,74 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
                       </div>
                     </div>
 
-                    {/* Delete button for custom bills */}
-                    {bill.id.startsWith('custom_') && (
-                      <button
-                        onClick={() => onDeleteFixedBill(bill.id)}
-                        className="p-1 rounded-full text-[#7a6b5e] hover:text-[#e07a68] transition-colors"
-                        title="Usuń tę stałą opłatę"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    {/* Top right corner: Info 'i' button & Delete for custom bills */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {/* Info 'i' button with Popover & native tooltip */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setActiveInfoBillId(activeInfoBillId === bill.id ? null : bill.id)}
+                          title={`Termin płatności: ${bill.dueDayDescription}\nPrzypomnienie: ${bill.reminderDayDescription}`}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                            activeInfoBillId === bill.id
+                              ? 'bg-[#d99b5a]/25 text-[#d99b5a] border border-[#d99b5a]/50 shadow-sm'
+                              : 'text-[#8c7b6d] hover:text-[#d99b5a] hover:bg-[#251b14] border border-[#382b20]/60'
+                          }`}
+                        >
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Floating Info Popover */}
+                        {activeInfoBillId === bill.id && (
+                          <div
+                            className="absolute right-0 top-8 z-30 w-64 p-3 rounded-2xl bg-[#140f0c]/98 backdrop-blur-xl border border-[#3d2c20] shadow-[0_12px_36px_rgba(0,0,0,0.85)] space-y-2 animate-in fade-in zoom-in-95 duration-150"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="flex items-center justify-between pb-1.5 border-b border-[#251b14]">
+                              <span className="text-[10px] font-mono uppercase text-[#d99b5a] font-semibold flex items-center gap-1.5">
+                                <Info className="w-3 h-3 text-[#d99b5a]" />
+                                Harmonogram opłaty
+                              </span>
+                              <button
+                                onClick={() => setActiveInfoBillId(null)}
+                                className="text-[#7a6b5e] hover:text-[#f5ede4] p-0.5 rounded-full hover:bg-[#251b14]"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                            <div className="text-xs space-y-1.5 pt-0.5">
+                              <div>
+                                <span className="block text-[10px] uppercase font-mono text-[#7a6b5e]">Termin płatności:</span>
+                                <span className="font-mono text-[#f5ede4] text-xs font-medium">
+                                  {bill.dueDayDescription}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="block text-[10px] uppercase font-mono text-[#7a6b5e]">Przypomnienie:</span>
+                                <span className="font-mono text-[#d99b5a] text-xs font-medium">
+                                  {bill.reminderDayDescription}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Delete button for custom bills */}
+                      {bill.id.startsWith('custom_') && (
+                        <button
+                          onClick={() => onDeleteFixedBill(bill.id)}
+                          className="p-1 rounded-full text-[#7a6b5e] hover:text-[#e07a68] transition-colors"
+                          title="Usuń tę stałą opłatę"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Status Badge */}
-                  <div className="mb-4">
+                  <div className="mb-3">
                     <span
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
                         statusInfo.badgeStyle === 'paid'
@@ -615,22 +673,6 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
                       )}
                       <span>{statusInfo.badgeText}</span>
                     </span>
-                  </div>
-
-                  {/* Schedule Details */}
-                  <div className="space-y-1 text-xs text-[#9e8f82] py-2.5 px-3 rounded-xl bg-[#1b1511]/60 border border-[#2e231c] mb-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#7a6b5e]">Termin płatności:</span>
-                      <span className="font-medium text-[#f5ede4] font-mono">
-                        {bill.dueDayDescription}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#7a6b5e]">Przypomnienie:</span>
-                      <span className="font-medium text-[#d99b5a] font-mono">
-                        {bill.reminderDayDescription}
-                      </span>
-                    </div>
                   </div>
                 </div>
 
