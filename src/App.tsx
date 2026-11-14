@@ -45,6 +45,7 @@ import {
 import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid, Lock, Loader2, Settings, Bell } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { checkAndAutoGenerateReports } from './lib/monthlyReport';
+import { checkAndAutoSendMonthlyBackup, sendBackupEmail } from './lib/backupService';
 import { sortTasksByClosestDeadline } from './utils/taskSort';
 
 const DEFAULT_API_KEY = (import.meta.env.VITE_OPENAI_API_KEY as string) || '';
@@ -187,6 +188,28 @@ export function App() {
     const interval = setInterval(runCheck, 30000);
     return () => clearInterval(interval);
   }, [tasks, costs]);
+
+  // Automated Monthly Mid-Month Backup (Runs on mount & checks if day >= 15 for current month)
+  useEffect(() => {
+    if (tasks.length === 0) return;
+    const runBackupCheck = async () => {
+      const res = await checkAndAutoSendMonthlyBackup({
+        tasks,
+        notes,
+        costs,
+        fixedBills,
+        monthlyBills,
+        portfolio: portfolioProjects,
+      });
+      if (res.triggered && res.message) {
+        setAutoReportNotice(res.message);
+      }
+    };
+
+    runBackupCheck();
+    const interval = setInterval(runBackupCheck, 60000);
+    return () => clearInterval(interval);
+  }, [tasks, notes, costs, fixedBills, monthlyBills, portfolioProjects]);
 
   // Check and update scheduled email reminder statuses
   useEffect(() => {
@@ -1297,6 +1320,19 @@ export function App() {
               localIp="192.168.0.179"
               onExportData={handleExportData}
               onImportData={() => fileInputRef.current?.click()}
+              onSendBackupEmail={async () => {
+                return await sendBackupEmail({
+                  data: {
+                    tasks,
+                    notes,
+                    costs,
+                    fixedBills,
+                    monthlyBills,
+                    portfolio: portfolioProjects,
+                  },
+                  isAutomated: false,
+                });
+              }}
               tasksCount={tasks.filter((t) => t.category !== 'personal').length}
               personalCount={tasks.filter((t) => t.category === 'personal').length}
               notesCount={notes.length}

@@ -61,6 +61,7 @@ interface SettingsViewProps {
   // Backup & Data
   onExportData: () => void;
   onImportData: () => void;
+  onSendBackupEmail?: () => Promise<{ success: boolean; error?: string; filename?: string; stats?: any }>;
   tasksCount: number;
   personalCount: number;
   notesCount: number;
@@ -81,6 +82,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   localIp,
   onExportData,
   onImportData,
+  onSendBackupEmail,
   tasksCount,
   personalCount,
   notesCount,
@@ -148,6 +150,40 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setEmailStatus({ type: 'error', message: err.message || 'Wystąpił błąd podczas wysyłania' });
     } finally {
       setIsTestingEmail(false);
+    }
+  };
+
+  // Backup Email state
+  const [isSendingBackupEmail, setIsSendingBackupEmail] = useState(false);
+  const [backupEmailStatus, setBackupEmailStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
+
+  const handleSendBackupEmailNow = async () => {
+    if (!onSendBackupEmail) return;
+    setIsSendingBackupEmail(true);
+    setBackupEmailStatus({ type: null, message: '' });
+    try {
+      const res = await onSendBackupEmail();
+      if (res.success) {
+        setBackupEmailStatus({
+          type: 'success',
+          message: `Wysłano kopię zapasową na adres: ${recipientEmailInput}! Sprawdź skrzynkę odbiorczą.`,
+        });
+      } else {
+        setBackupEmailStatus({
+          type: 'error',
+          message: res.error || 'Błąd wysyłki kopii zapasowej na e-mail.',
+        });
+      }
+    } catch (err: any) {
+      setBackupEmailStatus({
+        type: 'error',
+        message: err.message || 'Wystąpił błąd podczas wysyłania kopii.',
+      });
+    } finally {
+      setIsSendingBackupEmail(false);
     }
   };
 
@@ -805,6 +841,61 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <Upload className="w-3.5 h-3.5 text-[#7ec29a]" />
               <span>Wgraj kopię z pliku</span>
             </button>
+          </div>
+
+          {/* Automated Mid-month Email Backup */}
+          <div className="pt-4 mt-2 border-t border-[#2e231c] space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="block text-[11px] font-mono text-[#8c7b6d] uppercase flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-[#d99b5a]" />
+                  Miesięczna Kopia na E-mail
+                </span>
+                <p className="text-[11px] text-[#7a6b5e] mt-0.5">
+                  Wysyłana w połowie każdego miesiąca (15-tego) jako lekki plik JSON
+                </p>
+              </div>
+              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-[#1f1712] text-[#7ec29a] border border-[#7ec29a]/30">
+                Aktywna (15. każdego msc)
+              </span>
+            </div>
+
+            {backupEmailStatus.message && (
+              <div
+                className={`p-2.5 rounded-xl text-xs flex items-center gap-2 ${
+                  backupEmailStatus.type === 'success'
+                    ? 'bg-[#142318] border border-[#7ec29a]/40 text-[#7ec29a]'
+                    : 'bg-[#2b1212] border border-red-500/40 text-red-300'
+                }`}
+              >
+                {backupEmailStatus.type === 'success' ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                )}
+                <span>{backupEmailStatus.message}</span>
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+              <span className="text-[11px] text-[#8c7b6d]">
+                Odbiorca: <strong className="text-[#f5ede4] font-mono">{recipientEmailInput}</strong>
+              </span>
+
+              <button
+                type="button"
+                onClick={handleSendBackupEmailNow}
+                disabled={isSendingBackupEmail}
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-medium bg-[#251b14] hover:bg-[#33241b] text-[#d99b5a] border border-[#3d2c20] transition-colors active:scale-95 disabled:opacity-50"
+              >
+                {isSendingBackupEmail ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Mail className="w-3.5 h-3.5" />
+                )}
+                <span>Wyślij kopię na e-mail teraz</span>
+              </button>
+            </div>
           </div>
         </div>
 

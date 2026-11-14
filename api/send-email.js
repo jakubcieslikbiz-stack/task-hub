@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { to, subject, html, apiKey: clientApiKey, scheduled_at } = req.body || {};
+    const { to, subject, html, apiKey: clientApiKey, scheduled_at, attachments } = req.body || {};
 
     const apiKey =
       process.env.RESEND_API_KEY ||
@@ -44,6 +44,10 @@ export default async function handler(req, res) {
 
     if (scheduled_at) {
       payload.scheduled_at = scheduled_at;
+    }
+
+    if (attachments && Array.isArray(attachments)) {
+      payload.attachments = attachments;
     }
 
     const resendResponse = await fetch('https://api.resend.com/emails', {

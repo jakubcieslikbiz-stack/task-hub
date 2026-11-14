@@ -395,18 +395,50 @@ export async function sendTestEmail(): Promise<{ success: boolean; id?: string; 
   });
 }
 
+export interface EmailAttachment {
+  filename: string;
+  content: string; // base64 string
+}
+
+export async function sendEmailWithAttachment({
+  to,
+  subject,
+  html,
+  attachments,
+}: {
+  to?: string;
+  subject: string;
+  html: string;
+  attachments: EmailAttachment[];
+}): Promise<{ success: boolean; id?: string; error?: string }> {
+  const apiKey = getStoredResendKey();
+  const recipient = to || getStoredRecipientEmail();
+  if (!apiKey) {
+    return { success: false, error: 'Brak skonfigurowanego klucza Resend API' };
+  }
+  return sendRawEmail({
+    to: recipient,
+    subject,
+    html,
+    apiKey,
+    attachments,
+  });
+}
+
 async function sendRawEmail({
   to,
   subject,
   html,
   apiKey,
   scheduledAt,
+  attachments,
 }: {
   to: string;
   subject: string;
   html: string;
   apiKey: string;
   scheduledAt?: string;
+  attachments?: EmailAttachment[];
 }): Promise<{ success: boolean; id?: string; scheduledAt?: string; error?: string }> {
   // Strategy 1: Try local or Vercel serverless endpoint `/api/send-email`
   try {
@@ -421,6 +453,7 @@ async function sendRawEmail({
         html,
         apiKey,
         scheduled_at: scheduledAt,
+        attachments,
       }),
     });
 
@@ -442,6 +475,9 @@ async function sendRawEmail({
     };
     if (scheduledAt) {
       payload.scheduled_at = scheduledAt;
+    }
+    if (attachments && Array.isArray(attachments)) {
+      payload.attachments = attachments;
     }
 
     const res = await fetch('https://api.resend.com/emails', {
