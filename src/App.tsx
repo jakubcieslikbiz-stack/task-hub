@@ -1536,32 +1536,6 @@ export function App() {
                 tasks={tasks}
                 onNavigateToFinances={() => setCurrentView('finances')}
               />
-
-              {/* Today's active tasks section */}
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between pb-2 border-b border-[#2e231c]">
-                  <h3 className="text-sm font-medium text-[#f5ede4]">
-                    Zlecenia w toku & na dziś ({todayTasks.length})
-                  </h3>
-                  <button
-                    onClick={() => setCurrentView('all')}
-                    className="text-xs text-[#d99b5a] hover:text-[#f1c38e] transition-colors"
-                  >
-                    Zobacz wszystkie zlecenia →
-                  </button>
-                </div>
-
-                <TaskTable
-                  tasks={todayTasks}
-                  onToggleStatus={handleToggleStatus}
-                  onUpdateStatus={handleUpdateStatus}
-                  onToggleSubtask={handleToggleSubtask}
-                  onEdit={handleOpenEdit}
-                  onDelete={handleDeleteTask}
-                  onOpenNew={() => handleOpenNew('in_progress')}
-                  onToggleWaitingForFeedback={handleToggleWaitingForFeedback}
-                />
-              </div>
             </div>
           )}
           </div>
