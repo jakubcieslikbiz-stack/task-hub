@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Task, MonthlyCosts, MonthlyReport } from '../types';
+import type { Task, MonthlyCosts, MonthlyReport, MonthlyBillsData } from '../types';
 import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 import {
   DollarSign,
@@ -27,12 +27,14 @@ import { MonthlyReportModal } from './MonthlyReportModal';
 interface FinancesViewProps {
   tasks: Task[];
   costs: MonthlyCosts;
+  monthlyBills?: MonthlyBillsData;
   onSaveCosts: (costs: MonthlyCosts) => void;
 }
 
 export const FinancesView: React.FC<FinancesViewProps> = ({
   tasks,
   costs,
+  monthlyBills,
   onSaveCosts,
 }) => {
   const now = new Date();
@@ -100,9 +102,18 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
   const totalValue = monthTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
   const pendingValue = totalValue - earnings;
 
+  // Calculate monthly bills total for selected month from Moje Sprawy
+  const currentMonthBillsMap = monthlyBills?.[ym] || {};
+  const currentMonthBillsEntries = Object.entries(currentMonthBillsMap);
+  const monthlyBillsTotal = currentMonthBillsEntries.reduce(
+    (sum, [_, item]) => sum + (Number(item?.amount) || 0),
+    0
+  );
+
   const currentZus = Number(zusInput) || 0;
   const currentTax = Number(taxInput) || 0;
-  const totalCosts = currentZus + currentTax;
+  const fallbackCosts = currentZus + currentTax;
+  const totalCosts = monthlyBillsTotal > 0 ? monthlyBillsTotal : fallbackCosts;
   const netProfit = earnings - totalCosts;
 
   // Animated counters for KPI boxes

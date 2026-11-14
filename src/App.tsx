@@ -1229,10 +1229,12 @@ export function App() {
               <FinanceSummaryBoxes
                 tasks={tasks}
                 costs={costs}
+                monthlyBills={monthlyBills}
                 statusFilter={statusFilter}
                 onFilterChange={setStatusFilter}
                 onSaveCosts={handleSaveCosts}
                 onOpenFinancesView={() => setCurrentView('finances')}
+                onOpenPersonalView={() => setCurrentView('personal')}
               />
 
               {/* Active Recurring Bills Reminder Banner on Mój Dzień */}
@@ -1355,6 +1357,7 @@ export function App() {
             <FinancesView
               tasks={tasks}
               costs={costs}
+              monthlyBills={monthlyBills}
               onSaveCosts={handleSaveCosts}
             />
           ) : currentView === 'timeline' ? (

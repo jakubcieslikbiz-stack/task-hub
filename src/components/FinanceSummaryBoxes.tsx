@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import type { Task, MonthlyCosts } from '../types';
+import type { Task, MonthlyCosts, MonthlyBillsData } from '../types';
 import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
 import {
   Clock,
@@ -14,19 +14,23 @@ import {
 interface FinanceSummaryBoxesProps {
   tasks: Task[];
   costs: MonthlyCosts;
+  monthlyBills?: MonthlyBillsData;
   statusFilter: 'all' | 'in_progress' | 'done' | 'paid';
   onFilterChange: (filter: 'all' | 'in_progress' | 'done' | 'paid') => void;
   onSaveCosts: (costs: MonthlyCosts) => void;
   onOpenFinancesView: () => void;
+  onOpenPersonalView?: () => void;
 }
 
 export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   tasks,
   costs,
+  monthlyBills,
   statusFilter,
   onFilterChange,
   onSaveCosts,
   onOpenFinancesView,
+  onOpenPersonalView,
 }) => {
   const [showCostSettings, setShowCostSettings] = useState(false);
   const [tempZus, setTempZus] = useState(costs.zus.toString());
@@ -118,7 +122,20 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   const paidTasks = currentMonthTasks.filter((t) => t.status === 'paid');
   const paidValue = paidTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
 
-  const totalCosts = (costs.zus || 0) + (costs.tax || 0);
+  // Calculate monthly bills total for the current month from Moje Sprawy
+  const currentMonthBillsMap = monthlyBills?.[currentYm] || {};
+  const currentMonthBillsEntries = Object.entries(currentMonthBillsMap);
+  const monthlyBillsTotal = currentMonthBillsEntries.reduce(
+    (sum, [_, item]) => sum + (Number(item?.amount) || 0),
+    0
+  );
+  const filledBillsCount = currentMonthBillsEntries.filter(
+    ([_, item]) => (Number(item?.amount) || 0) > 0
+  ).length;
+
+  // Use the sum of fixed bills entered in Moje Sprawy, or fall back to default costs if empty
+  const fallbackCosts = (costs.zus || 0) + (costs.tax || 0);
+  const totalCosts = monthlyBillsTotal > 0 ? monthlyBillsTotal : fallbackCosts;
   const netProfit = paidValue - totalCosts;
 
   // Animated number counters for the 4 KPI boxes (rolling up on mount & filter switch)
@@ -340,13 +357,31 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#140f0c] border border-[#2e231c]">
-            <div className="text-[11px] font-mono text-[#9e8f82] flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#e07a68]" />
-              Koszty stałe (ZUS + PIT/VAT)
+          <div
+            onClick={onOpenPersonalView}
+            className={`p-3.5 rounded-2xl bg-[#140f0c] border border-[#2e231c] transition-all ${
+              onOpenPersonalView ? 'hover:border-[#3d2c20] cursor-pointer group' : ''
+            }`}
+            title="Koszty stałe wyliczane na podstawie kwot wpisanych w Moich Sprawach (Czynsz, Prąd, ZUS, itp.). Kliknij, aby przejść do edycji."
+          >
+            <div className="text-[11px] font-mono text-[#9e8f82] flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#e07a68]" />
+                Koszty stałe (Stałe opłaty)
+              </span>
+              {onOpenPersonalView && (
+                <span className="text-[10px] text-[#7a6b5e] group-hover:text-[#d99b5a] transition-colors">
+                  Moje Sprawy →
+                </span>
+              )}
             </div>
             <div className="text-2xl sm:text-3xl font-light text-[#e07a68] tracking-tight mt-1 font-mono">
               {totalCosts.toLocaleString('pl-PL')} zł
+            </div>
+            <div className="text-[10px] text-[#7a6b5e] font-mono mt-0.5">
+              {monthlyBillsTotal > 0
+                ? `Wpisano ${filledBillsCount} ${filledBillsCount === 1 ? 'opłatę' : filledBillsCount < 5 ? 'opłaty' : 'opłat'} w Moich Sprawach`
+                : 'Uzupełnij kwoty w Moich Sprawach'}
             </div>
           </div>
 
@@ -615,16 +650,20 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         <div className="pt-3 border-t border-[#2e231c] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#9e8f82]">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#7ec29a]" />
-            <span>Koszty stałe studia: ZUS {costs.zus} zł • Podatek {costs.tax} zł (miesięcznie)</span>
+            <span>
+              {monthlyBillsTotal > 0
+                ? `Koszty stałe z Moich Spraw: ${totalCosts.toLocaleString('pl-PL')} zł (${filledBillsCount} pozycji)`
+                : `Domyślne koszty stałe: ${totalCosts.toLocaleString('pl-PL')} zł (ZUS + Podatek)`}
+            </span>
           </div>
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setShowCostSettings(true)}
+              onClick={onOpenPersonalView || (() => setShowCostSettings(true))}
               className="text-[#d99b5a] hover:text-[#f1c38e] flex items-center gap-1 text-[11px] font-medium transition-colors"
             >
               <Settings2 className="w-3.5 h-3.5" />
-              <span>Edytuj koszty stałe</span>
+              <span>Edytuj stałe opłaty</span>
             </button>
             <button
               onClick={onOpenFinancesView}
