@@ -21,6 +21,7 @@ import {
   Lock,
   KeyRound,
   User,
+  Settings,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -280,6 +281,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <Globe className="w-4 h-4" />
           <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
             Portfolio Klienta
+          </span>
+        </button>
+
+        <button
+          onClick={() => handleNav('settings')}
+          title="Ustawienia & Bezpieczeństwo"
+          className={`group relative p-2.5 rounded-full transition-all ${
+            currentView === 'settings'
+              ? 'bg-[#2a1e16] text-[#d99b5a] border border-[#d99b5a]/50 shadow-[0_0_12px_rgba(217,155,90,0.25)]'
+              : 'text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#221a14]/60'
+          }`}
+        >
+          <Settings className="w-4 h-4" />
+          <span className="pointer-events-none absolute left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Ustawienia
           </span>
         </button>
       </div>

@@ -16,6 +16,7 @@ import {
   Globe,
   Sparkles,
   User,
+  Settings,
 } from 'lucide-react';
 import { executeAiCommand, speakText } from '../lib/ai';
 import {
@@ -58,6 +59,7 @@ const VIEW_ICONS: Record<ViewMode, React.ReactNode> = {
   converter: <ImageIcon className="w-4 h-4" />,
   dwg_converter: <DraftingCompass className="w-4 h-4 text-[#d99b5a]" />,
   portfolio_manager: <Globe className="w-4 h-4" />,
+  settings: <Settings className="w-4 h-4 text-[#d99b5a]" />,
 };
 
 export const MobileQuickActions: React.FC<MobileQuickActionsProps> = ({

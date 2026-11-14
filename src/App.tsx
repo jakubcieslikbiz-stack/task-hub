@@ -25,6 +25,7 @@ import { ConnectPhoneModal } from './components/ConnectPhoneModal';
 import { FinanceSummaryBoxes } from './components/FinanceSummaryBoxes';
 import { LockScreen } from './components/LockScreen';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
+import { SettingsView } from './components/SettingsView';
 import {
   getStoredCredentials,
   saveStoredCredentials,
@@ -32,7 +33,7 @@ import {
   clearSessionAuthentication,
   type AuthCredentials,
 } from './lib/auth';
-import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid, Lock, KeyRound, Loader2 } from 'lucide-react';
+import { Cloud, CloudOff, RefreshCw, Table, LayoutGrid, Lock, KeyRound, Loader2, Settings } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { checkAndAutoGenerateReports } from './lib/monthlyReport';
 import { sortTasksByClosestDeadline } from './utils/taskSort';
@@ -985,7 +986,18 @@ export function App() {
                 </span>
               )}
 
-              {/* Security Actions */}
+              {/* Security & Settings Actions */}
+              <button
+                onClick={() => setCurrentView('settings')}
+                title="Ustawienia panelu"
+                className={`p-1 rounded-full transition-colors ${
+                  currentView === 'settings'
+                    ? 'text-[#d99b5a] bg-[#251b14]'
+                    : 'text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#251b14]'
+                }`}
+              >
+                <Settings className="w-3.5 h-3.5" />
+              </button>
               <button
                 onClick={() => setIsChangePasswordOpen(true)}
                 title="Zmień hasło dostępu"
@@ -1082,6 +1094,48 @@ export function App() {
             />
           ) : currentView === 'offers' ? (
             <EmailOfferDrafterView apiKey={apiKey} />
+          ) : currentView === 'settings' ? (
+            <SettingsView
+              storedCredentials={authCredentials}
+              onCredentialsUpdated={async (newCreds) => {
+                setAuthCredentials(newCreds);
+                saveStoredCredentials(newCreds);
+                if (supabase) {
+                  try {
+                    await supabase.from('taskhub_state').upsert({
+                      key: 'auth_credentials',
+                      data: newCreds,
+                      updated_at: new Date().toISOString(),
+                    });
+                  } catch {}
+                }
+              }}
+              onLockApp={handleLockApp}
+              apiKey={apiKey}
+              onSaveApiKey={setApiKey}
+              cloudSynced={cloudSynced}
+              isSyncing={isSyncing}
+              onForceSync={async () => {
+                setIsSyncing(true);
+                try {
+                  await syncTasksToCloud(tasks);
+                  await syncNotesToCloud(notes);
+                  await syncCostsToCloud(costs);
+                  await syncPortfolioToCloud(portfolioProjects);
+                  setCloudSynced(true);
+                } finally {
+                  setIsSyncing(false);
+                }
+              }}
+              localIp="192.168.0.179"
+              onExportData={handleExportData}
+              onImportData={() => fileInputRef.current?.click()}
+              tasksCount={tasks.filter((t) => t.category !== 'personal').length}
+              personalCount={tasks.filter((t) => t.category === 'personal').length}
+              notesCount={notes.length}
+              costs={costs}
+              onSaveCosts={handleSaveCosts}
+            />
           ) : currentView === 'converter' ? (
             <ImageConverterView />
           ) : currentView === 'dwg_converter' ? (

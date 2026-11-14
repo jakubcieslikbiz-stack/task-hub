@@ -33,6 +33,7 @@ const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string; short: st
   dwg_converter: { title: 'Konwerter DWG & DXF → PDF', subtitle: 'Lokalna konwersja projektów CAD (DWG / DXF) do wektorowego PDF bez wysyłania plików na serwery', short: 'CAD & DWG' },
   offers: { title: 'Asystent Ofert & E-mail AI', subtitle: 'Twórz profesjonalne wyceny, oferty i odpowiedzi na zapytania klientów', short: 'Oferty AI' },
   portfolio_manager: { title: 'Zarządzaj Portfolio Klienta', subtitle: 'Dodawaj projekty i udostępniaj link do dedykowanej wizytówki JC Studio', short: 'Portfolio' },
+  settings: { title: 'Ustawienia & Bezpieczeństwo', subtitle: 'Hasło dostępu, klucz OpenAI API, synchronizacja chmury i kopie zapasowe', short: 'Ustawienia' },
 };
 
 export const Header: React.FC<HeaderProps> = ({
