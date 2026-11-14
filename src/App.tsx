@@ -240,19 +240,19 @@ export function App() {
         return;
       }
 
-      // W strefie poziomego wykresu zezwalaj tylko na swipe z samej krawędzi (<= 35px)
-      if (target?.closest('.touch-pan-x, [data-no-swipe]') && touchStartX > 35) {
+      // W strefie poziomego wykresu zezwalaj tylko na swipe z samej prawej krawędzi (<= 35px od prawej)
+      if (target?.closest('.touch-pan-x, [data-no-swipe]') && touchStartX < window.innerWidth - 35) {
         isEligible = false;
         return;
       }
 
       if (isMobileMenuOpen) {
-        // Gdy sidebar jest otwarty, jakikolwiek poziomy ruch w lewo zamyka go
+        // Gdy sidebar z prawej jest otwarty, jakikolwiek poziomy ruch w prawo zamyka go
         isEligible = true;
       } else {
-        // Gdy jest zamknięty, swipe musi startować z lewej strony ekranu (do 35% szerokości lub 120px)
-        const leftZoneWidth = Math.max(100, window.innerWidth * 0.35);
-        isEligible = touchStartX <= leftZoneWidth;
+        // Gdy jest zamknięty, swipe musi startować z prawej strony ekranu (prawe 35% szerokości lub 120px)
+        const rightZoneWidth = Math.max(100, window.innerWidth * 0.35);
+        isEligible = touchStartX >= window.innerWidth - rightZoneWidth;
       }
     };
 
@@ -269,8 +269,8 @@ export function App() {
       // Gest musi być dominująco poziomy (aby nie kolidować z pionowym przewijaniem)
       if (absX < 35 || absX <= absY * 1.25) return;
 
-      if (!isMobileMenuOpen && deltaX > 35) {
-        // Przeciągnięcie w prawo z lewej strony -> OTWÓRZ SIDEBAR
+      if (!isMobileMenuOpen && deltaX < -35) {
+        // Przeciągnięcie w lewo z prawej strony -> OTWÓRZ SIDEBAR Z PRAWEJ
         hasTriggered = true;
         setIsMobileMenuOpen(true);
         if (navigator.vibrate) {
@@ -278,8 +278,8 @@ export function App() {
             navigator.vibrate(12);
           } catch (_) {}
         }
-      } else if (isMobileMenuOpen && deltaX < -30) {
-        // Przeciągnięcie w lewo przy otwartym -> ZAMKNIJ SIDEBAR
+      } else if (isMobileMenuOpen && deltaX > 30) {
+        // Przeciągnięcie w prawo przy otwartym z prawej -> ZAMKNIJ SIDEBAR
         hasTriggered = true;
         setIsMobileMenuOpen(false);
         if (navigator.vibrate) {
@@ -307,14 +307,14 @@ export function App() {
 
       // Szybki gest (flick pod palcem < 300ms) o drodze min. 25px
       if (elapsed < 300 && absX >= 25 && absX > absY) {
-        if (!isMobileMenuOpen && deltaX > 25) {
+        if (!isMobileMenuOpen && deltaX < -25) {
           setIsMobileMenuOpen(true);
           if (navigator.vibrate) {
             try {
               navigator.vibrate(12);
             } catch (_) {}
           }
-        } else if (isMobileMenuOpen && deltaX < -25) {
+        } else if (isMobileMenuOpen && deltaX > 25) {
           setIsMobileMenuOpen(false);
           if (navigator.vibrate) {
             try {
