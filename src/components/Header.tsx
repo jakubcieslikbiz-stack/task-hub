@@ -54,10 +54,11 @@ export const Header: React.FC<HeaderProps> = ({
     month: 'long',
     year: 'numeric',
   });
-  const monthYearFormatted = now.toLocaleDateString('en-US', {
+  const rawMonthYear = now.toLocaleDateString('pl-PL', {
     month: 'long',
     year: 'numeric',
   });
+  const monthYearFormatted = rawMonthYear.charAt(0).toUpperCase() + rawMonthYear.slice(1);
 
   return (
     <header className="space-y-4 mb-6">

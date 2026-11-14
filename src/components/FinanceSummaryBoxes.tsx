@@ -42,8 +42,6 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
   const currentYm = `${curYear}-${String(curMonth + 1).padStart(2, '0')}`;
   const monthNamePolish = now.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
-  const monthOnlyPolish = now.toLocaleDateString('pl-PL', { month: 'long' });
-  const todayDateStr = `${String(curDate).padStart(2, '0')}.${String(curMonth + 1).padStart(2, '0')}`;
 
   // Helper to format Date to local YYYY-MM-DD (avoiding UTC timezone shift)
   const toLocalDateStr = (d: Date): string => {
@@ -282,13 +280,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         {/* Card Header & Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2e231c]">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-mono tracking-wider text-[#d99b5a] flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#d99b5a] animate-pulse" />
-                {monthOnlyPolish.toLowerCase()} - {todayDateStr}
-              </span>
-            </div>
-            <h3 className="text-base font-light text-[#f5ede4] tracking-tight mt-0.5">
+            <h3 className="text-base font-light text-[#f5ede4] tracking-tight">
               Skumulowany przychód miesiąca JC Studio
             </h3>
           </div>
