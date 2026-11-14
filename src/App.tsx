@@ -1095,8 +1095,16 @@ export function App() {
         onImportData={() => fileInputRef.current?.click()}
         onOpenNewTaskModal={() => handleOpenNew('in_progress', currentView === 'personal' ? 'personal' : 'work')}
         onToggleSearch={() => {
-          const el = document.querySelector('input[placeholder*="Szukaj"]') as HTMLInputElement;
-          el?.focus();
+          if (currentView !== 'all') {
+            setCurrentView('all');
+            setTimeout(() => {
+              const el = document.querySelector('input[placeholder*="Szukaj"]') as HTMLInputElement;
+              el?.focus();
+            }, 100);
+          } else {
+            const el = document.querySelector('input[placeholder*="Szukaj"]') as HTMLInputElement;
+            el?.focus();
+          }
         }}
         mobileOpen={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}

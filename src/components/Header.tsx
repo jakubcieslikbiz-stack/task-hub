@@ -72,8 +72,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Search Bar (Warm glass style) */}
-      {currentView !== 'finances' && currentView !== 'timeline' && currentView !== 'pomodoro' && currentView !== 'converter' && currentView !== 'dwg_converter' && (
+      {/* Search Bar (Warm glass style) - only in 'all' (Zlecenia & Projekty) */}
+      {currentView === 'all' && (
         <div className="relative pt-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9e8f82]" />
           <input
