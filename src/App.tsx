@@ -191,9 +191,12 @@ export function App() {
     return () => clearInterval(interval);
   }, [tasks, costs]);
 
-  // Automated Monthly Mid-Month Backup (Runs on mount & checks if day >= 15 for current month)
+  // Automated Monthly Mid-Month Backup (Runs once per session & checks if day >= 15 for current month)
+  const backupCheckRanRef = useRef(false);
   useEffect(() => {
-    if (tasks.length === 0) return;
+    if (tasks.length === 0 || backupCheckRanRef.current) return;
+    backupCheckRanRef.current = true;
+
     const runBackupCheck = async () => {
       const res = await checkAndAutoSendMonthlyBackup({
         tasks,
@@ -209,9 +212,7 @@ export function App() {
     };
 
     runBackupCheck();
-    const interval = setInterval(runBackupCheck, 60000);
-    return () => clearInterval(interval);
-  }, [tasks, notes, costs, fixedBills, monthlyBills, portfolioProjects]);
+  }, [tasks.length]);
 
   // Check and update scheduled email reminder statuses
   useEffect(() => {

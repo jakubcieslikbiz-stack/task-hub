@@ -1,7 +1,11 @@
 import type { Task, MonthlyCosts, FixedBillItem, MonthlyBillsData } from '../types';
 import { sendEmailWithAttachment, getStoredRecipientEmail } from './email';
+import { supabase } from './supabase';
 
 export const STORAGE_KEY_LAST_BACKUP = 'taskhub_last_backup_email_month';
+
+let isBackupRunning = false;
+let sessionBackupCheckDone = false;
 
 export interface BackupStats {
   totalTasks: number;
@@ -23,19 +27,59 @@ export interface BackupDataPayload {
 }
 
 /**
- * Return stored month in format 'YYYY-MM' when the backup was last emailed
+ * Return stored month in format 'YYYY-MM' when the backup was last emailed (checking both localStorage and Supabase Cloud)
  */
 export function getLastBackupSentMonth(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem(STORAGE_KEY_LAST_BACKUP);
 }
 
+export async function getLastBackupSentMonthCloud(): Promise<string | null> {
+  const local = getLastBackupSentMonth();
+  if (local) return local;
+
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('taskhub_state')
+        .select('data')
+        .eq('key', 'last_backup_email_month')
+        .single();
+      if (!error && data?.data) {
+        setLastBackupSentMonth(String(data.data));
+        return String(data.data);
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return null;
+}
+
 /**
- * Save month in format 'YYYY-MM'
+ * Save month in format 'YYYY-MM' to localStorage and Supabase Cloud
  */
 export function setLastBackupSentMonth(ym: string): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY_LAST_BACKUP, ym);
+  }
+}
+
+export async function recordLastBackupSentMonthCloud(ym: string): Promise<void> {
+  setLastBackupSentMonth(ym);
+  if (supabase) {
+    try {
+      await supabase.from('taskhub_state').upsert(
+        {
+          key: 'last_backup_email_month',
+          data: ym,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'key' }
+      );
+    } catch (err) {
+      console.warn('Could not record backup month to Supabase:', err);
+    }
   }
 }
 
@@ -275,12 +319,14 @@ export async function sendBackupEmail({
 
 /**
  * Check if today is the middle of the month (day >= 15) and if backup was not sent yet this month.
- * If conditions are met, sends backup automatically and records the month to prevent re-sending.
+ * If conditions are met, sends backup automatically and records the month in Supabase + localStorage to prevent re-sending.
  */
 export async function checkAndAutoSendMonthlyBackup(
   data: BackupDataPayload
 ): Promise<{ triggered: boolean; message?: string }> {
   if (typeof window === 'undefined') return { triggered: false };
+  if (sessionBackupCheckDone) return { triggered: false };
+  if (isBackupRunning) return { triggered: false };
 
   const now = new Date();
   const curYear = now.getFullYear();
@@ -288,30 +334,33 @@ export async function checkAndAutoSendMonthlyBackup(
   const curDate = now.getDate();
   const currentYm = `${curYear}-${String(curMonth).padStart(2, '0')}`;
 
-  // Trigger only on or after the 15th of the month
+  // Kopia zapasowa ma być wysyłana wyłącznie raz w miesiącu w połowie miesiąca (od 15. dnia)
   if (curDate < 15) {
+    sessionBackupCheckDone = true;
     return { triggered: false };
   }
 
-  const lastSentMonth = getLastBackupSentMonth();
-  if (lastSentMonth === currentYm) {
-    // Already sent for this month
-    return { triggered: false };
-  }
-
-  // Need at least some data loaded before creating a backup
-  if (!data.tasks || data.tasks.length === 0) {
-    return { triggered: false };
-  }
-
+  isBackupRunning = true;
   try {
+    const lastSentMonth = await getLastBackupSentMonthCloud();
+    if (lastSentMonth === currentYm) {
+      sessionBackupCheckDone = true;
+      return { triggered: false };
+    }
+
+    // Need at least some data loaded before creating a backup
+    if (!data.tasks || data.tasks.length === 0) {
+      return { triggered: false };
+    }
+
     const res = await sendBackupEmail({
       data,
       isAutomated: true,
     });
 
     if (res.success) {
-      setLastBackupSentMonth(currentYm);
+      await recordLastBackupSentMonthCloud(currentYm);
+      sessionBackupCheckDone = true;
       const polishMonths = [
         'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
         'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'
@@ -323,6 +372,8 @@ export async function checkAndAutoSendMonthlyBackup(
     }
   } catch (err) {
     console.warn('Błąd automatycznej wysyłki kopii zapasowej:', err);
+  } finally {
+    isBackupRunning = false;
   }
 
   return { triggered: false };

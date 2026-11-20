@@ -40,11 +40,18 @@ export default async function handler(req, res) {
     let fixedBills = [];
     let monthlyBills = {};
     let portfolio = [];
+    let lastBackupMonth = null;
+    let supabaseClient = null;
+
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonth = now.getMonth() + 1;
+    const currentYm = `${curYear}-${String(curMonth).padStart(2, '0')}`;
 
     // Try fetching live state from Supabase
     if (supabaseUrl && supabaseAnonKey) {
-      const supabase = createClient(supabaseUrl, supabaseAnonKey);
-      const { data, error } = await supabase.from('taskhub_state').select('*');
+      supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+      const { data, error } = await supabaseClient.from('taskhub_state').select('*');
 
       if (!error && Array.isArray(data)) {
         for (const item of data) {
@@ -54,11 +61,20 @@ export default async function handler(req, res) {
           if (item.key === 'fixed_bills' && Array.isArray(item.data)) fixedBills = item.data;
           if (item.key === 'monthly_bills' && item.data) monthlyBills = item.data;
           if (item.key === 'portfolio' && Array.isArray(item.data)) portfolio = item.data;
+          if (item.key === 'last_backup_email_month') lastBackupMonth = item.data;
         }
       }
     }
 
-    const now = new Date();
+    // Stop if backup was ALREADY sent this month!
+    if (lastBackupMonth === currentYm && req.query?.force !== 'true') {
+      return res.status(200).json({
+        success: true,
+        skipped: true,
+        message: `Miesięczna kopia zapasowa za ${currentYm} została już wysłana w tym miesiącu.`,
+      });
+    }
+
     const dateStr = now.toISOString().split('T')[0];
     const filename = `taskhub-backup-${dateStr}.json`;
 
@@ -139,6 +155,22 @@ export default async function handler(req, res) {
     const data = await resendResp.json();
     if (!resendResp.ok) {
       return res.status(resendResp.status).json({ success: false, error: data });
+    }
+
+    // Record month sent to Supabase so it NEVER sends again this month
+    if (supabaseClient) {
+      try {
+        await supabaseClient.from('taskhub_state').upsert(
+          {
+            key: 'last_backup_email_month',
+            data: currentYm,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'key' }
+        );
+      } catch (upsertErr) {
+        console.warn('Failed to upsert last_backup_email_month:', upsertErr);
+      }
     }
 
     return res.status(200).json({
