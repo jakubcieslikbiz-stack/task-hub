@@ -27,6 +27,8 @@ import { LockScreen } from './components/LockScreen';
 import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { SettingsView } from './components/SettingsView';
 import { PersonalErrandsView } from './components/PersonalErrandsView';
+import { RemindersScheduleView } from './components/RemindersScheduleView';
+import { sendTaskReminderEmail, calculateReminderTimestamp } from './lib/email';
 import {
   getStoredFixedBills,
   saveStoredFixedBills,
@@ -218,17 +220,41 @@ export function App() {
       setTasks((prevTasks) => {
         let changed = false;
         const updated = prevTasks.map((t) => {
-          if (
-            t.remindByEmail &&
-            !t.emailReminderSentAt &&
-            t.emailReminderScheduledAt
-          ) {
-            const schedDate = new Date(t.emailReminderScheduledAt);
-            if (now >= schedDate) {
+          if (t.remindByEmail && !t.emailReminderSentAt) {
+            let schedDate = t.emailReminderScheduledAt ? new Date(t.emailReminderScheduledAt) : null;
+            if (!schedDate && (t.dueDate || t.dueTime || t.notes)) {
+              schedDate = calculateReminderTimestamp({
+                dueDate: t.dueDate,
+                dueTime: t.dueTime,
+                reminderTime: t.reminderTime,
+                notes: t.notes || t.description,
+              });
+            }
+
+            if (schedDate && now >= schedDate) {
               changed = true;
+              // Rzeczywista wysyłka powiadomienia e-mail
+              sendTaskReminderEmail({
+                title: t.title,
+                dueDate: t.dueDate,
+                dueTime: t.dueTime,
+                notes: t.notes,
+                description: t.description,
+                price: t.price,
+                priority: t.priority,
+                category: t.category,
+                forceImmediate: true,
+              }).catch((err) => console.error('Błąd wysyłki powiadomienia w tle:', err));
+
               return {
                 ...t,
                 emailReminderSentAt: now.toISOString(),
+              };
+            } else if (schedDate && !t.emailReminderScheduledAt) {
+              changed = true;
+              return {
+                ...t,
+                emailReminderScheduledAt: schedDate.toISOString(),
               };
             }
           }
@@ -641,6 +667,27 @@ export function App() {
     if (taskData.dueTime) notesParts.push(`Godzina: ${taskData.dueTime}`);
     if (taskData.reminderTime) notesParts.push(`Przypomnienie: ${taskData.reminderTime}`);
 
+    const hasReminderIntent =
+      Boolean(taskData.remindByEmail) ||
+      Boolean(taskData.emailReminderScheduledAt) ||
+      /przypom/i.test(taskData.notes || '') ||
+      /przypom/i.test(taskData.name || '');
+
+    let scheduledAt = taskData.emailReminderScheduledAt;
+    let reminderId = taskData.emailReminderId;
+
+    if (hasReminderIntent && !scheduledAt && !taskData.emailReminderSentAt) {
+      const targetDate = calculateReminderTimestamp({
+        dueDate: taskData.endDate || taskData.startDate || todayStr,
+        dueTime: taskData.dueTime,
+        reminderTime: taskData.reminderTime,
+        notes: taskData.notes || taskData.name,
+      });
+      if (targetDate && targetDate.getTime() > Date.now()) {
+        scheduledAt = targetDate.toISOString();
+      }
+    }
+
     const newTask: Task = {
       id: Date.now().toString(),
       title: taskData.name,
@@ -659,13 +706,31 @@ export function App() {
         completed: false,
       })),
       notes: notesParts.length > 0 ? notesParts.join(' • ') : undefined,
-      remindByEmail: taskData.remindByEmail,
-      emailReminderScheduledAt: taskData.emailReminderScheduledAt,
+      remindByEmail: hasReminderIntent,
+      emailReminderScheduledAt: scheduledAt,
       emailReminderSentAt: taskData.emailReminderSentAt,
-      emailReminderId: taskData.emailReminderId,
+      emailReminderId: reminderId,
       createdAt: new Date().toISOString(),
       stickyColor: taskData.stickyColor,
     };
+
+    if (hasReminderIntent && scheduledAt && !taskData.emailReminderSentAt && !reminderId) {
+      sendTaskReminderEmail({
+        title: taskData.name,
+        dueDate: taskData.endDate || todayStr,
+        dueTime: taskData.dueTime,
+        reminderTime: taskData.reminderTime,
+        notes: notesParts.join(' • '),
+        scheduledAt,
+        category,
+      }).then((res) => {
+        if (res.id) {
+          setTasks((prev) =>
+            prev.map((t) => (t.id === newTask.id ? { ...t, emailReminderId: res.id } : t))
+          );
+        }
+      }).catch((err) => console.error('Błąd auto-harmonogramu powiadomień:', err));
+    }
     const updated = [newTask, ...tasks];
     setTasks(updated);
     syncTasksToCloud(updated);
@@ -1089,6 +1154,7 @@ export function App() {
         todayCount={todayTasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
         totalCount={tasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
         personalCount={tasks.filter((t) => t.category === 'personal' && t.status !== 'done' && t.status !== 'paid').length}
+        remindersCount={tasks.filter((t) => (t.remindByEmail || t.emailReminderScheduledAt) && !t.emailReminderSentAt).length}
         monthlyRevenue={monthlyPaid}
         onOpenPhoneModal={() => setIsPhoneModalOpen(true)}
         onExportData={handleExportData}
@@ -1379,6 +1445,16 @@ export function App() {
               onUpdateMonthlyBill={handleUpdateMonthlyBill}
               onAddFixedBill={handleAddFixedBill}
               onDeleteFixedBill={handleDeleteFixedBill}
+            />
+          ) : currentView === 'reminders' ? (
+            <RemindersScheduleView
+              tasks={tasks}
+              fixedBills={fixedBills}
+              monthlyBills={monthlyBills}
+              onUpdateTask={handleSaveTask}
+              onAddTask={handleAiAddTask}
+              onNavigateToSettings={() => setCurrentView('settings')}
+              onNavigateToPersonal={() => setCurrentView('personal')}
             />
           ) : currentView === 'all' ? (
             <div className="space-y-4">

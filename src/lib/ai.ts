@@ -62,7 +62,7 @@ Dozwolone akcje (action) i struktury:
    - Jeśli to sprawa codzienna/prywatna (np. fryzjer, lekarz, zakupy) -> "category": "personal".
    - Jeśli podano termin relatywny (np. "za tydzień", "jutro", "w piątek", "za 3 dni"), precyzyjnie oblicz datę YYYY-MM-DD bazując na dzisiejszej dacie ${todayStr}.
    - Jeśli podano godzinę (np. "o 14:00", "na 11:30"), wyłuskaj "dueTime": "HH:MM".
-   - Jeśli użytkownik mówi "przypomnij mailem", "przypomnij mi godzinę przed mailem", "wyślij powiadomienie na maila", ustaw "remindByEmail": true oraz wyłuskaj "reminderTime": np. "godzinę przed" lub inną podaną wartość.
+   - Jeśli użytkownik wspomina o jakimkolwiek przypomnieniu (np. "przypomnij", "przypomnij mi godzinę przed", "powiadom mnie", "godzinę przed", "przypomnij mailem"), ZAWSZE ustaw "remindByEmail": true oraz wyłuskaj "reminderTime": np. "godzinę przed", "30 minut przed", "1h przed" lub inną podaną wartość.
    - Jeśli podano kwotę w zł -> "price": liczba.
    Format:
    {"action": "add_task", "name": "nazwa", "category": "work"|"personal", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "dueTime": "HH:MM", "reminderTime": "opis", "price": liczba, "remindByEmail": true/false}
@@ -133,7 +133,7 @@ Przekształć opis użytkownika w JSON:
 - "description": (string)
 - "notes": (string)
 - "subtasks": (tablica stringów)
-- "remindByEmail": (boolean, ustaw true jeśli użytkownik prosi o przypomnienie mailem/na maila/powiadomienie mailowe)`;
+- "remindByEmail": (boolean, ustaw true jeśli użytkownik prosi o jakiekolwiek przypomnienie lub powiadomienie e-mail, np. "przypomnij mi godzinę przed")`;
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',

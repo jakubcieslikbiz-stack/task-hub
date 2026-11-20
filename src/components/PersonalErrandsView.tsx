@@ -6,7 +6,12 @@ import {
 import {
   getBillStatus,
 } from '../data/fixedBills';
-import { sendTaskReminderEmail } from '../lib/email';
+import {
+  sendTaskReminderEmail,
+  calculateReminderTimestamp,
+  extractReminderOffsetFromText,
+  formatScheduledReminder,
+} from '../lib/email';
 import {
   Home,
   Zap,
@@ -43,6 +48,9 @@ interface PersonalErrandsViewProps {
     priority?: 'low' | 'medium' | 'high' | 'urgent';
     remindByEmail?: boolean;
     stickyColor?: StickyNoteColor;
+    emailReminderScheduledAt?: string;
+    emailReminderId?: string;
+    emailReminderSentAt?: string;
   }) => void;
   onUpdateTask: (task: Task) => void;
   onDeleteTask: (id: string) => void;
@@ -285,19 +293,64 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
   };
 
   // Add new sticky note
-  const handleCreateStickyNote = (e: React.FormEvent) => {
+  const handleCreateStickyNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStickyTitle.trim()) return;
 
+    const trimmedTitle = newStickyTitle.trim();
+    const trimmedNotes = newStickyNotes.trim();
+    const hasReminderPhrase =
+      /przypom/i.test(trimmedNotes) ||
+      /przypom/i.test(trimmedTitle) ||
+      /powiadom/i.test(trimmedNotes) ||
+      extractReminderOffsetFromText(trimmedNotes) !== null ||
+      extractReminderOffsetFromText(trimmedTitle) !== null;
+
+    const shouldRemind = newStickyEmailReminder || hasReminderPhrase;
+    let scheduledIso: string | undefined = undefined;
+    let reminderId: string | undefined = undefined;
+
+    if (shouldRemind) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const targetDate = calculateReminderTimestamp({
+        dueDate: newStickyDate || todayStr,
+        dueTime: newStickyTime || undefined,
+        notes: trimmedNotes || trimmedTitle,
+      });
+
+      if (targetDate && targetDate.getTime() > Date.now()) {
+        scheduledIso = targetDate.toISOString();
+        try {
+          const res = await sendTaskReminderEmail({
+            title: trimmedTitle,
+            dueDate: newStickyDate || todayStr,
+            dueTime: newStickyTime || undefined,
+            notes: trimmedNotes || undefined,
+            scheduledAt: scheduledIso,
+            category: 'personal',
+          });
+          if (res.success) {
+            reminderId = res.id;
+            setAlertNotice(`Zaplanowano przypomnienie e-mail na ${formatScheduledReminder(targetDate)}!`);
+            setTimeout(() => setAlertNotice(null), 4000);
+          }
+        } catch (err) {
+          console.error('Error scheduling sticky reminder:', err);
+        }
+      }
+    }
+
     onAddTask({
-      name: newStickyTitle.trim(),
+      name: trimmedTitle,
       category: 'personal',
       dueDate: newStickyDate || undefined,
       dueTime: newStickyTime || undefined,
-      notes: newStickyNotes.trim() || undefined,
+      notes: trimmedNotes || undefined,
       priority: 'medium',
-      remindByEmail: newStickyEmailReminder,
+      remindByEmail: shouldRemind,
       stickyColor: newStickyColor,
+      emailReminderScheduledAt: scheduledIso,
+      emailReminderId: reminderId,
     });
 
     setNewStickyTitle('');

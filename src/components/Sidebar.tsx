@@ -22,6 +22,7 @@ import {
   KeyRound,
   User,
   Settings,
+  Bell,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -32,6 +33,7 @@ interface SidebarProps {
   todayCount: number;
   totalCount: number;
   personalCount?: number;
+  remindersCount?: number;
   monthlyRevenue: number;
   onOpenPhoneModal: () => void;
   onExportData: () => void;
@@ -52,6 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   todayCount,
   totalCount: _totalCount,
   personalCount = 0,
+  remindersCount = 0,
   monthlyRevenue: _monthlyRevenue,
   onOpenPhoneModal,
   onExportData,
@@ -169,6 +172,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
           <span className="pointer-events-none absolute right-14 md:right-auto md:left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
             Moje Sprawy {personalCount > 0 ? `(${personalCount})` : ''}
+          </span>
+        </button>
+
+        <button
+          onClick={() => handleNav('reminders')}
+          title="Harmonogram Powiadomień"
+          className={`group relative p-2.5 rounded-full transition-all ${
+            currentView === 'reminders'
+              ? 'bg-[#2a1e16] text-[#d99b5a] border border-[#d99b5a]/50 shadow-[0_0_12px_rgba(217,155,90,0.25)]'
+              : 'text-[#9e8f82] hover:text-[#d99b5a] hover:bg-[#221a14]/60'
+          }`}
+        >
+          <Bell className="w-4 h-4" />
+          {remindersCount > 0 && (
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#d99b5a] shadow-[0_0_6px_#d99b5a]" />
+          )}
+          <span className="pointer-events-none absolute right-14 md:right-auto md:left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            Harmonogram Powiadomień {remindersCount > 0 ? `(${remindersCount})` : ''}
           </span>
         </button>
 

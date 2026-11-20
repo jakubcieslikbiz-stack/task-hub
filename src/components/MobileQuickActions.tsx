@@ -17,6 +17,7 @@ import {
   Sparkles,
   User,
   Settings,
+  Bell,
 } from 'lucide-react';
 import { executeAiCommand, speakText } from '../lib/ai';
 import {
@@ -52,6 +53,7 @@ const VIEW_ICONS: Record<ViewMode, React.ReactNode> = {
   today: <Calendar className="w-4 h-4" />,
   all: <CheckSquare className="w-4 h-4" />,
   personal: <User className="w-4 h-4 text-[#7ec29a]" />,
+  reminders: <Bell className="w-4 h-4 text-[#d99b5a]" />,
   pomodoro: <Timer className="w-4 h-4" />,
   timeline: <Clock className="w-4 h-4" />,
   finances: <DollarSign className="w-4 h-4 text-[#7ec29a]" />,
@@ -152,7 +154,8 @@ export const MobileQuickActions: React.FC<MobileQuickActionsProps> = ({
         case 'add_task': {
           const wantsEmail =
             Boolean(result.remindByEmail) ||
-            /przypomnij.*(mail|e-mail|poczt)|wy[sś]lij.*(mail|e-mail|poczt)/i.test(spokenText);
+            Boolean(result.reminderTime) ||
+            /przypomnij|powiadom|mail|e-mail|poczt/i.test(spokenText);
 
           const taskCategory = result.category || (result.price ? 'work' : 'personal');
           const catName = taskCategory === 'personal' ? 'sprawę' : 'zlecenie';
@@ -168,6 +171,7 @@ export const MobileQuickActions: React.FC<MobileQuickActionsProps> = ({
               dueDate: result.endDate || result.startDate,
               dueTime: result.dueTime,
               reminderTime: result.reminderTime,
+              notes: spokenText,
             });
 
             if (reminderDate && reminderDate.getTime() > Date.now()) {

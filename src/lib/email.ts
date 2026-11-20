@@ -51,13 +51,82 @@ export interface ReminderTimeParams {
   dueDate?: string;
   dueTime?: string;
   reminderTime?: string;
+  notes?: string;
+}
+
+/**
+ * Inteligentnie wyciąga regułę wyprzedzenia z tekstu lub notatek (np. "godzinę przed", "1h przed", "30 min wcześniej")
+ */
+export function extractReminderOffsetFromText(text?: string): { offsetMinutes: number; label: string } | null {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+
+  // 1. Sprawdź godziny (np. "godzinę przed", "godzine przed", "1h przed", "2 godziny przed")
+  if (lower.includes('godzin') || lower.includes('1h') || lower.includes('2h') || lower.includes('3h')) {
+    const hoursMatch = lower.match(/(\d+)\s*(?:godz|h)/);
+    const hours = hoursMatch ? parseInt(hoursMatch[1], 10) : 1;
+    return {
+      offsetMinutes: hours * 60,
+      label: `${hours} ${hours === 1 ? 'godzina' : hours < 5 ? 'godziny' : 'godzin'} przed`,
+    };
+  }
+
+  // 2. Sprawdź minuty (np. "15 minut przed", "30 minut przed", "15 min przed")
+  if (lower.includes('minut') || lower.includes('min')) {
+    const minMatch = lower.match(/(\d+)\s*min/);
+    const mins = minMatch ? parseInt(minMatch[1], 10) : 15;
+    return { offsetMinutes: mins, label: `${mins} minut przed` };
+  }
+
+  // 3. Sprawdź dzień przed (np. "dzień przed", "dzien przed", "1 dzień przed")
+  if (lower.includes('dzień przed') || lower.includes('dzien przed')) {
+    return { offsetMinutes: 24 * 60, label: '1 dzień przed' };
+  }
+
+  return null;
+}
+
+/**
+ * Zwraca czytelny dla człowieka czas pozostały do przypomnienia (np. "za 1 godz. 20 min", "jutro", "za 3 dni")
+ */
+export function getTimeRemainingText(targetDate: Date | string): { text: string; isPast: boolean } {
+  const d = typeof targetDate === 'string' ? new Date(targetDate) : targetDate;
+  const now = new Date();
+  const diffMs = d.getTime() - now.getTime();
+
+  if (isNaN(d.getTime())) {
+    return { text: 'Nieprawidłowa data', isPast: true };
+  }
+
+  if (diffMs <= 0) {
+    return { text: 'Termin minął', isPast: true };
+  }
+
+  const diffMins = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 60) {
+    return { text: `za ${diffMins} min`, isPast: false };
+  }
+  if (diffHours < 24) {
+    const remMins = diffMins % 60;
+    return {
+      text: remMins > 0 ? `za ${diffHours} godz. ${remMins} min` : `za ${diffHours} godz.`,
+      isPast: false,
+    };
+  }
+  if (diffDays === 1) {
+    return { text: 'jutro', isPast: false };
+  }
+  return { text: `za ${diffDays} dni`, isPast: false };
 }
 
 /**
  * Oblicza dokładną datę i godzinę (Date) kiedy przypomnienie powinno zostać wysłane.
  */
 export function calculateReminderTimestamp(params: ReminderTimeParams): Date | null {
-  const { dueDate, dueTime, reminderTime } = params;
+  const { dueDate, dueTime, reminderTime, notes } = params;
 
   const now = new Date();
   let targetYear = now.getFullYear();
@@ -92,11 +161,24 @@ export function calculateReminderTimestamp(params: ReminderTimeParams): Date | n
       minutes = parseInt(match[2], 10);
       hasSpecificTime = true;
     }
+  } else if (notes) {
+    // Sprawdź czy w notatkach jest podana godzina np. "o 16:00" lub "godz. 16:30"
+    const notesTimeMatch = notes.match(/(?:godz\.?|o|godzinie)\s*([01]?\d|2[0-3])[:.]([0-5]\d)/i) ||
+                           notes.match(/(\b[01]?\d|2[0-3])[:.]([0-5]\d)\b/);
+    if (notesTimeMatch) {
+      hours = parseInt(notesTimeMatch[1], 10);
+      minutes = parseInt(notesTimeMatch[2], 10);
+      hasSpecificTime = true;
+    }
   }
 
   const targetDate = new Date(targetYear, targetMonth, targetDay, hours, minutes, 0, 0);
 
-  if (reminderTime) {
+  // Sprawdź regułę wyprzedzenia z reminderTime lub z tekstu notes
+  const offsetInfo = extractReminderOffsetFromText(reminderTime) || extractReminderOffsetFromText(notes);
+  if (offsetInfo) {
+    targetDate.setMinutes(targetDate.getMinutes() - offsetInfo.offsetMinutes);
+  } else if (reminderTime) {
     const lower = reminderTime.toLowerCase();
     if (lower.includes('godzin') && (lower.includes('przed') || lower.includes('wcześniej'))) {
       const hoursMatch = lower.match(/(\d+)\s*godzin/);
@@ -117,7 +199,7 @@ export function calculateReminderTimestamp(params: ReminderTimeParams): Date | n
   }
 
   // Jeśli brak daty, brak godziny i brak reguły, zwróć null (oznacza wysyłkę natychmiastową)
-  if (!hasSpecificDate && !hasSpecificTime && !reminderTime) {
+  if (!hasSpecificDate && !hasSpecificTime && !reminderTime && !notes) {
     return null;
   }
 
@@ -207,9 +289,22 @@ export async function sendTaskReminderEmail(
       dueDate: task.dueDate,
       dueTime: task.dueTime,
       reminderTime: task.reminderTime,
+      notes: task.notes || task.description,
     });
     if (targetDate && targetDate.getTime() > Date.now()) {
       scheduledAtIso = targetDate.toISOString();
+    }
+  }
+
+  // Resend limit: scheduled_at cannot be more than 72 hours in advance.
+  // If reminder is further in the future, defer it for local/cron dispatcher to send when the time arrives.
+  if (scheduledAtIso) {
+    const diffMs = new Date(scheduledAtIso).getTime() - Date.now();
+    if (diffMs > 71 * 3600 * 1000) {
+      return {
+        success: true,
+        scheduledAt: scheduledAtIso,
+      };
     }
   }
 

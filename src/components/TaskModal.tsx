@@ -114,7 +114,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
     let emailReminderId = initialTask?.emailReminderId;
 
     if (remindByEmail) {
-      const reminderDate = calculateReminderTimestamp({ dueDate });
+      const reminderDate = calculateReminderTimestamp({
+        dueDate,
+        dueTime: initialTask?.dueTime,
+        reminderTime: initialTask?.reminderTime,
+        notes: notes || description,
+      });
       const isFuture = reminderDate && reminderDate.getTime() > Date.now();
 
       if (isFuture) {
@@ -422,7 +427,12 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 </span>
                 {remindByEmail && dueDate && (() => {
                   try {
-                    const target = calculateReminderTimestamp({ dueDate });
+                    const target = calculateReminderTimestamp({
+                      dueDate,
+                      dueTime: initialTask?.dueTime,
+                      reminderTime: initialTask?.reminderTime,
+                      notes: notes || description,
+                    });
                     const formatted = target ? formatScheduledReminder(target) : '';
                     return (
                       <span className="text-[10px] text-[#d99b5a] block mt-0.5">

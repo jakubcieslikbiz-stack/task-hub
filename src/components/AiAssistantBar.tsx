@@ -128,7 +128,8 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
         case 'add_task': {
           const wantsEmail =
             Boolean(result.remindByEmail) ||
-            /przypomnij.*(mail|e-mail|poczt)|wy[sś]lij.*(mail|e-mail|poczt)/i.test(commandText);
+            Boolean(result.reminderTime) ||
+            /przypomnij|powiadom|mail|e-mail|poczt/i.test(commandText);
 
           const taskCategory = result.category || (result.price ? 'work' : 'personal');
           const categoryDesc = taskCategory === 'personal' ? 'sprawę osobistą' : 'zlecenie';
@@ -145,6 +146,7 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
               dueDate: result.endDate || result.startDate,
               dueTime: result.dueTime,
               reminderTime: result.reminderTime,
+              notes: commandText,
             });
 
             if (reminderDate && reminderDate.getTime() > Date.now()) {

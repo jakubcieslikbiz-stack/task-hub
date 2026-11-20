@@ -61,6 +61,7 @@ export type ViewMode =
   | 'today'
   | 'all'
   | 'personal'
+  | 'reminders'
   | 'pomodoro'
   | 'timeline'
   | 'finances'
