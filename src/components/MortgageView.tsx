@@ -12,6 +12,8 @@ import {
   analyzeOverpaymentStatus,
   estimateMortgageSavings,
   simulateAmortizationSchedule,
+  calculateRequiredOverpaymentForTargetDate,
+  calculateRollingReconciliation,
 } from '../lib/mortgage';
 import {
   Landmark,
@@ -27,11 +29,14 @@ import {
   Settings,
   X,
   Info,
-  Clock,
-  Sparkles,
-  TrendingDown,
-  ShieldCheck,
+  CalendarDays,
+  Calculator,
 } from 'lucide-react';
+
+const POLISH_MONTHS = [
+  'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
+  'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
+];
 
 export const MortgageView: React.FC = () => {
   const [config, setConfig] = useState<MortgageConfig>(() => getStoredMortgageConfig());
@@ -52,8 +57,21 @@ export const MortgageView: React.FC = () => {
   const [isEditingTarget, setIsEditingTarget] = useState(false);
   const [tempTarget, setTempTarget] = useState(String(config.targetMonthlyOverpayment));
 
-  // Aktywny widok scenariusza symulacji
-  const [selectedScenario, setSelectedScenario] = useState<'average' | 'target' | 'past_only'>('average');
+  // Własny docelowy termin spłaty wprowadzany przez użytkownika
+  const [customTargetYear, setCustomTargetYear] = useState<number>(() => {
+    if (config.targetPayoffDate) {
+      const y = parseInt(config.targetPayoffDate.split('-')[0], 10);
+      if (!isNaN(y)) return y;
+    }
+    return 2033;
+  });
+  const [customTargetMonth, setCustomTargetMonth] = useState<number>(() => {
+    if (config.targetPayoffDate) {
+      const m = parseInt(config.targetPayoffDate.split('-')[1], 10);
+      if (!isNaN(m)) return m;
+    }
+    return 10;
+  });
 
   // Copy toast state
   const [copiedAccount, setCopiedAccount] = useState(false);
@@ -122,6 +140,29 @@ export const MortgageView: React.FC = () => {
       originalTermMonths: config.loanTermMonths || 360,
     });
 
+    // 4. Scenariusz D: Własny docelowy termin spłaty wprowadzony przez użytkownika (Kalkulator zwrotny)
+    const simCustom = calculateRequiredOverpaymentForTargetDate({
+      currentBalance: config.currentRemainingCapital || 568843.28,
+      annualInterestRate: config.interestRate,
+      regularInstallment: config.regularInstallment,
+      targetYear: customTargetYear,
+      targetMonth: customTargetMonth,
+      fromYear: now.getFullYear(),
+      fromMonth: now.getMonth() + 1,
+      alreadyPaidInterest: 32833.09,
+      originalLoanAmount: config.originalAmount,
+      originalTermMonths: config.loanTermMonths || 360,
+    });
+
+    // Dynamiczne miesięczne rozliczenie z przeniesieniem nadwyżki/niedopłaty
+    const rollingReconciliation = calculateRollingReconciliation({
+      payments,
+      targetOverpayment: config.targetMonthlyOverpayment,
+      regularInstallment: config.regularInstallment,
+      currentYear: now.getFullYear(),
+      currentMonth: now.getMonth() + 1,
+    });
+
     return {
       averageOverpayment,
       totalOverpaid,
@@ -131,8 +172,10 @@ export const MortgageView: React.FC = () => {
       simPastOnly,
       simAverage,
       simTarget,
+      simCustom,
+      rollingReconciliation,
     };
-  }, [payments, config, currentYm]);
+  }, [payments, config, currentYm, customTargetYear, customTargetMonth]);
 
   // Kopiowanie numeru subkonta
   const handleCopyAccount = () => {
@@ -141,6 +184,29 @@ export const MortgageView: React.FC = () => {
     setCopiedAccount(true);
     showToast('Skopiowano numer rachunku do schowka!');
     setTimeout(() => setCopiedAccount(false), 2500);
+  };
+
+  // Ustawienie wyliczonej nadpłaty z własnego terminu jako pułap bazowy
+  const handleApplyCustomOverpaymentAsTarget = () => {
+    if (!stats.simCustom.isValid) return;
+    const newTarget = Math.round(stats.simCustom.requiredMonthlyOverpayment);
+    const targetDateStr = `${customTargetYear}-${String(customTargetMonth).padStart(2, '0')}`;
+    const updated = {
+      ...config,
+      targetMonthlyOverpayment: newTarget,
+      targetPayoffDate: targetDateStr,
+    };
+    setConfig(updated);
+    saveStoredMortgageConfig(updated);
+    setTempTarget(String(newTarget));
+    showToast(`Ustawiono ${newTarget.toLocaleString('pl-PL')} zł/mc jako Twój bazowy cel (spłata do ${stats.simCustom.payoffDateFormatted})!`);
+  };
+
+  // Szybki wybór docelowego terminu (np. 5, 7, 8, 10 lat)
+  const handleSetQuickTerm = (years: number) => {
+    const targetDate = new Date(now.getFullYear() + years, now.getMonth(), 1);
+    setCustomTargetYear(targetDate.getFullYear());
+    setCustomTargetMonth(targetDate.getMonth() + 1);
   };
 
   // Zapis nowej wpłaty
@@ -202,13 +268,6 @@ export const MortgageView: React.FC = () => {
     showToast(`Ustalono nowy pułap bazowy nadpłaty: ${val.toLocaleString('pl-PL')} zł / mc!`);
   };
 
-  const activeSimulation =
-    selectedScenario === 'average'
-      ? stats.simAverage
-      : selectedScenario === 'target'
-      ? stats.simTarget
-      : stats.simPastOnly;
-
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Toast Alert */}
@@ -238,7 +297,7 @@ export const MortgageView: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-[#9e8f82] mt-1 font-light">
-              Rata regularna bankowa: <strong className="text-[#f5ede4] font-medium">{config.regularInstallment.toLocaleString('pl-PL')} zł</strong> • Kapitał początkowy: <strong className="text-[#f5ede4] font-medium">{config.originalAmount.toLocaleString('pl-PL')} zł</strong> • Rachunek: <span className="font-mono text-[#d99b5a]">{config.accountNumber}</span>
+              Rata regularna: <strong className="text-[#f5ede4] font-medium">{config.regularInstallment.toLocaleString('pl-PL')} zł</strong> • Kapitał początkowy: <strong className="text-[#f5ede4] font-medium">{config.originalAmount.toLocaleString('pl-PL')} zł</strong> • Rachunek Pekao: <span className="font-mono text-[#d99b5a]">{config.accountNumber}</span>
             </p>
           </div>
         </div>
@@ -293,7 +352,7 @@ export const MortgageView: React.FC = () => {
               </p>
             )}
             <p className="text-[11px] text-[#9e8f82] mt-1 font-mono">
-              Kwota najbliższej spłaty: <strong className="text-[#f5ede4]">{config.regularInstallment.toLocaleString('pl-PL')} zł</strong>
+              Kwota raty: <strong className="text-[#f5ede4]">{config.regularInstallment.toLocaleString('pl-PL')} zł</strong>
             </p>
           </div>
         </div>
@@ -418,219 +477,281 @@ export const MortgageView: React.FC = () => {
         </div>
       </div>
 
-      {/* GŁÓWNY PANEL: PROGNOZA TERMINU SPŁATY I OSZCZĘDNOŚCI (AMORTYZACJA PEKAO) */}
+      {/* GŁÓWNY PANEL: KALKULATOR WŁASNEGO TERMINU SPŁATY (NOWY TERMIN -> PRZELICZENIE NADPŁATY) */}
       <div className="p-6 sm:p-7 rounded-3xl border border-[#d99b5a]/40 bg-gradient-to-br from-[#1e1712]/95 via-[#18110c]/90 to-[#120e0a]/95 shadow-2xl relative overflow-hidden space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#2e231c]">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[#d99b5a]/20 text-[#f1c38e] border border-[#d99b5a]/40 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-[#d99b5a]" />
-                Kalkulator terminu spłaty i oszczędności odsetkowych
+                <Calculator className="w-3 h-3 text-[#d99b5a]" />
+                Kalkulator terminu spłaty (wprowadź własny termin)
               </span>
             </div>
             <h3 className="text-xl sm:text-2xl font-light text-[#f5ede4]">
-              Prognoza całkowitej spłaty kredytu: <strong className="font-semibold text-[#f1c38e]">{activeSimulation.payoffDateFormatted}</strong>
+              Wybierz kiedy chcesz całkowicie zamknąć kredyt
             </h3>
             <p className="text-xs text-[#9e8f82]">
-              Zamiast planowanego harmonogramu bazowego: <strong>Grudzień 2055</strong> (skrócenie o <strong>{activeSimulation.yearsReduced} lat</strong>!)
+              Wprowadź docelowy rok i miesiąc, a system precyzyjnie obliczy wymaganą miesięczną nadpłatę oraz zaoszczędzone odsetki.
             </p>
           </div>
 
-          {/* Wybór scenariusza */}
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#140f0c] border border-[#2e231c] text-xs self-start md:self-center">
+          {/* Szybkie skróty w latach */}
+          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#140f0c] border border-[#2e231c] text-xs self-start md:self-center flex-wrap">
             <button
-              onClick={() => setSelectedScenario('average')}
-              className={`px-3 py-1.5 rounded-xl font-medium transition-all ${
-                selectedScenario === 'average'
-                  ? 'bg-[#d99b5a] text-[#120e0a] shadow-sm'
-                  : 'text-[#9e8f82] hover:text-[#f5ede4]'
-              }`}
+              onClick={() => handleSetQuickTerm(5)}
+              className="px-2.5 py-1 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-all font-mono"
             >
-              Średnia nadpłata ({stats.averageOverpayment} zł)
+              5 lat (2031)
             </button>
             <button
-              onClick={() => setSelectedScenario('target')}
-              className={`px-3 py-1.5 rounded-xl font-medium transition-all ${
-                selectedScenario === 'target'
-                  ? 'bg-[#d99b5a] text-[#120e0a] shadow-sm'
-                  : 'text-[#9e8f82] hover:text-[#f5ede4]'
-              }`}
+              onClick={() => handleSetQuickTerm(7)}
+              className="px-2.5 py-1 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-all font-mono"
             >
-              Cel bazowy ({config.targetMonthlyOverpayment} zł)
+              7 lat (2033)
             </button>
             <button
-              onClick={() => setSelectedScenario('past_only')}
-              className={`px-3 py-1.5 rounded-xl font-medium transition-all ${
-                selectedScenario === 'past_only'
-                  ? 'bg-[#d99b5a] text-[#120e0a] shadow-sm'
-                  : 'text-[#9e8f82] hover:text-[#f5ede4]'
-              }`}
+              onClick={() => handleSetQuickTerm(10)}
+              className="px-2.5 py-1 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-all font-mono"
             >
-              Tylko obecny stan (0 zł nadpłat)
+              10 lat (2036)
+            </button>
+            <button
+              onClick={() => handleSetQuickTerm(15)}
+              className="px-2.5 py-1 rounded-xl text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#251b14] transition-all font-mono"
+            >
+              15 lat (2041)
             </button>
           </div>
         </div>
 
-        {/* 3 Kluczowe wskaźniki wybranego scenariusza */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-4 rounded-2xl bg-[#140e0a]/90 border border-[#2e231c] space-y-1">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#9e8f82] flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-[#d99b5a]" />
-              Pozostały czas do spłaty
-            </span>
-            <div className="text-2xl font-light text-[#f5ede4] font-mono">
-              {activeSimulation.yearsRemaining} lat {activeSimulation.monthsRemainder} mies.
+        {/* Inputy wyboru docelowego terminu */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#140e0a]/90 border border-[#2e231c] flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 text-xs font-mono text-[#c4b5a5]">
+              <CalendarDays className="w-4 h-4 text-[#d99b5a]" />
+              <span>Docelowy termin:</span>
             </div>
-            <p className="text-[11px] text-[#7ec29a]">
-              Zaledwie {activeSimulation.monthsRemaining} rat miesięcznych
-            </p>
+
+            {/* Miesiąc */}
+            <select
+              value={customTargetMonth}
+              onChange={(e) => {
+                setCustomTargetMonth(parseInt(e.target.value, 10));
+              }}
+              className="bg-[#1c140f] border border-[#382b20] focus:border-[#d99b5a] text-[#f5ede4] text-xs rounded-xl px-3 py-1.5 outline-none cursor-pointer"
+            >
+              {POLISH_MONTHS.map((m, idx) => (
+                <option key={idx} value={idx + 1} className="bg-[#140f0c]">
+                  {m}
+                </option>
+              ))}
+            </select>
+
+            {/* Rok */}
+            <select
+              value={customTargetYear}
+              onChange={(e) => {
+                setCustomTargetYear(parseInt(e.target.value, 10));
+              }}
+              className="bg-[#1c140f] border border-[#382b20] focus:border-[#d99b5a] text-[#f5ede4] text-xs font-mono rounded-xl px-3 py-1.5 outline-none cursor-pointer"
+            >
+              {Array.from({ length: 29 }).map((_, i) => {
+                const yr = 2027 + i;
+                return (
+                  <option key={yr} value={yr} className="bg-[#140f0c]">
+                    {yr}
+                  </option>
+                );
+              })}
+            </select>
+
+            <span className="text-xs text-[#9e8f82] font-mono">
+              (za {stats.simCustom.yearsRemaining} lat {stats.simCustom.monthsRemainder} mies. • {stats.simCustom.monthsRemaining} rat)
+            </span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#140e0a]/90 border border-[#2e231c] space-y-1">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#9e8f82] flex items-center gap-1.5">
-              <TrendingDown className="w-3.5 h-3.5 text-[#7ec29a]" />
-              Zaoszczędzone odsetki bankowe
+          {/* Przycisk zastosowania jako cel bazowy */}
+          {stats.simCustom.isValid && (
+            <button
+              onClick={handleApplyCustomOverpaymentAsTarget}
+              className="flex items-center gap-2 px-4 py-2 bg-[#d99b5a] hover:bg-[#e6ab6e] text-[#120e0a] text-xs font-semibold rounded-xl shadow-lg transition-all active:scale-95 self-start md:self-center"
+              title="Zapisz tę wyliczoną kwotę jako Twój stały miesięczny cel nadpłaty"
+            >
+              <Target className="w-3.5 h-3.5" />
+              <span>Ustaw {Math.round(stats.simCustom.requiredMonthlyOverpayment).toLocaleString('pl-PL')} zł jako mój cel bazowy</span>
+            </button>
+          )}
+        </div>
+
+        {/* Wyniki kalkulacji dla wybranego terminu */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <div className="p-4 rounded-2xl bg-[#140e0b] border border-[#2e231c] space-y-1">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#7ec29a] block">
+              Wymagana nadpłata miesięczna
             </span>
             <div className="text-2xl font-light text-[#7ec29a] font-mono">
-              {activeSimulation.totalInterestSaved.toLocaleString('pl-PL')} zł
+              {stats.simCustom.requiredMonthlyOverpayment.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł
             </div>
             <p className="text-[11px] text-[#9ee2b9]">
-              Tyle pieniędzy zostaje w Twojej kieszeni!
+              Dodatkowo do raty każdego miesiąca
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#140e0a]/90 border border-[#2e231c] space-y-1">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#9e8f82] flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#f1c38e]" />
+          <div className="p-4 rounded-2xl bg-[#140e0b] border border-[#2e231c] space-y-1">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#d99b5a] block">
+              Łączny przelew co miesiąc
+            </span>
+            <div className="text-2xl font-light text-[#f5ede4] font-mono">
+              {stats.simCustom.requiredTotalMonthly.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł
+            </div>
+            <p className="text-[11px] text-[#9e8f82]">
+              Rata {config.regularInstallment.toLocaleString('pl-PL')} zł + Nadpłata
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#140e0b] border border-[#2e231c] space-y-1">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#7ec29a] block">
+              Oszczędność na odsetkach
+            </span>
+            <div className="text-2xl font-light text-[#7ec29a] font-mono">
+              ~{stats.simCustom.totalInterestSaved.toLocaleString('pl-PL')} zł
+            </div>
+            <p className="text-[11px] text-[#9e8f82]">
+              Pieniądze zaoszczędzone vs harmonogram banku
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#140e0b] border border-[#2e231c] space-y-1">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#f1c38e] block">
               Skrócenie umowy kredytowej
             </span>
             <div className="text-2xl font-light text-[#f1c38e] font-mono">
-              o {activeSimulation.yearsReduced} lat ({activeSimulation.monthsReduced} mies.)
+              o {stats.simCustom.yearsReduced} lat
             </div>
             <p className="text-[11px] text-[#9e8f82]">
-              Koniec w {activeSimulation.payoffDateFormatted} zamiast 2055 r.
+              Spłata w {stats.simCustom.payoffDateFormatted} (zamiast 2055 r.)
             </p>
-          </div>
-        </div>
-
-        {/* Porównanie 3 wariantów w zwięzłej tabelce */}
-        <div className="pt-2">
-          <div className="text-xs font-medium text-[#c4b5a5] mb-2">
-            Porównanie wariantów spłaty kredytu:
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-mono">
-            <div
-              onClick={() => setSelectedScenario('average')}
-              className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-                selectedScenario === 'average'
-                  ? 'bg-[#2a1e16] border-[#d99b5a]/60 ring-1 ring-[#d99b5a]/30'
-                  : 'bg-[#140f0c] border-[#2e231c] hover:border-[#382b20]'
-              }`}
-            >
-              <div className="font-semibold text-[#f1c38e] mb-1">
-                ⚡ Średnia nadpłata (+{stats.averageOverpayment} zł/mc)
-              </div>
-              <div className="text-[#f5ede4]">Spłata: <strong>{stats.simAverage.payoffDateFormatted}</strong></div>
-              <div className="text-[#9e8f82]">Czas: {stats.simAverage.yearsRemaining} lat {stats.simAverage.monthsRemainder} mies.</div>
-              <div className="text-[#7ec29a] font-semibold mt-1">Zaoszczędzisz: {stats.simAverage.totalInterestSaved.toLocaleString('pl-PL')} zł</div>
-            </div>
-
-            <div
-              onClick={() => setSelectedScenario('target')}
-              className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-                selectedScenario === 'target'
-                  ? 'bg-[#2a1e16] border-[#d99b5a]/60 ring-1 ring-[#d99b5a]/30'
-                  : 'bg-[#140f0c] border-[#2e231c] hover:border-[#382b20]'
-              }`}
-            >
-              <div className="font-semibold text-[#7ec29a] mb-1">
-                🎯 Twój cel bazowy (+{config.targetMonthlyOverpayment} zł/mc)
-              </div>
-              <div className="text-[#f5ede4]">Spłata: <strong>{stats.simTarget.payoffDateFormatted}</strong></div>
-              <div className="text-[#9e8f82]">Czas: {stats.simTarget.yearsRemaining} lat {stats.simTarget.monthsRemainder} mies.</div>
-              <div className="text-[#7ec29a] font-semibold mt-1">Zaoszczędzisz: {stats.simTarget.totalInterestSaved.toLocaleString('pl-PL')} zł</div>
-            </div>
-
-            <div
-              onClick={() => setSelectedScenario('past_only')}
-              className={`p-3 rounded-2xl border cursor-pointer transition-all ${
-                selectedScenario === 'past_only'
-                  ? 'bg-[#2a1e16] border-[#d99b5a]/60 ring-1 ring-[#d99b5a]/30'
-                  : 'bg-[#140f0c] border-[#2e231c] hover:border-[#382b20]'
-              }`}
-            >
-              <div className="font-semibold text-[#9e8f82] mb-1">
-                🛡️ Bez kolejnych nadpłat (tylko to co wpłacono)
-              </div>
-              <div className="text-[#f5ede4]">Spłata: <strong>{stats.simPastOnly.payoffDateFormatted}</strong></div>
-              <div className="text-[#9e8f82]">Czas: {stats.simPastOnly.yearsRemaining} lat {stats.simPastOnly.monthsRemainder} mies.</div>
-              <div className="text-[#7ec29a] font-semibold mt-1">Już zyskałeś: {stats.simPastOnly.totalInterestSaved.toLocaleString('pl-PL')} zł</div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Rekomendacja Przelewu na Koniec Miesiąca */}
-      <div className="p-6 rounded-3xl border border-[#2e231c] glass-panel shadow-xl relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2 flex-1">
+      {/* DYNAMICZNY PANEL: MIESIĘCZNE ROZLICZENIE CELU I BILANS NA KOLEJNY MIESIĄC */}
+      <div className="p-6 rounded-3xl border border-[#2e231c] glass-panel shadow-xl space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2e231c]">
+          <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-[#d99b5a]/20 text-[#f1c38e] border border-[#d99b5a]/40">
-                Plan najbliższego przelewu
+              <h3 className="text-base font-medium text-[#f5ede4]">
+                Rozliczenie spłat i bilans na kolejny miesiąc
+              </h3>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono uppercase font-semibold ${
+                stats.rollingReconciliation.nextMonthRecommendation.statusBadge === 'ahead'
+                  ? 'bg-[#7ec29a]/20 text-[#9ee2b9] border border-[#7ec29a]/30'
+                  : stats.rollingReconciliation.nextMonthRecommendation.statusBadge === 'on_track'
+                  ? 'bg-[#d99b5a]/20 text-[#f1c38e] border border-[#d99b5a]/30'
+                  : 'bg-[#e07a68]/20 text-[#f19b8c] border border-[#e07a68]/30'
+              }`}>
+                {stats.rollingReconciliation.nextMonthRecommendation.statusBadge === 'ahead'
+                  ? '✓ Wyprzedzasz cel (Nadwyżka)'
+                  : stats.rollingReconciliation.nextMonthRecommendation.statusBadge === 'on_track'
+                  ? '✓ Trzymasz się celu'
+                  : '⚠️ Wymagana dopłata wyrównująca'}
               </span>
-              <span className="text-xs text-[#9e8f82] font-mono">
-                Termin: {nextPaymentInfo.dateString} (30 listopada 2026)
+            </div>
+            <p className="text-xs text-[#9e8f82]">
+              Na koniec miesiąca podajesz ile finalnie wpłaciłeś, a system wylicza rekomendację na kolejny okres
+            </p>
+          </div>
+
+          <button
+            onClick={() => {
+              setPaymentRegular(String(config.regularInstallment));
+              setIsAddPaymentOpen(true);
+            }}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold bg-[#2a1e16] hover:bg-[#382b20] text-[#f1c38e] border border-[#d99b5a]/30 transition-all active:scale-95 self-start sm:self-center"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Wprowadź kwotę z końca miesiąca</span>
+          </button>
+        </div>
+
+        {/* 2 Kolumny: Bilans obecnego miesiąca vs Zalecenia na kolejny miesiąc */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          {/* Kolumna 1: Stan bieżącego miesiąca (Listopad 2026) */}
+          <div className="p-4 rounded-2xl bg-[#140e0a] border border-[#2e231c] space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#2e231c]/60">
+              <span className="font-mono text-[#9e8f82]">Bieżący miesiąc: <strong>{stats.rollingReconciliation.currentMonthItem.monthName}</strong></span>
+              <span className="text-[11px] font-mono text-[#7ec29a] font-semibold">
+                {stats.rollingReconciliation.currentMonthItem.diff >= 0 ? `+${stats.rollingReconciliation.currentMonthItem.diff.toLocaleString('pl-PL')} zł` : `${stats.rollingReconciliation.currentMonthItem.diff.toLocaleString('pl-PL')} zł`}
               </span>
             </div>
 
-            <h3 className="text-xl sm:text-2xl font-light text-[#f5ede4]">
-              Rekomendowany przelew na koniec miesiąca: <strong className="font-semibold text-[#f1c38e]">{stats.overpaymentAnalysis.suggestedTotalTransfer.toLocaleString('pl-PL')} zł</strong>
-            </h3>
-
-            <p className="text-xs text-[#c4b5a5] max-w-2xl leading-relaxed">
-              {stats.overpaymentAnalysis.gap > 0 ? (
-                <>
-                  Aby utrzymać Twój <strong>pułap bazowy ({config.targetMonthlyOverpayment.toLocaleString('pl-PL')} zł)</strong>, przy najbliższym pobraniu raty należy przelać <strong>{config.regularInstallment.toLocaleString('pl-PL')} zł</strong> raty bankowej oraz <strong>{stats.overpaymentAnalysis.gap.toLocaleString('pl-PL')} zł</strong> brakującej nadpłaty.
-                </>
-              ) : (
-                <>
-                  Świetnie! W listopadzie pułap nadpłaty został już w całości zrealizowany (dnia 03.11.2026 wpłaciłeś <strong>5 000,00 zł</strong> nadpłaty kapitału, uzyskując <strong>+{stats.overpaymentAnalysis.surplus.toLocaleString('pl-PL')} zł nadwyżki</strong>). Na dzień 30 listopada wystarczy przelać samą standardową ratę <strong>{config.regularInstallment.toLocaleString('pl-PL')} zł</strong>.
-                </>
-              )}
-            </p>
-
-            {/* Pasek postępu pułapu nadpłaty w tym miesiącu */}
-            <div className="pt-2 max-w-lg">
-              <div className="flex items-center justify-between text-xs text-[#9e8f82] mb-1 font-mono">
-                <span>Postęp pułapu w tym miesiącu:</span>
-                <span className="text-[#f5ede4]">
-                  {stats.overpaymentThisMonth.toLocaleString('pl-PL')} / {config.targetMonthlyOverpayment.toLocaleString('pl-PL')} zł ({stats.overpaymentAnalysis.progressPercent}%)
-                </span>
+            <div className="space-y-1.5 font-mono">
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Ustalony cel nadpłaty:</span>
+                <span className="text-[#f5ede4]">{stats.rollingReconciliation.currentMonthItem.targetOverpayment.toLocaleString('pl-PL')} zł</span>
               </div>
-              <div className="w-full h-2 rounded-full bg-[#120e0a] overflow-hidden border border-[#2e231c]">
-                <div
-                  className="h-full bg-gradient-to-r from-[#d99b5a] to-[#7ec29a] transition-all duration-500 rounded-full"
-                  style={{ width: `${Math.min(100, stats.overpaymentAnalysis.progressPercent)}%` }}
-                />
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Faktycznie nadpłacono dotychczas:</span>
+                <span className="text-[#7ec29a] font-semibold">{stats.rollingReconciliation.currentMonthItem.actualOverpayment.toLocaleString('pl-PL')} zł</span>
               </div>
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Rata podstawowa banku:</span>
+                <span className="text-[#f5ede4]">{config.regularInstallment.toLocaleString('pl-PL')} zł</span>
+              </div>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-[#1e1713] border border-[#2e231c] text-[11px] text-[#c4b5a5] leading-relaxed">
+              💡 {stats.rollingReconciliation.nextMonthRecommendation.guidanceText}
             </div>
           </div>
 
-          {/* Box konta do przelewu */}
-          <div className="p-4 rounded-2xl bg-[#120e0a]/80 border border-[#2e231c] flex flex-col justify-between gap-3 min-w-[280px]">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#9e8f82]">
-              Rachunek kredytowy do spłat (Pekao):
-            </span>
-            <div className="font-mono text-xs text-[#f5ede4] break-all bg-[#1a1410] p-2.5 rounded-xl border border-[#2e231c]">
-              {config.accountNumber || 'Brak wpisanego numeru subkonta'}
+          {/* Kolumna 2: Rekomendacja na kolejny miesiąc (Grudzień 2026 / kolejny termin) */}
+          <div className="p-4 rounded-2xl bg-[#140e0a] border border-[#2e231c] space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#2e231c]/60">
+              <span className="font-mono text-[#9e8f82]">Plan na kolejną płatność:</span>
+              <span className="text-[11px] font-mono text-[#d99b5a]">Termin: {nextPaymentInfo.dateString}</span>
             </div>
-            <button
-              onClick={handleCopyAccount}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-[#2a1e16] hover:bg-[#382b20] text-[#f1c38e] border border-[#d99b5a]/30 transition-all active:scale-95"
-            >
-              {copiedAccount ? <Check className="w-3.5 h-3.5 text-[#7ec29a]" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedAccount ? 'Skopiowano!' : 'Kopiuj numer konta'}</span>
-            </button>
+
+            <div className="space-y-1.5 font-mono">
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Rata regularna banku:</span>
+                <span className="text-[#f5ede4]">{config.regularInstallment.toLocaleString('pl-PL')} zł</span>
+              </div>
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Bazowa nadpłata kapitału:</span>
+                <span className="text-[#f1c38e]">{config.targetMonthlyOverpayment.toLocaleString('pl-PL')} zł</span>
+              </div>
+              {stats.rollingReconciliation.nextMonthRecommendation.carryoverFromPrevious !== 0 && (
+                <div className="flex justify-between text-[#c4b5a5]">
+                  <span>Rozliczenie nadwyżki / zaległości:</span>
+                  <span className={stats.rollingReconciliation.nextMonthRecommendation.carryoverFromPrevious > 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'}>
+                    {stats.rollingReconciliation.nextMonthRecommendation.carryoverFromPrevious > 0
+                      ? `-${stats.rollingReconciliation.nextMonthRecommendation.carryoverFromPrevious.toLocaleString('pl-PL')} zł (zaliczka)`
+                      : `+${Math.abs(stats.rollingReconciliation.nextMonthRecommendation.carryoverFromPrevious).toLocaleString('pl-PL')} zł (dopłata)`}
+                  </span>
+                </div>
+              )}
+              <div className="pt-2 border-t border-[#2e231c] flex justify-between text-sm font-semibold text-[#f5ede4]">
+                <span>Zalecany łączny przelew:</span>
+                <span className="text-[#f1c38e]">{stats.overpaymentAnalysis.suggestedTotalTransfer.toLocaleString('pl-PL')} zł</span>
+              </div>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-[#1e1713] border border-[#2e231c] text-[11px] text-[#9e8f82] flex items-center justify-between gap-2">
+              <div className="truncate">
+                <span>Rachunek Pekao: </span>
+                <strong className="text-[#f5ede4] font-mono">{config.accountNumber}</strong>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyAccount}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-[#2a1e16] hover:bg-[#382b20] text-[#f1c38e] border border-[#d99b5a]/30 transition-all active:scale-95 shrink-0"
+                title="Kopiuj numer konta"
+              >
+                {copiedAccount ? <Check className="w-3 h-3 text-[#7ec29a]" /> : <Copy className="w-3 h-3" />}
+                <span>{copiedAccount ? 'Skopiowano!' : 'Kopiuj'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -664,7 +785,7 @@ export const MortgageView: React.FC = () => {
           </button>
         </div>
 
-        {/* 3 Plakietki podsumowania salda z aplikacji Pekao */}
+        {/* 4 Plakietki podsumowania salda z aplikacji Pekao */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 p-4 bg-[#140e0b] border-b border-[#2e231c] text-xs font-mono">
           <div className="p-2.5 rounded-xl bg-[#1c140f] border border-[#2e231c]">
             <span className="text-[10px] uppercase text-[#9e8f82] block">Pozostały kapitał:</span>
@@ -773,7 +894,7 @@ export const MortgageView: React.FC = () => {
         )}
       </div>
 
-      {/* MODAL: DODAJ NOWĄ WPŁATĘ / NADPŁATĘ */}
+      {/* MODAL: DODAJ NOWĄ WPŁATĘ / ROZLICZENIE KOŃCA MIESIĄCA */}
       {isAddPaymentOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="w-full max-w-md glass-panel rounded-3xl p-6 border border-[#3d2c20] shadow-2xl relative">
@@ -783,7 +904,7 @@ export const MortgageView: React.FC = () => {
                   <Plus className="w-4 h-4" />
                 </div>
                 <h3 className="text-base font-light text-[#f5ede4]">
-                  Zarejestruj spłatę raty / nadpłatę
+                  Zarejestruj wpłatę / rozliczenie miesiąca
                 </h3>
               </div>
               <button onClick={() => setIsAddPaymentOpen(false)} className="text-[#9e8f82] hover:text-[#f5ede4]">
@@ -841,7 +962,7 @@ export const MortgageView: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  placeholder="np. Spłata kapitału (nadpłata)"
+                  placeholder="np. Spłata kapitału na koniec miesiąca"
                   value={paymentNotes}
                   onChange={(e) => setPaymentNotes(e.target.value)}
                   className="w-full bg-[#120e0a] border border-[#382b20] focus:border-[#d99b5a] rounded-xl px-3 py-2 text-xs text-[#f5ede4] outline-none"

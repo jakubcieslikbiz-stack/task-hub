@@ -14,6 +14,7 @@ export const DEFAULT_MORTGAGE_CONFIG: MortgageConfig = {
   startDate: '2025-12-04',
   loanTermMonths: 360, // 30 lat (360 miesięcy)
   accountNumber: '95 1240 1994 3111 0011 2295 0938',
+  targetPayoffDate: '2033-10', // Docelowy termin całkowitej spłaty (październik 2033)
 };
 
 export const INITIAL_MORTGAGE_PAYMENTS: MortgagePaymentRecord[] = [
@@ -527,6 +528,268 @@ export function estimateMortgageSavings(
   return {
     estimatedInterestSaved: simPastOnly.totalInterestSaved,
     estimatedMonthsReduced: simPastOnly.monthsReduced,
+  };
+}
+
+export interface TargetPayoffCalculation {
+  monthsRemaining: number;
+  yearsRemaining: number;
+  monthsRemainder: number;
+  requiredMonthlyOverpayment: number;
+  requiredTotalMonthly: number;
+  payoffDate: string; // YYYY-MM
+  payoffDateFormatted: string; // e.g. "Grudzień 2032"
+  totalInterestOverall: number;
+  totalInterestSaved: number;
+  yearsReduced: number;
+  isValid: boolean;
+  errorMessage?: string;
+}
+
+/**
+ * Oblicza wymaganą kwotę comiesięcznej nadpłaty, aby spłacić kredyt w wybranym przez użytkownika terminie (rok i miesiąc)
+ */
+export function calculateRequiredOverpaymentForTargetDate(params: {
+  currentBalance: number;
+  annualInterestRate: number;
+  regularInstallment: number;
+  targetYear: number;
+  targetMonth: number; // 1-12
+  fromYear?: number;
+  fromMonth?: number; // 1-12
+  alreadyPaidInterest?: number;
+  originalLoanAmount?: number;
+  originalTermMonths?: number;
+}): TargetPayoffCalculation {
+  const {
+    currentBalance,
+    annualInterestRate,
+    regularInstallment,
+    targetYear,
+    targetMonth,
+    fromYear = 2026,
+    fromMonth = 11, // Listopad
+    alreadyPaidInterest = 32833.09,
+    originalLoanAmount = 624029.47,
+    originalTermMonths = 360,
+  } = params;
+
+  const monthsRemaining = (targetYear - fromYear) * 12 + (targetMonth - fromMonth);
+
+  const polishMonthsCap = [
+    'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
+    'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
+  ];
+  const payoffDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}`;
+  const payoffDateFormatted = `${polishMonthsCap[targetMonth - 1] || 'Miesiąc'} ${targetYear}`;
+
+  if (monthsRemaining <= 0) {
+    return {
+      monthsRemaining: 0,
+      yearsRemaining: 0,
+      monthsRemainder: 0,
+      requiredMonthlyOverpayment: 0,
+      requiredTotalMonthly: regularInstallment,
+      payoffDate,
+      payoffDateFormatted,
+      totalInterestOverall: alreadyPaidInterest,
+      totalInterestSaved: 0,
+      yearsReduced: 0,
+      isValid: false,
+      errorMessage: 'Docelowy termin spłaty musi być w przyszłości.',
+    };
+  }
+
+  const monthlyRate = (annualInterestRate / 100) / 12;
+
+  // Wzór renty annuitetowej na łączną ratę: PMT_total = P * [ r * (1+r)^N ] / [ (1+r)^N - 1 ]
+  const factor = Math.pow(1 + monthlyRate, monthsRemaining);
+  const pmtTotal = currentBalance * ((monthlyRate * factor) / (factor - 1));
+
+  const requiredMonthlyOverpayment = Math.max(0, Math.round((pmtTotal - regularInstallment) * 100) / 100);
+  const requiredTotalMonthly = Math.round(pmtTotal * 100) / 100;
+
+  // Dokładna symulacja harmonogramu dla tego scenariusza
+  const sim = simulateAmortizationSchedule({
+    currentBalance,
+    annualInterestRate,
+    regularInstallment,
+    monthlyOverpayment: requiredMonthlyOverpayment,
+    alreadyPaidInterest,
+    originalLoanAmount,
+    originalTermMonths,
+    startDateYear: fromYear,
+    startDateMonth: fromMonth - 1,
+  });
+
+  return {
+    monthsRemaining,
+    yearsRemaining: Math.floor(monthsRemaining / 12),
+    monthsRemainder: monthsRemaining % 12,
+    requiredMonthlyOverpayment,
+    requiredTotalMonthly,
+    payoffDate,
+    payoffDateFormatted,
+    totalInterestOverall: sim.totalInterestOverall,
+    totalInterestSaved: sim.totalInterestSaved,
+    yearsReduced: sim.yearsReduced,
+    isValid: true,
+  };
+}
+
+export interface MonthReconciliationItem {
+  yearMonth: string;
+  monthName: string;
+  targetOverpayment: number;
+  actualOverpayment: number;
+  regularInstallmentPaid: number;
+  totalPaid: number;
+  diff: number; // actual - target
+  status: 'surplus' | 'exact' | 'shortfall';
+}
+
+export interface RollingReconciliationResult {
+  currentMonthItem: MonthReconciliationItem;
+  previousMonthItem: MonthReconciliationItem | null;
+  historySummary: MonthReconciliationItem[];
+  cumulativeNetBalance: number;
+  nextMonthRecommendation: {
+    targetOverpayment: number;
+    adjustedOverpayment: number;
+    suggestedRegularInstallment: number;
+    suggestedTotalTransfer: number;
+    carryoverFromPrevious: number;
+    statusBadge: 'on_track' | 'ahead' | 'catch_up';
+    guidanceText: string;
+  };
+}
+
+/**
+ * Oblicza dynamiczne comiesięczne rozliczenie: porównuje faktyczne wpłaty z celem
+ * i na kolejny miesiąc wyznacza czy trzeba dopłacić więcej, czy cel jest utrzymany.
+ */
+export function calculateRollingReconciliation(params: {
+  payments: MortgagePaymentRecord[];
+  targetOverpayment: number;
+  regularInstallment: number;
+  currentYear?: number;
+  currentMonth?: number; // 1-12
+}): RollingReconciliationResult {
+  const {
+    payments,
+    targetOverpayment,
+    regularInstallment,
+    currentYear = new Date().getFullYear(),
+    currentMonth = new Date().getMonth() + 1,
+  } = params;
+
+  const currentYm = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+
+  let prevYear = currentYear;
+  let prevMonth = currentMonth - 1;
+  if (prevMonth < 1) {
+    prevMonth = 12;
+    prevYear -= 1;
+  }
+  const prevYm = `${prevYear}-${String(prevMonth).padStart(2, '0')}`;
+
+  const polishMonths = [
+    'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
+    'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
+  ];
+
+  const grouped: Record<string, { over: number; reg: number }> = {};
+  for (const p of payments) {
+    const ym = p.date.slice(0, 7);
+    if (!grouped[ym]) grouped[ym] = { over: 0, reg: 0 };
+    grouped[ym].over += p.overpayment || 0;
+    grouped[ym].reg += p.regularInstallment || 0;
+  }
+
+  const allMonths = Object.keys(grouped).sort();
+  const historySummary: MonthReconciliationItem[] = allMonths.map((ym) => {
+    const [y, m] = ym.split('-').map(Number);
+    const mName = `${polishMonths[m - 1] || 'Miesiąc'} ${y}`;
+    const over = Math.round((grouped[ym].over || 0) * 100) / 100;
+    const reg = Math.round((grouped[ym].reg || 0) * 100) / 100;
+    const diff = Math.round((over - targetOverpayment) * 100) / 100;
+    const status: 'surplus' | 'exact' | 'shortfall' =
+      diff > 0 ? 'surplus' : diff === 0 ? 'exact' : 'shortfall';
+
+    return {
+      yearMonth: ym,
+      monthName: mName,
+      targetOverpayment,
+      actualOverpayment: over,
+      regularInstallmentPaid: reg,
+      totalPaid: over + reg,
+      diff,
+      status,
+    };
+  });
+
+  const curOver = Math.round((grouped[currentYm]?.over || 0) * 100) / 100;
+  const curReg = Math.round((grouped[currentYm]?.reg || 0) * 100) / 100;
+  const curDiff = Math.round((curOver - targetOverpayment) * 100) / 100;
+  const currentMonthItem: MonthReconciliationItem = {
+    yearMonth: currentYm,
+    monthName: `${polishMonths[currentMonth - 1] || 'Miesiąc'} ${currentYear}`,
+    targetOverpayment,
+    actualOverpayment: curOver,
+    regularInstallmentPaid: curReg,
+    totalPaid: curOver + curReg,
+    diff: curDiff,
+    status: curDiff > 0 ? 'surplus' : curDiff === 0 ? 'exact' : 'shortfall',
+  };
+
+  const prevOver = Math.round((grouped[prevYm]?.over || 0) * 100) / 100;
+  const prevReg = Math.round((grouped[prevYm]?.reg || 0) * 100) / 100;
+  const prevDiff = Math.round((prevOver - targetOverpayment) * 100) / 100;
+  const previousMonthItem: MonthReconciliationItem = {
+    yearMonth: prevYm,
+    monthName: `${polishMonths[prevMonth - 1] || 'Miesiąc'} ${prevYear}`,
+    targetOverpayment,
+    actualOverpayment: prevOver,
+    regularInstallmentPaid: prevReg,
+    totalPaid: prevOver + prevReg,
+    diff: prevDiff,
+    status: prevDiff > 0 ? 'surplus' : prevDiff === 0 ? 'exact' : 'shortfall',
+  };
+
+  const cumulativeNetBalance = historySummary.reduce((sum, item) => sum + item.diff, 0);
+
+  let carryover = 0;
+  let adjustedOverpayment = targetOverpayment;
+  let statusBadge: 'on_track' | 'ahead' | 'catch_up' = 'on_track';
+  let guidanceText = '';
+
+  if (curDiff >= 0) {
+    statusBadge = 'ahead';
+    carryover = curDiff;
+    adjustedOverpayment = targetOverpayment;
+    guidanceText = `W bieżącym miesiącu cel zrealizowany z nadwyżką +${curDiff.toLocaleString('pl-PL')} zł! Na kolejny miesiąc możesz wpłacić standardowo ${targetOverpayment.toLocaleString('pl-PL')} zł lub odliczyć zaliczkę i wpłacić min. ${Math.max(0, targetOverpayment - curDiff).toLocaleString('pl-PL')} zł.`;
+  } else {
+    const shortfall = Math.abs(curDiff);
+    statusBadge = 'catch_up';
+    carryover = -shortfall;
+    adjustedOverpayment = targetOverpayment + shortfall;
+    guidanceText = `W tym miesiącu brakuje ${shortfall.toLocaleString('pl-PL')} zł do osiągnięcia celu. Aby utrzymać tempo w kolejnym miesiącu, zalecana nadpłata wyrównująca wynosi ${adjustedOverpayment.toLocaleString('pl-PL')} zł.`;
+  }
+
+  return {
+    currentMonthItem,
+    previousMonthItem,
+    historySummary,
+    cumulativeNetBalance: Math.round(cumulativeNetBalance * 100) / 100,
+    nextMonthRecommendation: {
+      targetOverpayment,
+      adjustedOverpayment,
+      suggestedRegularInstallment: regularInstallment,
+      suggestedTotalTransfer: regularInstallment + adjustedOverpayment,
+      carryoverFromPrevious: carryover,
+      statusBadge,
+      guidanceText,
+    },
   };
 }
 

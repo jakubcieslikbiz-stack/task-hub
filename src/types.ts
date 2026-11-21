@@ -93,6 +93,7 @@ export interface MortgageConfig {
   startDate: string; // YYYY-MM-DD
   loanTermMonths: number; // Okres trwania kredytu w miesiącach (np. 300)
   accountNumber?: string; // Subkonto do spłaty/nadpłaty
+  targetPayoffDate?: string; // Docelowy termin całkowitej spłaty (np. "2033-10")
 }
 
 export interface PortfolioProject {
