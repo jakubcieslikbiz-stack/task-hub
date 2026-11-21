@@ -38,7 +38,6 @@ interface PomodoroContextType {
   isRunning: boolean;
   selectedTaskId: string;
   soundEnabled: boolean;
-  ambientSound: boolean;
   completedSessionsToday: number;
   completedSessionItems: CompletedSessionItem[];
   totalFocusMinutesToday: number;
@@ -55,7 +54,6 @@ interface PomodoroContextType {
   switchMode: (newMode: PomodoroMode) => void;
   setSelectedTaskId: (id: string) => void;
   setSoundEnabled: (enabled: boolean) => void;
-  setAmbientSound: (enabled: boolean) => void;
 }
 
 const PomodoroContext = createContext<PomodoroContextType | null>(null);
@@ -154,11 +152,6 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
-  const [ambientSound, setAmbientSound] = useState<boolean>(false);
-
-  // Audio Context refs
-  const ambientAudioCtxRef = useRef<AudioContext | null>(null);
-  const ambientGainNodeRef = useRef<GainNode | null>(null);
 
   // Daily stats with individual session item tracking (short vs long)
   const [completedSessionItems, setCompletedSessionItems] = useState<CompletedSessionItem[]>(() => {
@@ -330,61 +323,6 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     [mode, getModeSeconds]
   );
 
-  // Ambient sound management
-  useEffect(() => {
-    if (ambientSound && isRunning) {
-      try {
-        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
-        ambientAudioCtxRef.current = ctx;
-
-        const bufferSize = ctx.sampleRate * 2;
-        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        let lastOut = 0.0;
-        for (let i = 0; i < bufferSize; i++) {
-          const white = Math.random() * 2 - 1;
-          data[i] = (lastOut + 0.02 * white) / 1.02;
-          lastOut = data[i];
-          data[i] *= 1.8;
-        }
-
-        const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
-        noise.loop = true;
-
-        const filter = ctx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(380, ctx.currentTime);
-
-        const gainNode = ctx.createGain();
-        gainNode.gain.setValueAtTime(0.06, ctx.currentTime);
-        ambientGainNodeRef.current = gainNode;
-
-        noise.connect(filter);
-        filter.connect(gainNode);
-        gainNode.connect(ctx.destination);
-
-        noise.start();
-      } catch (e) {
-        console.warn('Ambient noise error:', e);
-      }
-    } else {
-      if (ambientAudioCtxRef.current) {
-        ambientAudioCtxRef.current.close().catch(() => {});
-        ambientAudioCtxRef.current = null;
-      }
-    }
-
-    return () => {
-      if (ambientAudioCtxRef.current) {
-        ambientAudioCtxRef.current.close().catch(() => {});
-        ambientAudioCtxRef.current = null;
-      }
-    };
-  }, [ambientSound, isRunning]);
-
   // Main background tick effect - runs GLOBALLY across the whole app
   useEffect(() => {
     let interval: any = null;
@@ -511,7 +449,6 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     isRunning,
     selectedTaskId,
     soundEnabled,
-    ambientSound,
     completedSessionsToday,
     completedSessionItems,
     totalFocusMinutesToday,
@@ -527,7 +464,6 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     switchMode,
     setSelectedTaskId,
     setSoundEnabled,
-    setAmbientSound,
   };
 
   return <PomodoroContext.Provider value={value}>{children}</PomodoroContext.Provider>;

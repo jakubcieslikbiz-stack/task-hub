@@ -5,41 +5,185 @@ export const STORAGE_KEY_MORTGAGE_CONFIG = 'jc_mortgage_config';
 export const STORAGE_KEY_MORTGAGE_PAYMENTS = 'jc_mortgage_payments';
 
 export const DEFAULT_MORTGAGE_CONFIG: MortgageConfig = {
-  loanName: 'Kredyt Hipoteczny Mieszkanie',
-  originalAmount: 420000,
-  currentRemainingCapital: 385000,
-  interestRate: 7.45,
-  regularInstallment: 2840,
-  targetMonthlyOverpayment: 3000, // Ustalony bazowy cel nadpłaty w miesiącu
-  startDate: '2024-01-15',
-  loanTermMonths: 300, // 25 lat
-  accountNumber: 'PL 00 0000 0000 0000 0000 0000 0000',
+  loanName: 'Kredyt mieszkaniowy - r. równe (Bank Pekao)',
+  originalAmount: 624029.47,
+  currentRemainingCapital: 568843.28,
+  interestRate: 6.05,
+  regularInstallment: 3759.64,
+  targetMonthlyOverpayment: 4670, // Ustalony bazowy cel nadpłaty w miesiącu (średnia z dotychczasowych wpłat)
+  startDate: '2025-12-04',
+  loanTermMonths: 360, // 30 lat (360 miesięcy)
+  accountNumber: '95 1240 1994 3111 0011 2295 0938',
 };
 
 export const INITIAL_MORTGAGE_PAYMENTS: MortgagePaymentRecord[] = [
   {
-    id: 'pay-2026-08',
-    date: '2026-08-31',
-    regularInstallment: 2840,
-    overpayment: 3000,
-    totalPaid: 5840,
-    notes: 'Rata sierpniowa + bazowa nadpłata',
+    id: 'pekao-2026-11-03',
+    date: '2026-11-03',
+    regularInstallment: 0,
+    overpayment: 5000.00,
+    totalPaid: 5000.00,
+    notes: 'Spłata kapitału (nadpłata)',
   },
   {
-    id: 'pay-2026-09',
+    id: 'pekao-2026-11-02',
+    date: '2026-11-02',
+    regularInstallment: 3759.64,
+    overpayment: 0,
+    totalPaid: 3759.64,
+    notes: 'Spłata raty (przesunięta z 31.10 - weekend i 1.11)',
+  },
+  {
+    id: 'pekao-2026-09-30',
     date: '2026-09-30',
-    regularInstallment: 2840,
-    overpayment: 2500,
-    totalPaid: 5340,
-    notes: 'Rata wrześniowa',
+    regularInstallment: 3759.64,
+    overpayment: 0,
+    totalPaid: 3759.64,
+    notes: 'Spłata raty',
   },
   {
-    id: 'pay-2026-10',
-    date: '2026-11-02', // 31 października to sobota, 1 listopada to Wszystkich Świętych -> pobranie 2 listopada!
-    regularInstallment: 2840,
-    overpayment: 3500,
-    totalPaid: 6340,
-    notes: 'Pobranie po weekendzie i 1 listopada (nadpłata z premii)',
+    id: 'pekao-2026-09-01',
+    date: '2026-09-01',
+    regularInstallment: 0,
+    overpayment: 1940.36,
+    totalPaid: 1940.36,
+    notes: 'Spłata kapitału (nadpłata)',
+  },
+  {
+    id: 'pekao-2026-08-31',
+    date: '2026-08-31',
+    regularInstallment: 3759.64,
+    overpayment: 0,
+    totalPaid: 3759.64,
+    notes: 'Spłata raty',
+  },
+  {
+    id: 'pekao-2026-08-03',
+    date: '2026-08-03',
+    regularInstallment: 0,
+    overpayment: 4740.36,
+    totalPaid: 4740.36,
+    notes: 'Spłata kapitału (nadpłata po weekendzie)',
+  },
+  {
+    id: 'pekao-2026-07-31',
+    date: '2026-07-31',
+    regularInstallment: 3759.64,
+    overpayment: 0,
+    totalPaid: 3759.64,
+    notes: 'Spłata raty',
+  },
+  {
+    id: 'pekao-2026-07-01',
+    date: '2026-07-01',
+    regularInstallment: 0,
+    overpayment: 2340.36,
+    totalPaid: 2340.36,
+    notes: 'Spłata kapitału (nadpłata)',
+  },
+  {
+    id: 'pekao-2026-06-30',
+    date: '2026-06-30',
+    regularInstallment: 3759.64,
+    overpayment: 0,
+    totalPaid: 3759.64,
+    notes: 'Spłata raty',
+  },
+  {
+    id: 'pekao-2026-06-02',
+    date: '2026-06-02',
+    regularInstallment: 0,
+    overpayment: 2341.16,
+    totalPaid: 2341.16,
+    notes: 'Spłata kapitału (nadpłata)',
+  },
+  {
+    id: 'pekao-2026-06-01',
+    date: '2026-06-01',
+    regularInstallment: 3759.64,
+    overpayment: 0,
+    totalPaid: 3759.64,
+    notes: 'Spłata raty (przesunięta z 31.05 - niedziela)',
+  },
+  {
+    id: 'pekao-2026-05-04',
+    date: '2026-05-04',
+    regularInstallment: 0,
+    overpayment: 3240.00,
+    totalPaid: 3240.00,
+    notes: 'Spłata kapitału (nadpłata po majówce)',
+  },
+  {
+    id: 'pekao-2026-04-30',
+    date: '2026-04-30',
+    regularInstallment: 3759.64,
+    overpayment: 0,
+    totalPaid: 3759.64,
+    notes: 'Spłata raty',
+  },
+  {
+    id: 'pekao-2026-04-01',
+    date: '2026-04-01',
+    regularInstallment: 0,
+    overpayment: 6241.00,
+    totalPaid: 6241.00,
+    notes: 'Spłata kapitału (nadpłata)',
+  },
+  {
+    id: 'pekao-2026-03-31',
+    date: '2026-03-31',
+    regularInstallment: 3759.64,
+    overpayment: 0,
+    totalPaid: 3759.64,
+    notes: 'Spłata raty',
+  },
+  {
+    id: 'pekao-2026-03-03',
+    date: '2026-03-03',
+    regularInstallment: 0,
+    overpayment: 5240.00,
+    totalPaid: 5240.00,
+    notes: 'Spłata kapitału (nadpłata)',
+  },
+  {
+    id: 'pekao-2026-03-02',
+    date: '2026-03-02',
+    regularInstallment: 3759.64,
+    overpayment: 0,
+    totalPaid: 3759.64,
+    notes: 'Spłata raty (przesunięta z 28.02 - sobota)',
+  },
+  {
+    id: 'pekao-2026-02-03',
+    date: '2026-02-03',
+    regularInstallment: 0,
+    overpayment: 8080.00,
+    totalPaid: 8080.00,
+    notes: 'Spłata kapitału (nadpłata)',
+  },
+  {
+    id: 'pekao-2026-02-02',
+    date: '2026-02-02',
+    regularInstallment: 3759.64,
+    overpayment: 0,
+    totalPaid: 3759.64,
+    notes: 'Spłata raty (przesunięta z 31.01 - sobota)',
+  },
+  {
+    id: 'pekao-2026-01-02',
+    date: '2026-01-02',
+    regularInstallment: 0,
+    overpayment: 7500.00,
+    totalPaid: 7500.00,
+    notes: 'Spłata kapitału (nadpłata noworoczna)',
+  },
+  {
+    id: 'pekao-2025-12-31',
+    date: '2025-12-31',
+    regularInstallment: 3759.64,
+    overpayment: 0,
+    totalPaid: 3759.64,
+    notes: 'Pierwsza rata kredytu',
   },
 ];
 
@@ -126,11 +270,9 @@ export function isBankBusinessDay(date: Date): boolean {
  * w weekend lub święto, bank pobiera ratę 1. lub 2. dnia roboczego kolejnego miesiąca!
  */
 export function getMortgagePaymentDateForMonth(year: number, month: number): Date {
-  // Ostatni dzień danego miesiąca (dzień 0 kolejnego miesiąca)
   const lastDayOfMonth = new Date(year, month + 1, 0, 12, 0, 0, 0);
 
   let current = new Date(lastDayOfMonth);
-  // Jeśli to weekend lub święto, przesuwaj do przodu na pierwszy dzień roboczy
   while (!isBankBusinessDay(current)) {
     current.setDate(current.getDate() + 1);
   }
@@ -151,10 +293,8 @@ export function getNextMortgagePaymentDate(refDate: Date = new Date()): {
 } {
   const now = new Date(refDate.getFullYear(), refDate.getMonth(), refDate.getDate(), 12, 0, 0);
 
-  // 1. Sprawdź termin dla bieżącego miesiąca
   let curPaymentDate = getMortgagePaymentDateForMonth(now.getFullYear(), now.getMonth());
 
-  // Jeśli termin bieżącego miesiąca już minął, weź kolejny miesiąc
   if (now.getTime() > curPaymentDate.getTime()) {
     let nextMonth = now.getMonth() + 1;
     let nextYear = now.getFullYear();
@@ -173,7 +313,7 @@ export function getNextMortgagePaymentDate(refDate: Date = new Date()): {
   const dd = String(curPaymentDate.getDate()).padStart(2, '0');
   const dateString = `${yyyy}-${mm}-${dd}`;
 
-  const isShiftedToNextMonth = curPaymentDate.getDate() < 5; // pobranie 1. lub 2. dnia
+  const isShiftedToNextMonth = curPaymentDate.getDate() < 5;
 
   let shiftReason: string | undefined = undefined;
   if (isShiftedToNextMonth) {
@@ -219,7 +359,7 @@ export function calculateTotalOverpayment(payments: MortgagePaymentRecord[]): nu
 }
 
 /**
- * Sprawdza ile nadpłacono w bieżącym miesiącu (np. '2026-11')
+ * Sprawdza ile nadpłacono w danym miesiącu (np. '2026-11')
  */
 export function calculateOverpaymentInMonth(payments: MortgagePaymentRecord[], yearMonthPrefix: string): number {
   return payments
@@ -237,10 +377,10 @@ export function analyzeOverpaymentStatus(params: {
 }): {
   target: number;
   paidThisMonth: number;
-  gap: number; // ile brakuje (jeśli > 0)
-  surplus: number; // ile nadwyżki (jeśli > 0)
+  gap: number;
+  surplus: number;
   isMet: boolean;
-  suggestedTotalTransfer: number; // zalecana kwota przelewu (rata + dopełnienie celu)
+  suggestedTotalTransfer: number;
   progressPercent: number;
 } {
   const { targetAmount, currentPaidThisMonth, regularInstallment } = params;
@@ -250,7 +390,7 @@ export function analyzeOverpaymentStatus(params: {
   const surplus = diff > 0 ? diff : 0;
   const isMet = diff >= 0;
 
-  // Sugerowany przelew na koniec miesiąca: regularna rata + brakująca kwota do pułapu
+  // Sugerowany przelew na koniec miesiąca: standardowa rata bankowa + brakująca kwota do pułapu
   const suggestedTotalTransfer = regularInstallment + gap;
   const progressPercent = targetAmount > 0 ? Math.min(100, Math.round((currentPaidThisMonth / targetAmount) * 100)) : 0;
 
@@ -265,13 +405,110 @@ export function analyzeOverpaymentStatus(params: {
   };
 }
 
+export interface MortgageSimulationResult {
+  monthsRemaining: number;
+  yearsRemaining: number;
+  monthsRemainder: number;
+  payoffDate: string; // YYYY-MM
+  payoffDateFormatted: string; // e.g. "Październik 2033"
+  totalInterestRemaining: number;
+  totalInterestOverall: number;
+  totalInterestSaved: number;
+  monthsReduced: number;
+  yearsReduced: number;
+}
+
+/**
+ * Symuluje dokładny harmonogram spłaty kredytu miesiąc po miesiącu uwzględniając nadpłaty.
+ */
+export function simulateAmortizationSchedule(params: {
+  currentBalance: number;
+  annualInterestRate: number;
+  regularInstallment: number;
+  monthlyOverpayment: number;
+  alreadyPaidInterest?: number;
+  originalLoanAmount?: number;
+  originalTermMonths?: number;
+  startDateYear?: number;
+  startDateMonth?: number; // 0-indexed
+}): MortgageSimulationResult {
+  const {
+    currentBalance,
+    annualInterestRate,
+    regularInstallment,
+    monthlyOverpayment,
+    alreadyPaidInterest = 32833.09,
+    originalLoanAmount = 624029.47,
+    originalTermMonths = 360,
+    startDateYear = 2026,
+    startDateMonth = 10, // Listopad (0-indexed: 10)
+  } = params;
+
+  const monthlyRate = (annualInterestRate / 100) / 12;
+  const totalMonthly = regularInstallment + monthlyOverpayment;
+
+  // Całkowite odsetki w scenariuszu bazowym (bez żadnych nadpłat)
+  const baselineTotalInterest = (regularInstallment * originalTermMonths) - originalLoanAmount;
+
+  let balance = currentBalance;
+  let months = 0;
+  let totalInterestRemaining = 0;
+
+  while (balance > 0 && months < 600) {
+    months++;
+    const interest = balance * monthlyRate;
+    totalInterestRemaining += interest;
+    const principalPayment = totalMonthly - interest;
+
+    if (principalPayment <= 0) break;
+
+    if (principalPayment >= balance) {
+      balance = 0;
+      break;
+    } else {
+      balance -= principalPayment;
+    }
+  }
+
+  const payoffDateObj = new Date(startDateYear, startDateMonth + months, 1);
+  const polishMonthsCap = [
+    'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
+    'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
+  ];
+
+  const payoffDate = `${payoffDateObj.getFullYear()}-${String(payoffDateObj.getMonth() + 1).padStart(2, '0')}`;
+  const payoffDateFormatted = `${polishMonthsCap[payoffDateObj.getMonth()]} ${payoffDateObj.getFullYear()}`;
+
+  const totalInterestOverall = alreadyPaidInterest + totalInterestRemaining;
+  const totalInterestSaved = Math.max(0, baselineTotalInterest - totalInterestOverall);
+
+  // Od grudnia 2025 do listopada 2026 upłynęło 11 miesięcy
+  const elapsedMonths = 11;
+  const baselineRemainingMonths = Math.max(0, originalTermMonths - elapsedMonths);
+  const monthsReduced = Math.max(0, baselineRemainingMonths - months);
+
+  return {
+    monthsRemaining: months,
+    yearsRemaining: Math.floor(months / 12),
+    monthsRemainder: months % 12,
+    payoffDate,
+    payoffDateFormatted,
+    totalInterestRemaining: Math.round(totalInterestRemaining),
+    totalInterestOverall: Math.round(totalInterestOverall),
+    totalInterestSaved: Math.round(totalInterestSaved),
+    monthsReduced,
+    yearsReduced: Math.round((monthsReduced / 12) * 10) / 10,
+  };
+}
+
 /**
  * Szacuje oszczędności na odsetkach i skrócenie okresu kredytu z tytułu nadpłat
  */
 export function estimateMortgageSavings(
   totalOverpaid: number,
   interestRate: number,
-  regularInstallment: number
+  regularInstallment: number,
+  currentBalance: number = 568843.28
 ): {
   estimatedInterestSaved: number;
   estimatedMonthsReduced: number;
@@ -280,14 +517,16 @@ export function estimateMortgageSavings(
     return { estimatedInterestSaved: 0, estimatedMonthsReduced: 0 };
   }
 
-  // Uproszczony model amortyzacji finansowej:
-  // Każdy 1000 zł nadpłacony przy stopie np. 7.5% rocznie w horyzoncie 15-20 lat oszczędza ~1.2x - 1.8x swojej wartości w odsetkach
-  const estimatedInterestSaved = Math.round(totalOverpaid * (interestRate / 100) * 12);
-  const estimatedMonthsReduced = Math.round((totalOverpaid * 1.5) / regularInstallment);
+  const simPastOnly = simulateAmortizationSchedule({
+    currentBalance,
+    annualInterestRate: interestRate,
+    regularInstallment,
+    monthlyOverpayment: 0,
+  });
 
   return {
-    estimatedInterestSaved,
-    estimatedMonthsReduced,
+    estimatedInterestSaved: simPastOnly.totalInterestSaved,
+    estimatedMonthsReduced: simPastOnly.monthsReduced,
   };
 }
 
@@ -299,9 +538,16 @@ export function getStoredMortgageConfig(): MortgageConfig {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_MORTGAGE_CONFIG);
     if (raw) {
-      return { ...DEFAULT_MORTGAGE_CONFIG, ...JSON.parse(raw) };
+      const parsed = JSON.parse(raw);
+      // Migracja ze starej makiety testowej do realnych danych Pekao
+      if (parsed.originalAmount === 420000 || parsed.regularInstallment === 2840 || !parsed.accountNumber?.includes('95 1240')) {
+        saveStoredMortgageConfig(DEFAULT_MORTGAGE_CONFIG);
+        return DEFAULT_MORTGAGE_CONFIG;
+      }
+      return { ...DEFAULT_MORTGAGE_CONFIG, ...parsed };
     }
   } catch {}
+  saveStoredMortgageConfig(DEFAULT_MORTGAGE_CONFIG);
   return DEFAULT_MORTGAGE_CONFIG;
 }
 
@@ -336,10 +582,16 @@ export function getStoredMortgagePayments(): MortgagePaymentRecord[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
+        // Jeśli w pamięci przeglądarki są stare makiety z testowymi ID, migruj do realnych danych Pekao
+        if (parsed.some((p: any) => p.id === 'pay-2026-08' || p.id === 'pay-2026-09' || p.regularInstallment === 2840)) {
+          saveStoredMortgagePayments(INITIAL_MORTGAGE_PAYMENTS);
+          return INITIAL_MORTGAGE_PAYMENTS;
+        }
         return parsed;
       }
     }
   } catch {}
+  saveStoredMortgagePayments(INITIAL_MORTGAGE_PAYMENTS);
   return INITIAL_MORTGAGE_PAYMENTS;
 }
 

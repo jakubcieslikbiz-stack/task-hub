@@ -8,7 +8,6 @@ import {
   SkipForward,
   Volume2,
   VolumeX,
-  Headphones,
   Layers,
   Target,
   CheckCircle2,
@@ -23,7 +22,6 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
     isRunning,
     selectedTaskId,
     soundEnabled,
-    ambientSound,
     completedSessionsToday,
     totalFocusMinutesToday,
     progressPercent,
@@ -34,7 +32,6 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
     skip,
     setSelectedTaskId,
     setSoundEnabled,
-    setAmbientSound,
   } = usePomodoro();
 
   // Circular SVG params
@@ -76,33 +73,19 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
             <span className="font-mono font-semibold text-[#f1c38e]">{completedSessionsToday}</span>
           </div>
 
-          {/* Audio Controls */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setAmbientSound(!ambientSound)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1.5 transition-all ${
-                ambientSound
-                  ? 'bg-[#d99b5a]/20 text-[#f1c38e] border-[#d99b5a]/40 shadow-sm'
-                  : 'bg-[#140f0c] text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4]'
-              }`}
-              title="Szum w tle wspomagający skupienie"
-            >
-              <Headphones className="w-3.5 h-3.5" />
-              <span>Szum {ambientSound ? '(Wł.)' : ''}</span>
-            </button>
-
-            <button
-              onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`p-1.5 rounded-full border transition-all ${
-                soundEnabled
-                  ? 'bg-[#140f0c] text-[#7ec29a] border-[#2e231c]'
-                  : 'bg-[#140f0c] text-[#7a6b5e] border-[#2e231c]'
-              }`}
-              title={soundEnabled ? 'Dźwięk dzwonka włączony' : 'Wyciszony'}
-            >
-              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-            </button>
-          </div>
+          {/* Audio Chime Control */}
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border flex items-center gap-1.5 transition-all ${
+              soundEnabled
+                ? 'bg-[#140f0c] text-[#7ec29a] border-[#2e231c]'
+                : 'bg-[#140f0c] text-[#7a6b5e] border-[#2e231c]'
+            }`}
+            title={soundEnabled ? 'Dźwięk dzwonka po zakończeniu sesji włączony' : 'Dźwięk wyciszony'}
+          >
+            {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+            <span className="text-[11px] font-mono">{soundEnabled ? 'Dźwięk' : 'Wyciszony'}</span>
+          </button>
         </div>
 
         {/* Circular SVG Timer */}
