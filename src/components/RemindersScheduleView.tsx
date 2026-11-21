@@ -10,6 +10,7 @@ import {
   cancelScheduledTaskEmail,
   extractReminderOffsetFromText,
 } from '../lib/email';
+import { getInitialPreviewsInfo } from '../utils/initialPreviews';
 import {
   Bell,
   Clock,
@@ -209,6 +210,33 @@ export const RemindersScheduleView: React.FC<RemindersScheduleViewProps> = ({
       });
     });
 
+    // 1b. Ujęcia wstępne dla aktywnych zleceń (w ostatni dzień z 3/4 dni roboczych)
+    tasks.forEach((t) => {
+      if (t.category === 'personal' || t.status === 'done' || t.status === 'paid') return;
+      const previewInfo = getInitialPreviewsInfo(t);
+      if (!previewInfo.isApplicable) return;
+
+      const isSent = Boolean(t.previewReminderSentAt);
+      const isPast = previewInfo.isPast && !isSent;
+      const scheduledDate = new Date(`${previewInfo.previewDate}T09:00:00`);
+
+      list.push({
+        id: `preview-${t.id}`,
+        source: 'task',
+        taskRef: t,
+        title: `📸 Ujęcia wstępne: ${t.title}`,
+        category: 'work',
+        appointmentDate: previewInfo.previewDate,
+        appointmentTime: '09:00',
+        scheduledAt: scheduledDate.toISOString(),
+        sentAt: t.previewReminderSentAt,
+        ruleText: `Ostatni (${previewInfo.businessDays}.) dzień roboczy ujęć wstępnych`,
+        notes: `Wycena: ${t.price ? `${t.price.toLocaleString('pl-PL')} zł` : '—'} • Termin oddania ujęć wstępnych do klienta (${previewInfo.businessDays} dni robocze dla kwoty ${previewInfo.priceThresholdText}).`,
+        status: isSent ? 'sent' : isPast ? 'overdue' : 'scheduled',
+        timeRemaining: getTimeRemainingText(scheduledDate),
+      });
+    });
+
     // 2. Stałe comiesięczne opłaty (Czynsz, ZUS, Podatki itp.)
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -294,7 +322,36 @@ export const RemindersScheduleView: React.FC<RemindersScheduleViewProps> = ({
 
   // Natychmiastowe wysłanie przypomnienia dla danego elementu
   const handleTriggerNow = async (item: typeof reminderItems[0]) => {
-    if (item.source === 'task' && item.taskRef) {
+    if (item.source === 'task' && item.taskRef && item.id.startsWith('preview-')) {
+      const previewInfo = getInitialPreviewsInfo(item.taskRef);
+      try {
+        const res = await sendTaskReminderEmail({
+          title: `Ujęcia wstępne: ${item.taskRef.title}`,
+          subject: `📸 [Ujęcia wstępne] Przypomnienie: Termin ujęć wstępnych dla "${item.taskRef.title}"`,
+          dueDate: previewInfo.previewDate,
+          dueTime: '09:00',
+          notes: `Cześć Jakub! Mija ${previewInfo.businessDays}. dzień roboczy dla zlecenia "${item.taskRef.title}". Czas wrócić do klienta z ujęciami wstępnymi! Wycena: ${item.taskRef.price ? `${item.taskRef.price.toLocaleString('pl-PL')} zł` : 'brak'}.`,
+          price: item.taskRef.price,
+          priority: item.taskRef.priority,
+          category: item.taskRef.category,
+          forceImmediate: true,
+        });
+
+        if (res.success) {
+          const nowIso = new Date().toISOString();
+          onUpdateTask({
+            ...item.taskRef,
+            previewReminderSentAt: nowIso,
+          });
+          showNotice(`Wysłano powiadomienie o ujęciach wstępnych dla "${item.taskRef.title}" na adres: ${recipientEmail}!`);
+        } else {
+          showNotice(`Błąd: ${res.error || 'Nie udało się wysłać'}`, 'error');
+        }
+      } catch (err: any) {
+        showNotice(`Błąd wysyłki: ${err.message}`, 'error');
+      }
+      return;
+    } else if (item.source === 'task' && item.taskRef) {
       try {
         const res = await sendTaskReminderEmail({
           title: item.taskRef.title,
@@ -344,6 +401,15 @@ export const RemindersScheduleView: React.FC<RemindersScheduleViewProps> = ({
 
   // Anulowanie / wyłączenie przypomnienia
   const handleCancelReminder = async (item: typeof reminderItems[0]) => {
+    if (item.id.startsWith('preview-') && item.taskRef) {
+      onUpdateTask({
+        ...item.taskRef,
+        previewReminderSentAt: new Date().toISOString(),
+      });
+      showNotice(`Wyłączono przypomnienie o ujęciach wstępnych dla "${item.taskRef.title}".`);
+      return;
+    }
+
     if (item.source === 'task' && item.taskRef) {
       if (item.taskRef.emailReminderId) {
         await cancelScheduledTaskEmail(item.taskRef.emailReminderId);

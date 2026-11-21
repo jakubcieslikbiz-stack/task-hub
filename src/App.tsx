@@ -29,6 +29,7 @@ import { SettingsView } from './components/SettingsView';
 import { PersonalErrandsView } from './components/PersonalErrandsView';
 import { RemindersScheduleView } from './components/RemindersScheduleView';
 import { MortgageView } from './components/MortgageView';
+import { getInitialPreviewsInfo } from './utils/initialPreviews';
 import { sendTaskReminderEmail, calculateReminderTimestamp } from './lib/email';
 import {
   getStoredFixedBills,
@@ -257,6 +258,46 @@ export function App() {
               return {
                 ...t,
                 emailReminderScheduledAt: schedDate.toISOString(),
+              };
+            }
+          }
+
+          // Powiadomienie o ujęciach wstępnych (w ostatni dzień z 3/4 dni roboczych)
+          if (
+            t.category !== 'personal' &&
+            t.status === 'in_progress' &&
+            !t.previewReminderSentAt
+          ) {
+            const previewInfo = getInitialPreviewsInfo(t);
+            const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+            // Wysyłaj w ostatni dzień fazy ujęć wstępnych
+            if (previewInfo.isApplicable && previewInfo.previewDate === todayStr) {
+              changed = true;
+              sendTaskReminderEmail({
+                title: `Ujęcia wstępne: ${t.title}`,
+                subject: `📸 [Ujęcia wstępne] Dzisiaj termin dla zlecenia: ${t.title}`,
+                dueDate: previewInfo.previewDate,
+                dueTime: '09:00',
+                notes: `Cześć Jakub! Dzisiaj mija ${previewInfo.businessDays}. dzień roboczy od rozpoczęcia zlecenia. Czas wrócić do klienta z ujęciami wstępnymi! Wycena projektu: ${t.price ? `${t.price.toLocaleString('pl-PL')} zł` : 'brak'}.`,
+                price: t.price,
+                priority: t.priority,
+                category: t.category,
+                forceImmediate: true,
+              }).catch((err) => console.error('Błąd wysyłki powiadomienia o ujęciach wstępnych:', err));
+
+              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                try {
+                  new Notification('JC Studio: Ujęcia wstępne na dziś! 📸', {
+                    body: `Zlecenie "${t.title}": upływa ${previewInfo.businessDays}. dzień roboczy. Czas wysłać pierwsze rendery do klienta!`,
+                    icon: '/favicon.svg',
+                  });
+                } catch {}
+              }
+
+              return {
+                ...t,
+                previewReminderSentAt: now.toISOString(),
               };
             }
           }
@@ -1156,7 +1197,17 @@ export function App() {
         todayCount={todayTasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
         totalCount={tasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
         personalCount={tasks.filter((t) => t.category === 'personal' && t.status !== 'done' && t.status !== 'paid').length}
-        remindersCount={tasks.filter((t) => (t.remindByEmail || t.emailReminderScheduledAt) && !t.emailReminderSentAt).length}
+        remindersCount={
+          tasks.filter((t) => {
+            if ((t.remindByEmail || t.emailReminderScheduledAt) && !t.emailReminderSentAt) return true;
+            if (t.category !== 'personal' && t.status === 'in_progress' && !t.previewReminderSentAt) {
+              const info = getInitialPreviewsInfo(t);
+              const todayStr = new Date().toISOString().slice(0, 10);
+              return info.isApplicable && info.previewDate === todayStr;
+            }
+            return false;
+          }).length
+        }
         monthlyRevenue={monthlyPaid}
         onOpenPhoneModal={() => setIsPhoneModalOpen(true)}
         onExportData={handleExportData}

@@ -51,6 +51,7 @@ export interface Task {
   emailReminderSentAt?: string; // Data i czas faktycznego wysłania przypomnienia
   emailReminderScheduledAt?: string; // Data i czas ZAPLANOWANEGO wysłania (ISO)
   emailReminderId?: string; // Identyfikator zaplanowanego maila w Resend
+  previewReminderSentAt?: string; // Data i czas wysłania powiadomienia o ujęciach wstępnych (ostatni 3/4 dzień roboczy)
   subtasks: Subtask[];
   createdAt: string;
   completedAt?: string;

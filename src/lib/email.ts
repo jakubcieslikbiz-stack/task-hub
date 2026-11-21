@@ -45,6 +45,7 @@ export interface SendTaskEmailParams {
   notes?: string;
   description?: string;
   subtasks?: string[];
+  subject?: string;
 }
 
 export interface ReminderTimeParams {
@@ -431,7 +432,7 @@ export async function sendTaskReminderEmail(
 
   return sendRawEmail({
     to: recipient,
-    subject: `${subjectPrefix} Przypomnienie: ${task.title} (${formattedDueDate})`,
+    subject: task.subject || `${subjectPrefix} Przypomnienie: ${task.title} (${formattedDueDate})`,
     html,
     apiKey,
     scheduledAt: scheduledAtIso,
