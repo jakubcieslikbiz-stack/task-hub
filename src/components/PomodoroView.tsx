@@ -1,10 +1,6 @@
 import React from 'react';
 import type { Task } from '../types';
-import {
-  usePomodoro,
-  POMODORO_PRESETS,
-  type Preset,
-} from '../context/PomodoroContext';
+import { usePomodoro } from '../context/PomodoroContext';
 import {
   Play,
   Pause,
@@ -16,7 +12,7 @@ import {
   Layers,
   Award,
   Headphones,
-  Sliders,
+  Clock,
 } from 'lucide-react';
 
 interface PomodoroViewProps {
@@ -27,7 +23,6 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
   const {
     mode,
     activePreset,
-    selectedPresetId,
     isRunning,
     selectedTaskId,
     soundEnabled,
@@ -41,7 +36,6 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
     toggleRunning,
     reset,
     skip,
-    selectPreset,
     switchMode,
     setSelectedTaskId,
     setSoundEnabled,
@@ -54,20 +48,16 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
   const strokeDashoffset = circumference - (progressPercent / 100) * circumference;
 
   const selectedTask = tasks.find((t) => t.id === selectedTaskId);
-  const isCurrentSessionLong = activePreset.focus >= 45 || activePreset.id === 'deep_flow';
 
   const sessionList =
     completedSessionItems.length >= completedSessionsToday
       ? completedSessionItems
       : Array.from({ length: completedSessionsToday }).map((_, i) => completedSessionItems[i] || {
           id: `synth-${i}`,
-          duration: 25,
-          isLong: false,
+          duration: 60,
+          isLong: true,
           completedAt: new Date().toISOString(),
         });
-
-  const longSessionsCount = sessionList.filter((s) => s.isLong).length;
-  const standardSessionsCount = Math.max(0, completedSessionsToday - longSessionsCount);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
@@ -93,7 +83,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
                   : 'text-[#9e8f82] hover:text-[#f5ede4]'
               }`}
             >
-              ⚡ Praca ({activePreset.focus}m)
+              ⚡ Praca 1h ({activePreset.focus}m)
             </button>
             <button
               onClick={() => switchMode('short_break')}
@@ -180,12 +170,10 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
             <span className="text-[11px] font-mono tracking-widest uppercase text-[#9e8f82] mb-1">
               {mode === 'focus'
-                ? isCurrentSessionLong
-                  ? 'Deep Flow (Długa sesja)'
-                  : 'Focus Session'
+                ? 'Sesja 1h (Deep 3D Flow)'
                 : mode === 'short_break'
-                ? 'Short Rest'
-                : 'Long Recovery'}
+                ? 'Przerwa dla wzroku'
+                : 'Długa regeneracja'}
             </span>
 
             <div className="text-5xl sm:text-6xl font-light text-[#f5ede4] tracking-tight font-mono">
@@ -253,24 +241,17 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
             </span>
 
             <div className="flex flex-wrap items-center gap-1.5">
-              {/* Completed sessions: standard as round amber dots, long as glowing amethyst capsule dots */}
+              {/* Completed sessions: 1h sessions as amber capsule dots */}
               {sessionList.map((item, idx) => {
                 const isEndOfBlock = (idx + 1) % 4 === 0 && idx + 1 < sessionList.length;
                 return (
                   <React.Fragment key={item.id || idx}>
-                    {item.isLong ? (
-                      <div
-                        className="group relative w-6 h-3.5 rounded-full bg-gradient-to-r from-[#a855f7] via-[#c084fc] to-[#a855f7] shadow-md shadow-[#a855f7]/40 ring-2 ring-[#c084fc]/50 transition-all duration-300 hover:scale-110 flex items-center justify-center cursor-pointer"
-                        title={`Sesja ${idx + 1}: Długa sesja Deep Flow (${item.duration || 50} min)`}
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-white/90 shadow-sm" />
-                      </div>
-                    ) : (
-                      <div
-                        className="w-3.5 h-3.5 rounded-full bg-[#d99b5a] shadow-sm shadow-[#d99b5a]/50 ring-2 ring-[#d99b5a]/25 transition-all duration-300 hover:scale-125 cursor-pointer"
-                        title={`Sesja ${idx + 1}: Standardowa (${item.duration || 25} min)`}
-                      />
-                    )}
+                    <div
+                      className="group relative w-6 h-3.5 rounded-full bg-gradient-to-r from-[#d99b5a] via-[#f1c38e] to-[#d99b5a] shadow-md shadow-[#d99b5a]/30 ring-2 ring-[#d99b5a]/40 transition-all duration-300 hover:scale-110 flex items-center justify-center cursor-pointer"
+                      title={`Sesja ${idx + 1}: 1h głębokiej pracy 3D (${item.duration || 60} min)`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#120e0a] shadow-sm" />
+                    </div>
                     {isEndOfBlock && (
                       <div className="w-[1px] h-3 bg-[#382b20] mx-1 opacity-70" />
                     )}
@@ -280,27 +261,16 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
 
               {/* Current session in progress / upcoming */}
               {mode === 'focus' ? (
-                isCurrentSessionLong ? (
-                  <div
-                    className={`w-6 h-3.5 rounded-full border transition-all duration-300 flex items-center justify-center ${
-                      isRunning
-                        ? 'border-[#c084fc] bg-[#a855f7]/30 animate-pulse shadow-sm shadow-[#a855f7]/40 ring-2 ring-[#a855f7]/30'
-                        : 'border-dashed border-[#c084fc]/70 bg-[#1c1224]'
-                    }`}
-                    title={`Długa sesja ${completedSessionsToday + 1} (${activePreset.focus} min) - ${isRunning ? 'w toku' : 'oczekuje na start'}`}
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${isRunning ? 'bg-[#c084fc] animate-ping' : 'bg-[#c084fc]/50'}`} />
-                  </div>
-                ) : (
-                  <div
-                    className={`w-3.5 h-3.5 rounded-full border border-[#d99b5a] transition-all duration-300 ${
-                      isRunning
-                        ? 'bg-[#d99b5a]/30 animate-pulse shadow-sm shadow-[#d99b5a]/30'
-                        : 'bg-[#211812] border-dashed border-[#d99b5a]/60'
-                    }`}
-                    title={`Sesja ${completedSessionsToday + 1} (${activePreset.focus} min) - ${isRunning ? 'w toku' : 'oczekuje na start'}`}
-                  />
-                )
+                <div
+                  className={`w-6 h-3.5 rounded-full border transition-all duration-300 flex items-center justify-center ${
+                    isRunning
+                      ? 'border-[#d99b5a] bg-[#d99b5a]/30 animate-pulse shadow-sm shadow-[#d99b5a]/40 ring-2 ring-[#d99b5a]/30'
+                      : 'border-dashed border-[#d99b5a]/70 bg-[#211812]'
+                  }`}
+                  title={`Sesja 1h nr ${completedSessionsToday + 1} (${activePreset.focus} min) - ${isRunning ? 'w toku' : 'oczekuje na start'}`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${isRunning ? 'bg-[#d99b5a] animate-ping' : 'bg-[#d99b5a]/50'}`} />
+                </div>
               ) : mode === 'long_break' ? (
                 <div
                   className="w-6 h-3.5 rounded-full border border-[#e07a68] bg-[#e07a68]/25 animate-pulse transition-all duration-300 ring-2 ring-[#e07a68]/30 flex items-center justify-center"
@@ -310,92 +280,61 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
                 </div>
               ) : (
                 <div
-                  className="w-3.5 h-3.5 rounded-full border border-[#7ec29a] bg-[#7ec29a]/25 animate-pulse transition-all duration-300"
+                  className="w-3.5 h-3.5 rounded-full border border-[#7ec29a] bg-[#7ec29a]/25 animate-pulse transition-all duration-300 flex items-center justify-center"
                   title={`Krótka przerwa (${activePreset.shortBreak} min)`}
-                />
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#7ec29a]" />
+                </div>
               )}
             </div>
           </div>
 
-          {/* Clean minimal legend for dot types */}
-          <div className="flex items-center justify-center gap-4 text-[10px] font-mono text-[#8c7b6d] pt-0.5">
+          {/* Clean minimal legend */}
+          <div className="flex items-center justify-center gap-2 text-[10px] font-mono text-[#8c7b6d] pt-0.5">
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#d99b5a] ring-1 ring-[#d99b5a]/40" />
-              <span>Standardowa ({POMODORO_PRESETS[0].focus}m)</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-4 h-2.5 rounded-full bg-gradient-to-r from-[#a855f7] to-[#c084fc] ring-1 ring-[#c084fc]/50 flex items-center justify-center">
-                <span className="w-1 h-1 rounded-full bg-white/90" />
+              <span className="w-5 h-3 rounded-full bg-gradient-to-r from-[#d99b5a] to-[#f1c38e] ring-1 ring-[#d99b5a]/50 flex items-center justify-center">
+                <span className="w-1 h-1 rounded-full bg-[#120e0a]" />
               </span>
-              <span className="text-[#c084fc] font-medium">Długa sesja ({POMODORO_PRESETS[1].focus}m)</span>
+              <span className="text-[#f1c38e] font-medium">Sesja 1h (60 min głębokiej pracy 3D)</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Grid: Preset Picker & Studio Stats */}
+      {/* Bottom Grid: Session Details & Studio Stats */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-        {/* Preset Selector (7 cols) */}
+        {/* Session Details (7 cols) */}
         <div className="md:col-span-7 glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-xl space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-[#2e231c]">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-[#d99b5a]" />
-              <h3 className="text-sm font-medium text-[#f5ede4]">Tryby i długości sesji</h3>
+              <Clock className="w-4 h-4 text-[#d99b5a]" />
+              <h3 className="text-sm font-medium text-[#f5ede4]">Wariant sesji: Praca 1h</h3>
             </div>
-            <span className="text-xs text-[#9e8f82]">Wybierz rytm pracy</span>
+            <span className="text-xs text-[#d99b5a] font-mono">Stały tryb: 60 min</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {POMODORO_PRESETS.map((preset: Preset) => {
-              const isSelected = selectedPresetId === preset.id;
-              const isLongPreset = preset.focus >= 45 || preset.id === 'deep_flow';
-              return (
-                <button
-                  key={preset.id}
-                  onClick={() => selectPreset(preset)}
-                  className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                    isSelected
-                      ? isLongPreset
-                        ? 'bg-[#211528] border-[#a855f7] ring-1 ring-[#a855f7] shadow-lg shadow-purple-950/30'
-                        : 'bg-[#251b14] border-[#d99b5a] ring-1 ring-[#d99b5a] shadow-lg'
-                      : 'bg-[#140f0c] border-[#2e231c] hover:border-[#382b20] text-[#9e8f82]'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span
-                        className={`text-xs font-medium block ${
-                          isSelected ? 'text-[#f5ede4]' : 'text-[#c4b5a5]'
-                        }`}
-                      >
-                        {preset.name}
-                      </span>
-                      {isLongPreset ? (
-                        <span
-                          className="w-4 h-2.5 rounded-full bg-gradient-to-r from-[#a855f7] to-[#c084fc] ring-1 ring-[#c084fc]/50 flex items-center justify-center shrink-0"
-                          title="Długa sesja (fioletowa kapsułka)"
-                        >
-                          <span className="w-1 h-1 rounded-full bg-white/90" />
-                        </span>
-                      ) : (
-                        <span
-                          className="w-2.5 h-2.5 rounded-full bg-[#d99b5a] ring-1 ring-[#d99b5a]/40 shrink-0"
-                          title="Standardowa sesja (bursztynowa kropka)"
-                        />
-                      )}
-                    </div>
-                    <span className="text-[11px] text-[#7a6b5e] leading-relaxed block">
-                      {preset.desc}
-                    </span>
-                  </div>
-                  <div className={`mt-3 text-[10px] font-mono uppercase font-medium ${
-                    isLongPreset ? 'text-[#c084fc]' : 'text-[#d99b5a]'
-                  }`}>
-                    {preset.focus}m / {preset.shortBreak}m
-                  </div>
-                </button>
-              );
-            })}
+          <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-sm font-medium text-[#f5ede4]">
+                  Sesja 1h (Deep 3D Flow)
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#d99b5a]/20 text-[#f1c38e] border border-[#d99b5a]/30">
+                  Aktywny wariant
+                </span>
+              </div>
+              <span className="text-xs text-[#9e8f82] leading-relaxed block">
+                Pojedyncza sesja pracy trwa pełne 60 minut bez przerw i rozpraszaczy. Po każdej godzinie pracy następuje 10 min odpoczynku dla wzroku.
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0 self-start sm:self-center">
+              <span className="px-2.5 py-1 rounded-xl text-xs font-mono font-medium bg-[#2a1e16] text-[#f1c38e] border border-[#d99b5a]/30">
+                ⚡ 60m Praca
+              </span>
+              <span className="px-2.5 py-1 rounded-xl text-xs font-mono font-medium bg-[#18261e] text-[#9ee2b9] border border-[#7ec29a]/30">
+                ☕ 10m Przerwa
+              </span>
+            </div>
           </div>
 
           {/* Project Link Selector */}
@@ -432,20 +371,15 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
           <div className="grid grid-cols-2 gap-3 my-auto">
             <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] space-y-1">
               <span className="text-[10px] font-mono uppercase tracking-wider text-[#9e8f82] block">
-                Ukończone sesje
+                Ukończone sesje 1h
               </span>
               <div className="text-2xl sm:text-3xl font-light text-[#f5ede4] font-mono">
                 {completedSessionsToday}
               </div>
               <div className="text-[10px] font-mono text-[#8c7b6d] flex items-center gap-1.5 flex-wrap">
-                {longSessionsCount > 0 && (
-                  <span className="text-[#c084fc] font-medium">{longSessionsCount} dł.</span>
-                )}
-                {standardSessionsCount > 0 && (
-                  <span className="text-[#d99b5a]">{standardSessionsCount} std.</span>
-                )}
+                <span className="text-[#d99b5a]">{completedSessionsToday} godz.</span>
                 {completedSessionsToday === 0 && (
-                  <span className="text-[#7ec29a]">cel: 8 / dzień</span>
+                  <span className="text-[#7ec29a]">cel: 6-8h / dzień</span>
                 )}
               </div>
             </div>
@@ -466,7 +400,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
           <div className="p-3 rounded-2xl bg-[#18120e] border border-[#2e231c] flex items-center justify-between text-xs text-[#9e8f82]">
             <div className="flex items-center gap-2">
               <Coffee className="w-4 h-4 text-[#d99b5a]" />
-              <span>Pamiętaj o piciu wody i krótkiej przerwie dla wzroku!</span>
+              <span>Pamiętaj o piciu wody i odpoczynku dla wzroku!</span>
             </div>
           </div>
         </div>

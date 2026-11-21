@@ -21,18 +21,10 @@ export interface CompletedSessionItem {
 
 export const POMODORO_PRESETS: Preset[] = [
   {
-    id: 'classic',
-    name: 'Klasyczne Pomodoro',
-    desc: '25 min skupienia • 5 min odpoczynku',
-    focus: 25,
-    shortBreak: 5,
-    longBreak: 15,
-  },
-  {
-    id: 'deep_flow',
-    name: 'Deep 3D Flow (Zalecane)',
-    desc: '50 min modelowania i oświetlenia • 10 min przerwy',
-    focus: 50,
+    id: 'flow_1h',
+    name: 'Sesja 1h (Deep Flow)',
+    desc: '60 min głębokiej pracy 3D • 10 min odpoczynku',
+    focus: 60,
     shortBreak: 10,
     longBreak: 20,
   },
@@ -86,7 +78,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
     } catch {}
-    return 'classic';
+    return 'flow_1h';
   });
 
   const activePreset = POMODORO_PRESETS.find((p) => p.id === selectedPresetId) || POMODORO_PRESETS[0];
@@ -120,6 +112,10 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           const diff = Math.max(0, Math.round((parsed.targetEndTime - Date.now()) / 1000));
           return diff;
         }
+        // If saved state was from previous preset, reset to 1 hour (60 min)
+        if (parsed.presetId !== 'flow_1h') {
+          return 60 * 60;
+        }
         if (typeof parsed.timeLeft === 'number') {
           return parsed.timeLeft;
         }
@@ -133,7 +129,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const saved = localStorage.getItem(STORAGE_KEY_STATE);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.isRunning && parsed.targetEndTime && parsed.targetEndTime > Date.now()) {
+        if (parsed.presetId === 'flow_1h' && parsed.isRunning && parsed.targetEndTime && parsed.targetEndTime > Date.now()) {
           return true;
         }
       }
@@ -434,7 +430,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           sendCompletionNotification(mode);
 
           if (mode === 'focus') {
-            const isLong = activePreset.focus >= 45 || activePreset.id === 'deep_flow';
+            const isLong = true;
             const newItem: CompletedSessionItem = {
               id: `${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
               duration: activePreset.focus,
