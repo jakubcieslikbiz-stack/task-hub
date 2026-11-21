@@ -8,11 +8,10 @@ import {
   SkipForward,
   Volume2,
   VolumeX,
-  Layers,
-  Award,
   Headphones,
-  Clock,
-  Sparkles,
+  Layers,
+  Target,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface PomodoroViewProps {
@@ -21,13 +20,11 @@ interface PomodoroViewProps {
 
 export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
   const {
-    activePreset,
     isRunning,
     selectedTaskId,
     soundEnabled,
     ambientSound,
     completedSessionsToday,
-    completedSessionItems,
     totalFocusMinutesToday,
     progressPercent,
     formattedTime,
@@ -47,21 +44,19 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
 
   const selectedTask = tasks.find((t) => t.id === selectedTaskId);
 
-  const sessionList =
-    completedSessionItems.length >= completedSessionsToday
-      ? completedSessionItems
-      : Array.from({ length: completedSessionsToday }).map((_, i) => completedSessionItems[i] || {
-          id: `synth-${i}`,
-          duration: 60,
-          isLong: true,
-          completedAt: new Date().toISOString(),
-        });
+  // Daily target: 6-8 h
+  const targetMin = 6;
+  const targetMax = 8;
+  const slotsCount = 8;
+
+  const hoursCompleted = Math.floor(totalFocusMinutesToday / 60);
+  const minutesRemainder = totalFocusMinutesToday % 60;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Main Timer Display Card */}
-      <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 sm:p-10 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden">
-        {/* Soft radial background glow matching mode */}
+    <div className="max-w-2xl mx-auto space-y-5 animate-in fade-in duration-200">
+      {/* Main Card */}
+      <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden">
+        {/* Soft radial background glow */}
         <div
           className="absolute inset-0 pointer-events-none opacity-15 blur-3xl transition-all duration-700"
           style={{
@@ -69,17 +64,19 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
           }}
         />
 
-        {/* Top Controls Bar: 1h Mode Badge & Audio Controls */}
-        <div className="w-full relative z-10 flex flex-wrap items-center justify-between gap-3 mb-8 pb-4 border-b border-[#2e231c]">
-          {/* Dedicated 1h Session Indicator */}
-          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#140f0c] border border-[#d99b5a]/30 shadow-lg text-xs">
-            <span className="w-2 h-2 rounded-full bg-[#d99b5a] shadow-[0_0_8px_#d99b5a]" />
-            <span className="text-[#f5ede4] font-medium tracking-wide">
-              ⚡ Sesja 1h (Ciągła praca • bez przerw)
-            </span>
+        {/* Top bar: Target indicator & Sound controls */}
+        <div className="w-full relative z-10 flex items-center justify-between gap-3 mb-6 pb-4 border-b border-[#2e231c]">
+          {/* Target indicator */}
+          <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#140f0c] border border-[#2e231c] text-xs">
+            <Target className="w-3.5 h-3.5 text-[#d99b5a]" />
+            <span className="text-[#9e8f82]">Cel:</span>
+            <span className="font-mono font-medium text-[#f5ede4]">6-8 h</span>
+            <span className="text-[#382b20]">•</span>
+            <span className="text-[#9e8f82]">Sesje:</span>
+            <span className="font-mono font-semibold text-[#f1c38e]">{completedSessionsToday}</span>
           </div>
 
-          {/* Quick Audio Controls */}
+          {/* Audio Controls */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setAmbientSound(!ambientSound)}
@@ -88,10 +85,10 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
                   ? 'bg-[#d99b5a]/20 text-[#f1c38e] border-[#d99b5a]/40 shadow-sm'
                   : 'bg-[#140f0c] text-[#9e8f82] border-[#2e231c] hover:text-[#f5ede4]'
               }`}
-              title="Szum brązowy / deszcz w tle wspomagający skupienie (działa także w tle)"
+              title="Szum w tle wspomagający skupienie"
             >
               <Headphones className="w-3.5 h-3.5" />
-              <span>Szum Focus {ambientSound ? '(Wł.)' : ''}</span>
+              <span>Szum {ambientSound ? '(Wł.)' : ''}</span>
             </button>
 
             <button
@@ -109,7 +106,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
         </div>
 
         {/* Circular SVG Timer */}
-        <div className="relative z-10 w-72 h-72 sm:w-80 sm:h-80 flex items-center justify-center my-2 select-none">
+        <div className="relative z-10 w-64 h-64 sm:w-72 sm:h-72 flex items-center justify-center my-2 select-none">
           <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 320 320">
             {/* Background track circle */}
             <circle
@@ -138,42 +135,33 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
             />
           </svg>
 
-          {/* Centered Numbers and Mode Name */}
+          {/* Centered Numbers */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <span className="text-[11px] font-mono tracking-widest uppercase text-[#9e8f82] mb-1">
-              Sesja 1h (Deep 3D Flow)
-            </span>
-
             <div className="text-5xl sm:text-6xl font-light text-[#f5ede4] tracking-tight font-mono">
               {formattedTime}
             </div>
 
-            {selectedTask ? (
-              <div className="mt-2.5 max-w-[200px] truncate px-3 py-1 rounded-full bg-[#1e1713] border border-[#2e231c] text-[11px] text-[#f1c38e]">
+            {selectedTask && (
+              <div className="mt-3 max-w-[210px] truncate px-3 py-1 rounded-full bg-[#1e1713] border border-[#2e231c] text-[11px] text-[#f1c38e]">
                 📍 {selectedTask.title}
-              </div>
-            ) : (
-              <div className="mt-2 text-xs text-[#7a6b5e] font-light">
-                Skup się na bieżącym ujęciu lub zleceniu 3D
               </div>
             )}
           </div>
         </div>
 
         {/* Action Controls Bar */}
-        <div className="relative z-10 flex items-center gap-3 mt-8">
+        <div className="relative z-10 flex items-center gap-3 mt-6">
           <button
             onClick={reset}
-            title="Zresetuj stoper do 60:00"
+            title="Resetuj do 60:00"
             className="p-3.5 rounded-full bg-[#140f0c] hover:bg-[#1f1712] text-[#9e8f82] hover:text-[#f5ede4] border border-[#2e231c] transition-all active:scale-95"
           >
             <RotateCcw className="w-5 h-5" />
           </button>
 
-          {/* Large Main Play/Pause Button */}
           <button
             onClick={toggleRunning}
-            className={`px-8 py-4 rounded-full font-medium text-sm shadow-xl flex items-center gap-2.5 transition-all active:scale-95 ${
+            className={`px-8 py-3.5 rounded-full font-medium text-sm shadow-xl flex items-center gap-2.5 transition-all active:scale-95 ${
               isRunning
                 ? 'bg-[#1e1713] text-[#f5ede4] border border-[#3d2c20] hover:bg-[#251b14]'
                 : 'bg-[#f5ede4] hover:bg-white text-[#120e0a]'
@@ -182,180 +170,97 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
             {isRunning ? (
               <>
                 <Pause className="w-5 h-5 fill-current" />
-                <span>Wstrzymaj sesję</span>
+                <span>Wstrzymaj</span>
               </>
             ) : (
               <>
                 <Play className="w-5 h-5 fill-current ml-0.5" />
-                <span>Rozpocznij sesję 1h</span>
+                <span>Rozpocznij (1h)</span>
               </>
             )}
           </button>
 
           <button
             onClick={skip}
-            title="Nowa sesja 1h (odliczanie od początku)"
+            title="Nowa sesja 1h"
             className="p-3.5 rounded-full bg-[#140f0c] hover:bg-[#1f1712] text-[#9e8f82] hover:text-[#f5ede4] border border-[#2e231c] transition-all active:scale-95"
           >
             <SkipForward className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Dynamic Session Accumulator (pure 1h sessions, no break dots) */}
-        <div className="relative z-10 flex flex-col items-center justify-center mt-7 max-w-lg px-4 space-y-2.5">
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            <span className="text-[11px] font-mono uppercase text-[#7a6b5e] tracking-wider">
-              Sesje dzisiaj ({completedSessionsToday}):
+        {/* Session Count & 6-8h Target Visual Indicator */}
+        <div className="relative z-10 w-full mt-7 pt-5 border-t border-[#2e231c]/70 space-y-2.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-[#9e8f82] font-mono">
+              Sesje dzisiaj: <strong className="text-[#f5ede4]">{completedSessionsToday}</strong>
+              <span className="text-[#7a6b5e] mx-1.5">•</span>
+              Czas: <strong className="text-[#f5ede4]">{hoursCompleted}h {minutesRemainder}m</strong>
             </span>
 
-            <div className="flex flex-wrap items-center gap-1.5">
-              {/* Completed sessions: 1h sessions as amber capsule dots */}
-              {sessionList.map((item, idx) => {
-                const isEndOfBlock = (idx + 1) % 4 === 0 && idx + 1 < sessionList.length;
-                return (
-                  <React.Fragment key={item.id || idx}>
-                    <div
-                      className="group relative w-6 h-3.5 rounded-full bg-gradient-to-r from-[#d99b5a] via-[#f1c38e] to-[#d99b5a] shadow-md shadow-[#d99b5a]/30 ring-2 ring-[#d99b5a]/40 transition-all duration-300 hover:scale-110 flex items-center justify-center cursor-pointer"
-                      title={`Sesja ${idx + 1}: 1h pracy 3D (${item.duration || 60} min)`}
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#120e0a] shadow-sm" />
-                    </div>
-                    {isEndOfBlock && (
-                      <div className="w-[1px] h-3 bg-[#382b20] mx-1 opacity-70" />
-                    )}
-                  </React.Fragment>
-                );
-              })}
-
-              {/* Current session in progress / upcoming */}
-              <div
-                className={`w-6 h-3.5 rounded-full border transition-all duration-300 flex items-center justify-center ${
-                  isRunning
-                    ? 'border-[#d99b5a] bg-[#d99b5a]/30 animate-pulse shadow-sm shadow-[#d99b5a]/40 ring-2 ring-[#d99b5a]/30'
-                    : 'border-dashed border-[#d99b5a]/70 bg-[#211812]'
-                }`}
-                title={`Sesja 1h nr ${completedSessionsToday + 1} (${activePreset.focus} min) - ${isRunning ? 'w toku' : 'oczekuje na start'}`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${isRunning ? 'bg-[#d99b5a] animate-ping' : 'bg-[#d99b5a]/50'}`} />
-              </div>
-            </div>
+            <span className="font-mono text-xs">
+              {completedSessionsToday >= targetMin ? (
+                <span className="inline-flex items-center gap-1 text-[#7ec29a]">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Cel osiągnięty ({completedSessionsToday}/{targetMin}-{targetMax}h)
+                </span>
+              ) : (
+                <span className="text-[#d99b5a]">
+                  Cel: {targetMin}-{targetMax} h (zostało {targetMin - completedSessionsToday}h)
+                </span>
+              )}
+            </span>
           </div>
 
-          {/* Clean minimal legend */}
-          <div className="flex items-center justify-center gap-2 text-[10px] font-mono text-[#8c7b6d] pt-0.5">
-            <div className="flex items-center gap-1.5">
-              <span className="w-5 h-3 rounded-full bg-gradient-to-r from-[#d99b5a] to-[#f1c38e] ring-1 ring-[#d99b5a]/50 flex items-center justify-center">
-                <span className="w-1 h-1 rounded-full bg-[#120e0a]" />
-              </span>
-              <span className="text-[#f1c38e] font-medium">Sesja 1h (60 min ciągłej pracy nad ujęciami 3D)</span>
-            </div>
+          {/* 8-slot capsule bar */}
+          <div className="grid grid-cols-8 gap-1.5">
+            {Array.from({ length: slotsCount }).map((_, idx) => {
+              const sessionNum = idx + 1;
+              const isCompleted = idx < completedSessionsToday;
+              const isCurrent = idx === completedSessionsToday && isRunning;
+              const isTargetZone = sessionNum >= targetMin && sessionNum <= targetMax;
+
+              return (
+                <div
+                  key={idx}
+                  title={`Sesja ${sessionNum}h ${isCompleted ? '(ukończona)' : isCurrent ? '(w toku)' : ''} ${isTargetZone ? '• Strefa celu 6-8h' : ''}`}
+                  className={`h-4 rounded-full transition-all duration-300 flex items-center justify-center relative ${
+                    isCompleted
+                      ? 'bg-gradient-to-r from-[#d99b5a] to-[#f1c38e] shadow-sm shadow-[#d99b5a]/30'
+                      : isCurrent
+                      ? 'border border-[#d99b5a] bg-[#d99b5a]/30 animate-pulse'
+                      : isTargetZone
+                      ? 'bg-[#1e1713] border border-[#d99b5a]/30'
+                      : 'bg-[#140f0c] border border-[#2e231c]'
+                  }`}
+                >
+                  <span className={`text-[9px] font-mono ${isCompleted ? 'text-[#120e0a] font-bold' : isTargetZone ? 'text-[#d99b5a]/60' : 'text-[#524438]'}`}>
+                    {sessionNum}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Bottom Grid: Session Details & Studio Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
-        {/* Session Details (7 cols) */}
-        <div className="md:col-span-7 glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#2e231c]">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#d99b5a]" />
-              <h3 className="text-sm font-medium text-[#f5ede4]">Wariant sesji: Praca 1h (bez przerw)</h3>
-            </div>
-            <span className="text-xs text-[#d99b5a] font-mono">Stały tryb: 60 min</span>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-medium text-[#f5ede4]">
-                  Sesja 1h (Deep 3D Flow)
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#d99b5a]/20 text-[#f1c38e] border border-[#d99b5a]/30">
-                  Aktywny tryb
-                </span>
-              </div>
-              <span className="text-xs text-[#9e8f82] leading-relaxed block">
-                Pojedyncza sesja pracy trwa pełne 60 minut bez przerw. Każda ukończona godzina posłuży do precyzyjnej weryfikacji rentowności Twoich zleceń 3D.
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0 self-start sm:self-center">
-              <span className="px-2.5 py-1 rounded-xl text-xs font-mono font-medium bg-[#2a1e16] text-[#f1c38e] border border-[#d99b5a]/30">
-                ⚡ 60m Ciągła praca
-              </span>
-              <span className="px-2.5 py-1 rounded-xl text-xs font-mono font-medium bg-[#1e1713] text-[#c4b5a5] border border-[#382b20]">
-                🎯 Zero przerw
-              </span>
-            </div>
-          </div>
-
-          {/* Project Link Selector */}
-          <div className="pt-2">
-            <label className="block text-xs font-medium text-[#c4b5a5] mb-1.5 flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-[#d99b5a]" />
-              Przypisz sesję do zlecenia 3D (dla analizy rentowności)
-            </label>
-            <select
-              value={selectedTaskId}
-              onChange={(e) => setSelectedTaskId(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#140f0c] border border-[#2e231c] text-[#f5ede4] text-xs focus:outline-none focus:border-[#d99b5a] cursor-pointer"
-            >
-              <option value="">-- Brak przypisanego zlecenia (ogólna praca 3D) --</option>
-              {tasks.map((task) => (
-                <option key={task.id} value={task.id}>
-                  {task.title} {task.price ? `(${task.price} zł)` : ''}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Daily Stats Summary (5 cols) */}
-        <div className="md:col-span-5 glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#2e231c]">
-            <div className="flex items-center gap-2">
-              <Award className="w-4 h-4 text-[#7ec29a]" />
-              <h3 className="text-sm font-medium text-[#f5ede4]">Dzisiejsza produktywność</h3>
-            </div>
-            <span className="text-[11px] font-mono text-[#7a6b5e]">JC Studio</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 my-auto">
-            <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] space-y-1">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#9e8f82] block">
-                Ukończone sesje 1h
-              </span>
-              <div className="text-2xl sm:text-3xl font-light text-[#f5ede4] font-mono">
-                {completedSessionsToday}
-              </div>
-              <div className="text-[10px] font-mono text-[#8c7b6d] flex items-center gap-1.5 flex-wrap">
-                <span className="text-[#d99b5a]">{completedSessionsToday} godz.</span>
-                {completedSessionsToday === 0 && (
-                  <span className="text-[#7ec29a]">cel: 6-8h / dzień</span>
-                )}
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#140f0c] border border-[#2e231c] space-y-1">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#9e8f82] block">
-                Czas skupienia
-              </span>
-              <div className="text-2xl sm:text-3xl font-light text-[#f5ede4] font-mono">
-                {Math.floor(totalFocusMinutesToday / 60)}h {totalFocusMinutesToday % 60}m
-              </div>
-              <span className="text-[11px] text-[#d99b5a] block">
-                głębokiej pracy 3D
-              </span>
-            </div>
-          </div>
-
-          <div className="p-3 rounded-2xl bg-[#18120e] border border-[#2e231c] flex items-center justify-between text-xs text-[#9e8f82]">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#d99b5a]" />
-              <span>Śledź godziny pracy – sesje 1h posłużą do analizy rentowności zleceń.</span>
-            </div>
-          </div>
-        </div>
+      {/* Task Assignment Section */}
+      <div className="glass-panel border border-[#2b211a] rounded-3xl p-4 sm:p-5 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <label className="text-xs font-medium text-[#c4b5a5] flex items-center gap-2 flex-shrink-0 cursor-pointer">
+          <Layers className="w-4 h-4 text-[#d99b5a]" />
+          <span>Przypisanie sesji do zadania:</span>
+        </label>
+        <select
+          value={selectedTaskId}
+          onChange={(e) => setSelectedTaskId(e.target.value)}
+          className="flex-1 max-w-md px-3.5 py-2 rounded-2xl bg-[#140f0c] border border-[#2e231c] text-[#f5ede4] text-xs focus:outline-none focus:border-[#d99b5a] cursor-pointer"
+        >
+          <option value="">-- Bez przypisania (ogólna praca) --</option>
+          {tasks.map((task) => (
+            <option key={task.id} value={task.id} className="bg-[#140f0c] text-[#f5ede4]">
+              {task.title} {task.price ? `(${Number(task.price).toLocaleString('pl-PL')} zł)` : ''}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );
