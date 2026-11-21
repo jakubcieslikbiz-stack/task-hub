@@ -144,7 +144,7 @@ export function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'done' | 'paid'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'in_progress' | 'todo' | 'done' | 'paid'>('all');
   const [tasksLayoutMode, setTasksLayoutMode] = useState<'table' | 'cards'>('table');
 
   // Modals state
@@ -1097,6 +1097,7 @@ export function App() {
       }
 
       if (statusFilter === 'in_progress' && task.status !== 'in_progress') return false;
+      if (statusFilter === 'todo' && task.status !== 'todo') return false;
       if (statusFilter === 'done' && task.status !== 'done') return false;
       if (statusFilter === 'paid' && task.status !== 'paid') return false;
 
@@ -1537,6 +1538,16 @@ export function App() {
                       }`}
                     >
                       W toku
+                    </button>
+                    <button
+                      onClick={() => setStatusFilter('todo')}
+                      className={`px-3 py-1 rounded-full transition-all ${
+                        statusFilter === 'todo'
+                          ? 'bg-[#c084fc] text-[#120e0a] font-semibold shadow-sm'
+                          : 'text-[#c084fc]/80 hover:text-[#e9d5ff]'
+                      }`}
+                    >
+                      📋 Do decyzji
                     </button>
                     <button
                       onClick={() => setStatusFilter('done')}

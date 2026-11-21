@@ -118,6 +118,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           ? 'border-[#7ec29a]/40 bg-[#1e1913]/90'
           : isDone
           ? 'border-[#2e231c]/60 opacity-60 hover:opacity-90'
+          : task.status === 'todo'
+          ? 'border-[#a855f7]/40 bg-[#1a141f]/90 hover:border-[#a855f7]/60'
           : 'border-[#2b211a]'
       } ${showMenu ? 'z-40' : 'z-0'}`}
     >
@@ -219,6 +221,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   ? 'bg-[#251b14] text-[#9e8f82] border-[#382b20]'
                   : task.status === 'in_progress'
                   ? 'bg-[#d99b5a]/20 text-[#f1c38e] border-[#d99b5a]/40'
+                  : task.status === 'todo'
+                  ? 'bg-[#9333ea]/20 text-[#e9d5ff] border-[#a855f7]/40'
                   : 'bg-[#251b14] text-[#9e8f82] border-[#382b20]'
               }`}
             >
@@ -228,6 +232,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 ? 'Gotowe'
                 : task.status === 'in_progress'
                 ? 'W toku'
+                : task.status === 'todo'
+                ? '📋 Do decyzji (zastanawia się)'
                 : 'Do zrobienia'}
             </span>
 
@@ -452,10 +458,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     onUpdateStatus(task.id, 'todo');
                   }}
                   className={`w-full text-left px-3.5 py-1.5 hover:bg-[#251b14] ${
-                    task.status === 'todo' ? 'text-[#f5ede4] font-semibold' : 'text-[#9e8f82]'
+                    task.status === 'todo' ? 'text-[#c084fc] font-semibold' : 'text-[#9e8f82]'
                   }`}
                 >
-                  Do zrobienia
+                  📋 Do decyzji (klient się zastanawia)
                 </button>
                 <button
                   onClick={() => {

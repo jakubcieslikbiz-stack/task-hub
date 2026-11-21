@@ -281,6 +281,8 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                     className={`group transition-colors ${
                       task.isWaitingForFeedback && !isDone && !isPaid
                         ? 'bg-[#22162a]/90 hover:bg-[#2c1d36] border-l-4 border-l-[#a855f7]'
+                        : task.status === 'todo' && !isDone && !isPaid
+                        ? 'bg-[#1e1526]/80 hover:bg-[#281a33] border-l-4 border-l-[#c084fc]/70'
                         : isPersonal
                         ? isPaid
                           ? 'bg-[#2a2119]/85 hover:bg-[#352a20]'
@@ -326,7 +328,12 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                           >
                             {task.title}
                           </span>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            {task.status === 'todo' && (
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#9333ea]/20 text-[#e9d5ff] border border-[#a855f7]/30">
+                                📋 Do decyzji
+                              </span>
+                            )}
                             {category && (
                               <span
                                 className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${

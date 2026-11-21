@@ -15,8 +15,8 @@ interface FinanceSummaryBoxesProps {
   tasks: Task[];
   costs: MonthlyCosts;
   monthlyBills?: MonthlyBillsData;
-  statusFilter: 'all' | 'in_progress' | 'done' | 'paid';
-  onFilterChange: (filter: 'all' | 'in_progress' | 'done' | 'paid') => void;
+  statusFilter: 'all' | 'in_progress' | 'todo' | 'done' | 'paid';
+  onFilterChange: (filter: 'all' | 'in_progress' | 'todo' | 'done' | 'paid') => void;
   onSaveCosts: (costs: MonthlyCosts) => void;
   onOpenFinancesView: () => void;
   onOpenPersonalView?: () => void;

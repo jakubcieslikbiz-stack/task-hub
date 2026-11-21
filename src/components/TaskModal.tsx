@@ -257,10 +257,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                 onChange={(e) => setStatus(e.target.value as Status)}
                 className="w-full px-3.5 py-2 rounded-2xl glass-input text-sm"
               >
-                <option value="in_progress" className="bg-[#140f0c]">W toku</option>
-                <option value="done" className="bg-[#140f0c]">Gotowe</option>
+                <option value="in_progress" className="bg-[#140f0c]">⚡ W toku</option>
+                <option value="todo" className="bg-[#140f0c]">📋 Do decyzji (klient się zastanawia)</option>
+                <option value="done" className="bg-[#140f0c]">✓ Gotowe</option>
                 <option value="paid" className="bg-[#140f0c]">💰 Opłacone</option>
-                <option value="todo" className="bg-[#140f0c]">Do zrobienia</option>
               </select>
             </div>
           </div>

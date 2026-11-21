@@ -291,10 +291,20 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
                                 ? 'text-[#9e8f82]'
                                 : task.isWaitingForFeedback
                                 ? 'text-[#c084fc]'
+                                : task.status === 'todo'
+                                ? 'text-[#c084fc]'
                                 : 'text-[#d99b5a]'
                             }`}
                           >
-                            • {isPaid ? 'Opłacone' : isDone ? 'Gotowe' : task.isWaitingForFeedback ? 'Czekam na uwagi' : 'W toku'}
+                            • {isPaid
+                                ? 'Opłacone'
+                                : isDone
+                                ? 'Gotowe'
+                                : task.isWaitingForFeedback
+                                ? 'Czekam na uwagi'
+                                : task.status === 'todo'
+                                ? 'Do decyzji (zastanawia się)'
+                                : 'W toku'}
                           </span>
                         </div>
 
@@ -328,6 +338,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
                           barBg = 'bg-[#7ec29a] text-[#120e0a]';
                         } else if (isDone) {
                           barBg = 'bg-[#5c4738] text-[#ebdcd0]';
+                        } else if (task.status === 'todo') {
+                          barBg = 'bg-[#2e2338] text-[#e9d5ff] border border-dashed border-[#c084fc]/60';
                         } else if (isPreviewDay) {
                           // First 3/4 business days: Ujęcia wstępne in Kindra warm copper
                           barBg = 'bg-gradient-to-r from-[#d99b5a] via-[#e6ab6e] to-[#d99b5a] text-[#120e0a] shadow-[0_0_8px_rgba(217,155,90,0.35)]';
