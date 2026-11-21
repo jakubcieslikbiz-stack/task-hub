@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Task, Priority, Status } from '../types';
 import { CATEGORIES } from '../data/initialData';
+import { getInitialPreviewsInfo } from '../utils/initialPreviews';
 import { sendTaskReminderEmail, formatScheduledReminder } from '../lib/email';
 import {
   CheckCircle2,
@@ -262,6 +263,26 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 {isToday ? 'Dzisiaj' : task.dueDate}
               </span>
             )}
+
+            {/* Initial Previews badge for commercial orders */}
+            {task.category !== 'personal' && !isDone && !isPaid && (() => {
+              const previewInfo = getInitialPreviewsInfo(task);
+              if (!previewInfo.isApplicable) return null;
+              return (
+                <span
+                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-[11px] font-mono ${
+                    previewInfo.isPast
+                      ? 'bg-[#e07a68]/15 text-[#f19b8c] border-[#e07a68]/30 font-semibold'
+                      : previewInfo.isToday
+                      ? 'bg-[#d99b5a]/25 text-[#f1c38e] border-[#d99b5a]/50 font-semibold animate-pulse'
+                      : 'bg-[#2a1e16] text-[#d99b5a] border-[#d99b5a]/30'
+                  }`}
+                  title={`Ujęcia wstępne: termin oddania ${previewInfo.previewDateFullFormatted} (${previewInfo.businessDays} dni robocze dla kwoty ${previewInfo.priceThresholdText})`}
+                >
+                  <span>📸 Wstępne: {previewInfo.previewDateFormatted}</span>
+                </span>
+              );
+            })()}
 
             {/* Email reminder badge */}
             {task.remindByEmail && (

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import type { Task } from '../types';
 import { sortTasksByClosestDeadline } from '../utils/taskSort';
-import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { getInitialPreviewsInfo } from '../utils/initialPreviews';
+import { ChevronLeft, ChevronRight, Clock, Camera } from 'lucide-react';
 
 interface TimelineViewProps {
   tasks: Task[];
@@ -150,6 +151,40 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
         </div>
       </div>
 
+      {/* Visual Timeline Legend: Ujęcia wstępne vs Realizacja */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-2.5 rounded-2xl bg-[#140f0c] border border-[#2e231c] text-xs">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-3 rounded-full bg-gradient-to-r from-[#d99b5a] to-[#e6ab6e] shadow-sm flex items-center justify-center text-[8px] font-bold text-[#120e0a]">
+              📸
+            </span>
+            <span className="text-[#f1c38e] font-mono text-[11px]">
+              Ujęcia wstępne (3 dni rob. &lt; 1500 zł • 4 dni rob. ≥ 1500 zł)
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-3 rounded-full bg-[#f5ede4] shadow-sm flex items-center justify-center text-[8px] text-[#120e0a] font-bold">
+              •
+            </span>
+            <span className="text-[#c4b5a5] font-mono text-[11px]">
+              Faza realizacji & Finał
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-3 rounded-full bg-[#7ec29a] shadow-sm flex items-center justify-center text-[8px] text-[#120e0a] font-bold">
+              ✓
+            </span>
+            <span className="text-[#7ec29a] font-mono text-[11px]">
+              Opłacone
+            </span>
+          </div>
+        </div>
+
+        <div className="text-[11px] text-[#7a6b5e] font-mono">
+          Kliknij zlecenie, aby edytować
+        </div>
+      </div>
+
       {/* Timeline Gantt Chart Table (Full Month 1 to last day) */}
       <div className="glass-panel rounded-3xl border border-[#2b211a] overflow-hidden shadow-2xl">
         <div className="overflow-x-auto select-none">
@@ -209,8 +244,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
 
                   const isPaid = task.status === 'paid';
                   const isDone = task.status === 'done';
-
                   const isPersonal = task.category === 'personal';
+
+                  const previewInfo = getInitialPreviewsInfo(task);
 
                   return (
                     <div
@@ -225,7 +261,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
                         gridTemplateColumns: `220px repeat(${daysInMonth}, minmax(32px, 1fr))`,
                       }}
                     >
-                      {/* Task Name, Price & Status */}
+                      {/* Task Name, Price, Previews & Status */}
                       <div className="pl-2 pr-2 truncate">
                         <div
                           className={`text-xs font-medium truncate ${
@@ -261,6 +297,19 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
                             • {isPaid ? 'Opłacone' : isDone ? 'Gotowe' : task.isWaitingForFeedback ? 'Czekam na uwagi' : 'W toku'}
                           </span>
                         </div>
+
+                        {/* Initial Previews info pill for commercial orders */}
+                        {!isPersonal && previewInfo.isApplicable && (
+                          <div className="flex items-center gap-1 mt-1 text-[10px] font-mono text-[#d99b5a]">
+                            <span
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-[#d99b5a]/15 border border-[#d99b5a]/30 text-[10px]"
+                              title={`Ujęcia wstępne: termin oddania ${previewInfo.previewDateFullFormatted} (${previewInfo.businessDays} dni robocze dla kwoty ${previewInfo.priceThresholdText})`}
+                            >
+                              <Camera className="w-2.5 h-2.5 text-[#d99b5a]" />
+                              Wstępne: {previewInfo.businessDays}d ({previewInfo.previewDateFormatted})
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Days Slots (1 to daysInMonth) */}
@@ -271,6 +320,27 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
                         const isEndDay = dayStr === end || (i === daysInMonth - 1 && end > monthEnd && isInRange);
                         const isToday = dayStr === todayStr;
 
+                        const isPreviewDay = !isPersonal && previewInfo.isApplicable && previewInfo.previewDatesSet.has(dayStr);
+                        const isPreviewDeadline = !isPersonal && previewInfo.isApplicable && dayStr === previewInfo.previewDate;
+
+                        let barBg = 'bg-[#f5ede4] text-[#120e0a]';
+                        if (isPaid) {
+                          barBg = 'bg-[#7ec29a] text-[#120e0a]';
+                        } else if (isDone) {
+                          barBg = 'bg-[#5c4738] text-[#ebdcd0]';
+                        } else if (isPreviewDay) {
+                          // First 3/4 business days: Ujęcia wstępne in Kindra warm copper
+                          barBg = 'bg-gradient-to-r from-[#d99b5a] via-[#e6ab6e] to-[#d99b5a] text-[#120e0a] shadow-[0_0_8px_rgba(217,155,90,0.35)]';
+                        }
+
+                        const barTitle = isPreviewDeadline
+                          ? `${task.title} • TERMIN UJĘĆ WSTĘPNYCH (${previewInfo.businessDays} dni rob. dla wyceny ${task.price ? `${task.price} zł` : ''})`
+                          : isPreviewDay
+                          ? `${task.title} • Faza ujęć wstępnych (dzień roboczy)`
+                          : isEndDay
+                          ? `${task.title} • Finał zlecenia (${end})`
+                          : `${task.title} (${start} → ${end})`;
+
                         return (
                           <div
                             key={i}
@@ -280,20 +350,25 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
                           >
                             {isInRange && (
                               <div
-                                title={`${task.title} (${start} → ${end})`}
-                                className={`h-4 w-full flex items-center justify-center text-[9px] font-bold transition-all shadow-sm ${
-                                  isPaid
-                                    ? 'bg-[#7ec29a] text-[#120e0a]'
-                                    : isDone
-                                    ? 'bg-[#5c4738] text-[#ebdcd0]'
-                                    : 'bg-[#f5ede4] text-[#120e0a]'
-                                } ${isStartDay ? 'rounded-l-full' : ''} ${isEndDay ? 'rounded-r-full' : ''}`}
+                                title={barTitle}
+                                className={`h-4 w-full flex items-center justify-center text-[9px] font-bold transition-all shadow-sm ${barBg} ${
+                                  isStartDay ? 'rounded-l-full' : ''
+                                } ${isEndDay || isPreviewDeadline ? 'rounded-r-md' : ''} ${
+                                  isEndDay ? 'rounded-r-full' : ''
+                                }`}
                               >
-                                {isEndDay && (
+                                {isPreviewDeadline ? (
+                                  <span
+                                    className="text-[8px] font-mono leading-none flex items-center justify-center"
+                                    title={`Termin ujęć wstępnych: ${previewInfo.previewDateFormatted}`}
+                                  >
+                                    📸
+                                  </span>
+                                ) : isEndDay ? (
                                   <span className="truncate px-0.5 text-[8px] font-mono">
                                     {isPaid ? '✓' : isDone ? '✓' : '•'}
                                   </span>
-                                )}
+                                ) : null}
                               </div>
                             )}
                           </div>

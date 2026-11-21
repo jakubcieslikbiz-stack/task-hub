@@ -9,6 +9,7 @@ import {
   cancelScheduledTaskEmail,
 } from '../lib/email';
 import { MiniCalendarPicker } from './MiniCalendarPicker';
+import { getInitialPreviewsInfo } from '../utils/initialPreviews';
 import { X, Plus, Trash, DollarSign, Mail, MessageSquare } from 'lucide-react';
 
 interface TaskModalProps {
@@ -311,6 +312,29 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               align="right"
             />
           </div>
+
+          {/* Automatic Initial Previews Calculation Notice for commercial orders */}
+          {category !== 'personal' && startDate && (() => {
+            const previewInfo = getInitialPreviewsInfo({
+              startDate,
+              price: price.trim() !== '' ? Number(price) : 0,
+              category,
+            });
+            if (!previewInfo.isApplicable) return null;
+            return (
+              <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#2a1e16]/80 border border-[#d99b5a]/40 text-xs text-[#f1c38e] animate-in fade-in duration-150">
+                <span className="text-base flex-shrink-0">📸</span>
+                <div className="leading-snug">
+                  <div className="font-semibold text-[#f5ede4]">
+                    Termin ujęć wstępnych: {previewInfo.previewDateFullFormatted}
+                  </div>
+                  <div className="text-[11px] text-[#d99b5a]/90 mt-0.5">
+                    Pierwsze {previewInfo.businessDays} dni robocze dla kwoty {previewInfo.priceThresholdText} (widoczne na Timeline)
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Category & Priority Row */}
           <div className="grid grid-cols-2 gap-3">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Task, Priority, Status } from '../types';
 import { CATEGORIES } from '../data/initialData';
+import { getInitialPreviewsInfo } from '../utils/initialPreviews';
 import { sendTaskReminderEmail, formatScheduledReminder } from '../lib/email';
 import {
   Pencil,
@@ -456,6 +457,18 @@ export const TaskTable: React.FC<TaskTableProps> = ({
                             {daysRemainingInfo.text}
                           </span>
                         )}
+                        {!isDone && !isPaid && task.category !== 'personal' && (() => {
+                          const previewInfo = getInitialPreviewsInfo(task);
+                          if (!previewInfo.isApplicable) return null;
+                          return (
+                            <span
+                              className="text-[10px] font-mono text-[#d99b5a] mt-0.5 inline-flex items-center gap-1"
+                              title={`Ujęcia wstępne: termin oddania ${previewInfo.previewDateFullFormatted} (${previewInfo.businessDays} dni robocze dla kwoty ${previewInfo.priceThresholdText})`}
+                            >
+                              📸 Wstępne: {previewInfo.previewDateFormatted} ({previewInfo.businessDays}d)
+                            </span>
+                          );
+                        })()}
                       </div>
                     </td>
 
