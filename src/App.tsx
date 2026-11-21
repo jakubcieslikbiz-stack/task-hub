@@ -28,6 +28,7 @@ import { ChangePasswordModal } from './components/ChangePasswordModal';
 import { SettingsView } from './components/SettingsView';
 import { PersonalErrandsView } from './components/PersonalErrandsView';
 import { RemindersScheduleView } from './components/RemindersScheduleView';
+import { MortgageView } from './components/MortgageView';
 import { sendTaskReminderEmail, calculateReminderTimestamp } from './lib/email';
 import {
   getStoredFixedBills,
@@ -1427,6 +1428,8 @@ export function App() {
               monthlyBills={monthlyBills}
               onSaveCosts={handleSaveCosts}
             />
+          ) : currentView === 'mortgage' ? (
+            <MortgageView />
           ) : currentView === 'timeline' ? (
             <TimelineView
               tasks={tasks}

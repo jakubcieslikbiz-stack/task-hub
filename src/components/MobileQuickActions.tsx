@@ -18,6 +18,7 @@ import {
   User,
   Settings,
   Bell,
+  Landmark,
 } from 'lucide-react';
 import { executeAiCommand, speakText } from '../lib/ai';
 import {
@@ -57,6 +58,7 @@ const VIEW_ICONS: Record<ViewMode, React.ReactNode> = {
   pomodoro: <Timer className="w-4 h-4" />,
   timeline: <Clock className="w-4 h-4" />,
   finances: <DollarSign className="w-4 h-4 text-[#7ec29a]" />,
+  mortgage: <Landmark className="w-4 h-4 text-[#d99b5a]" />,
   offers: <MailCheck className="w-4 h-4 text-[#d99b5a]" />,
   converter: <ImageIcon className="w-4 h-4" />,
   dwg_converter: <DraftingCompass className="w-4 h-4 text-[#d99b5a]" />,

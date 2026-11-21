@@ -61,6 +61,7 @@ export type ViewMode =
   | 'today'
   | 'all'
   | 'personal'
+  | 'mortgage'
   | 'reminders'
   | 'pomodoro'
   | 'timeline'
@@ -70,6 +71,28 @@ export type ViewMode =
   | 'offers'
   | 'portfolio_manager'
   | 'settings';
+
+export interface MortgagePaymentRecord {
+  id: string;
+  date: string; // YYYY-MM-DD
+  regularInstallment: number; // Rata podstawowa
+  overpayment: number; // Kwota nadpłaty kapitału
+  totalPaid?: number; // Suma
+  notes?: string;
+  createdAt?: string;
+}
+
+export interface MortgageConfig {
+  loanName: string;
+  originalAmount: number; // Kwota zaciągniętego kredytu
+  currentRemainingCapital?: number; // Pozostały kapitał do spłaty
+  interestRate: number; // Oprocentowanie roczne (np. 7.5%)
+  regularInstallment: number; // Standardowa rata bankowa
+  targetMonthlyOverpayment: number; // Bazowy pułap nadpłaty (np. 3000 zł)
+  startDate: string; // YYYY-MM-DD
+  loanTermMonths: number; // Okres trwania kredytu w miesiącach (np. 300)
+  accountNumber?: string; // Subkonto do spłaty/nadpłaty
+}
 
 export interface PortfolioProject {
   id: string;
