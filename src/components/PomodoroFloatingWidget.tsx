@@ -14,7 +14,6 @@ export const PomodoroFloatingWidget: React.FC<PomodoroFloatingWidgetProps> = ({
   onNavigateToPomodoro,
 }) => {
   const {
-    mode,
     formattedTime,
     isRunning,
     toggleRunning,
@@ -26,13 +25,8 @@ export const PomodoroFloatingWidget: React.FC<PomodoroFloatingWidgetProps> = ({
   // If user is currently on the pomodoro page, don't show the floating widget
   if (currentView === 'pomodoro') return null;
 
-  // Total seconds for current mode to check if timer was touched
-  const totalModeSeconds =
-    mode === 'focus'
-      ? activePreset.focus * 60
-      : mode === 'short_break'
-      ? activePreset.shortBreak * 60
-      : activePreset.longBreak * 60;
+  // Total seconds for 1h session to check if timer was touched
+  const totalModeSeconds = activePreset.focus * 60;
 
   // Show only if it's currently running OR it's paused with progress (so user doesn't forget they started a session)
   const isTimerActive = isRunning || timeLeft < totalModeSeconds;

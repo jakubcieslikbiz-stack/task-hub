@@ -27,7 +27,7 @@ const VIEW_TITLES: Record<ViewMode, { title: string; subtitle: string; short: st
   all: { title: 'Zlecenia & Projekty', subtitle: 'Pełny przegląd zleceń, statusów i wycen JC Studio', short: 'Zlecenia' },
   personal: { title: 'Moje Sprawy & Opłaty', subtitle: 'Stałe rachunki comiesięczne (czynsz, prąd, ZUS) oraz prywatne plany, wizyty i karteczki', short: 'Moje Sprawy' },
   reminders: { title: 'Harmonogram Powiadomień', subtitle: 'Przeglądaj, testuj i planuj nadchodzące powiadomienia e-mail do zleceń i spraw osobistych', short: 'Harmonogram' },
-  pomodoro: { title: 'Pomodoro Focus Timer', subtitle: 'Sesje głębokiej pracy nad ujęciami 3D z regenerującymi przerwami dla wzroku', short: 'Pomodoro' },
+  pomodoro: { title: 'Stoper Sesji 1h (Rentowność)', subtitle: 'Sesje 1h pracy nad ujęciami 3D bez przerw – do precyzyjnej analizy rentowności zleceń', short: 'Sesje 1h' },
   timeline: { title: 'Timeline tygodnia', subtitle: 'Wizualny harmonogram Gantta na poszczególne dni', short: 'Schedule' },
   finances: { title: 'Finanse & Koszty', subtitle: 'Rozliczenia zleceń, podatki i zysk netto na czysto', short: 'Finance' },
   mortgage: { title: 'Kredyt Hipoteczny & Nadpłaty', subtitle: 'Kalkulator nadpłat, historia rat i inteligentne planowanie redukcji kapitału', short: 'Kredyt' },

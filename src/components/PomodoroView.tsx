@@ -8,11 +8,11 @@ import {
   SkipForward,
   Volume2,
   VolumeX,
-  Coffee,
   Layers,
   Award,
   Headphones,
   Clock,
+  Sparkles,
 } from 'lucide-react';
 
 interface PomodoroViewProps {
@@ -21,7 +21,6 @@ interface PomodoroViewProps {
 
 export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
   const {
-    mode,
     activePreset,
     isRunning,
     selectedTaskId,
@@ -36,7 +35,6 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
     toggleRunning,
     reset,
     skip,
-    switchMode,
     setSelectedTaskId,
     setSoundEnabled,
     setAmbientSound,
@@ -71,40 +69,14 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
           }}
         />
 
-        {/* Top Controls Bar: Mode Switcher & Audio Controls */}
+        {/* Top Controls Bar: 1h Mode Badge & Audio Controls */}
         <div className="w-full relative z-10 flex flex-wrap items-center justify-between gap-3 mb-8 pb-4 border-b border-[#2e231c]">
-          {/* Mode Switcher Tabs */}
-          <div className="flex items-center gap-1 p-1 rounded-full bg-[#140f0c] border border-[#2e231c] shadow-lg">
-            <button
-              onClick={() => switchMode('focus')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                mode === 'focus'
-                  ? 'bg-[#f5ede4] text-[#120e0a] font-semibold shadow-md'
-                  : 'text-[#9e8f82] hover:text-[#f5ede4]'
-              }`}
-            >
-              ⚡ Praca 1h ({activePreset.focus}m)
-            </button>
-            <button
-              onClick={() => switchMode('short_break')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                mode === 'short_break'
-                  ? 'bg-[#7ec29a] text-[#120e0a] font-semibold shadow-md'
-                  : 'text-[#9e8f82] hover:text-[#f5ede4]'
-              }`}
-            >
-              ☕ Przerwa ({activePreset.shortBreak}m)
-            </button>
-            <button
-              onClick={() => switchMode('long_break')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-                mode === 'long_break'
-                  ? 'bg-[#e07a68] text-[#120e0a] font-semibold shadow-md'
-                  : 'text-[#9e8f82] hover:text-[#f5ede4]'
-              }`}
-            >
-              🌿 Długa ({activePreset.longBreak}m)
-            </button>
+          {/* Dedicated 1h Session Indicator */}
+          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#140f0c] border border-[#d99b5a]/30 shadow-lg text-xs">
+            <span className="w-2 h-2 rounded-full bg-[#d99b5a] shadow-[0_0_8px_#d99b5a]" />
+            <span className="text-[#f5ede4] font-medium tracking-wide">
+              ⚡ Sesja 1h (Ciągła praca • bez przerw)
+            </span>
           </div>
 
           {/* Quick Audio Controls */}
@@ -169,11 +141,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
           {/* Centered Numbers and Mode Name */}
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
             <span className="text-[11px] font-mono tracking-widest uppercase text-[#9e8f82] mb-1">
-              {mode === 'focus'
-                ? 'Sesja 1h (Deep 3D Flow)'
-                : mode === 'short_break'
-                ? 'Przerwa dla wzroku'
-                : 'Długa regeneracja'}
+              Sesja 1h (Deep 3D Flow)
             </span>
 
             <div className="text-5xl sm:text-6xl font-light text-[#f5ede4] tracking-tight font-mono">
@@ -186,7 +154,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
               </div>
             ) : (
               <div className="mt-2 text-xs text-[#7a6b5e] font-light">
-                {mode === 'focus' ? 'Skup się na bieżącym ujęciu' : 'Odpocznij od monitora'}
+                Skup się na bieżącym ujęciu lub zleceniu 3D
               </div>
             )}
           </div>
@@ -196,7 +164,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
         <div className="relative z-10 flex items-center gap-3 mt-8">
           <button
             onClick={reset}
-            title="Zresetuj czas"
+            title="Zresetuj stoper do 60:00"
             className="p-3.5 rounded-full bg-[#140f0c] hover:bg-[#1f1712] text-[#9e8f82] hover:text-[#f5ede4] border border-[#2e231c] transition-all active:scale-95"
           >
             <RotateCcw className="w-5 h-5" />
@@ -219,21 +187,21 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
             ) : (
               <>
                 <Play className="w-5 h-5 fill-current ml-0.5" />
-                <span>Rozpocznij {mode === 'focus' ? 'skupienie' : 'przerwę'}</span>
+                <span>Rozpocznij sesję 1h</span>
               </>
             )}
           </button>
 
           <button
             onClick={skip}
-            title="Przejdź do kolejnego etapu"
+            title="Nowa sesja 1h (odliczanie od początku)"
             className="p-3.5 rounded-full bg-[#140f0c] hover:bg-[#1f1712] text-[#9e8f82] hover:text-[#f5ede4] border border-[#2e231c] transition-all active:scale-95"
           >
             <SkipForward className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Dynamic Session Accumulator (no 4-session limit - scales for 8-10h workdays) */}
+        {/* Dynamic Session Accumulator (pure 1h sessions, no break dots) */}
         <div className="relative z-10 flex flex-col items-center justify-center mt-7 max-w-lg px-4 space-y-2.5">
           <div className="flex flex-wrap items-center justify-center gap-2">
             <span className="text-[11px] font-mono uppercase text-[#7a6b5e] tracking-wider">
@@ -248,7 +216,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
                   <React.Fragment key={item.id || idx}>
                     <div
                       className="group relative w-6 h-3.5 rounded-full bg-gradient-to-r from-[#d99b5a] via-[#f1c38e] to-[#d99b5a] shadow-md shadow-[#d99b5a]/30 ring-2 ring-[#d99b5a]/40 transition-all duration-300 hover:scale-110 flex items-center justify-center cursor-pointer"
-                      title={`Sesja ${idx + 1}: 1h głębokiej pracy 3D (${item.duration || 60} min)`}
+                      title={`Sesja ${idx + 1}: 1h pracy 3D (${item.duration || 60} min)`}
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-[#120e0a] shadow-sm" />
                     </div>
@@ -260,32 +228,16 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
               })}
 
               {/* Current session in progress / upcoming */}
-              {mode === 'focus' ? (
-                <div
-                  className={`w-6 h-3.5 rounded-full border transition-all duration-300 flex items-center justify-center ${
-                    isRunning
-                      ? 'border-[#d99b5a] bg-[#d99b5a]/30 animate-pulse shadow-sm shadow-[#d99b5a]/40 ring-2 ring-[#d99b5a]/30'
-                      : 'border-dashed border-[#d99b5a]/70 bg-[#211812]'
-                  }`}
-                  title={`Sesja 1h nr ${completedSessionsToday + 1} (${activePreset.focus} min) - ${isRunning ? 'w toku' : 'oczekuje na start'}`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${isRunning ? 'bg-[#d99b5a] animate-ping' : 'bg-[#d99b5a]/50'}`} />
-                </div>
-              ) : mode === 'long_break' ? (
-                <div
-                  className="w-6 h-3.5 rounded-full border border-[#e07a68] bg-[#e07a68]/25 animate-pulse transition-all duration-300 ring-2 ring-[#e07a68]/30 flex items-center justify-center"
-                  title={`Długa przerwa regeneracyjna (${activePreset.longBreak} min)`}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#e07a68]" />
-                </div>
-              ) : (
-                <div
-                  className="w-3.5 h-3.5 rounded-full border border-[#7ec29a] bg-[#7ec29a]/25 animate-pulse transition-all duration-300 flex items-center justify-center"
-                  title={`Krótka przerwa (${activePreset.shortBreak} min)`}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#7ec29a]" />
-                </div>
-              )}
+              <div
+                className={`w-6 h-3.5 rounded-full border transition-all duration-300 flex items-center justify-center ${
+                  isRunning
+                    ? 'border-[#d99b5a] bg-[#d99b5a]/30 animate-pulse shadow-sm shadow-[#d99b5a]/40 ring-2 ring-[#d99b5a]/30'
+                    : 'border-dashed border-[#d99b5a]/70 bg-[#211812]'
+                }`}
+                title={`Sesja 1h nr ${completedSessionsToday + 1} (${activePreset.focus} min) - ${isRunning ? 'w toku' : 'oczekuje na start'}`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${isRunning ? 'bg-[#d99b5a] animate-ping' : 'bg-[#d99b5a]/50'}`} />
+              </div>
             </div>
           </div>
 
@@ -295,7 +247,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
               <span className="w-5 h-3 rounded-full bg-gradient-to-r from-[#d99b5a] to-[#f1c38e] ring-1 ring-[#d99b5a]/50 flex items-center justify-center">
                 <span className="w-1 h-1 rounded-full bg-[#120e0a]" />
               </span>
-              <span className="text-[#f1c38e] font-medium">Sesja 1h (60 min głębokiej pracy 3D)</span>
+              <span className="text-[#f1c38e] font-medium">Sesja 1h (60 min ciągłej pracy nad ujęciami 3D)</span>
             </div>
           </div>
         </div>
@@ -308,7 +260,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
           <div className="flex items-center justify-between pb-3 border-b border-[#2e231c]">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-[#d99b5a]" />
-              <h3 className="text-sm font-medium text-[#f5ede4]">Wariant sesji: Praca 1h</h3>
+              <h3 className="text-sm font-medium text-[#f5ede4]">Wariant sesji: Praca 1h (bez przerw)</h3>
             </div>
             <span className="text-xs text-[#d99b5a] font-mono">Stały tryb: 60 min</span>
           </div>
@@ -320,19 +272,19 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
                   Sesja 1h (Deep 3D Flow)
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#d99b5a]/20 text-[#f1c38e] border border-[#d99b5a]/30">
-                  Aktywny wariant
+                  Aktywny tryb
                 </span>
               </div>
               <span className="text-xs text-[#9e8f82] leading-relaxed block">
-                Pojedyncza sesja pracy trwa pełne 60 minut bez przerw i rozpraszaczy. Po każdej godzinie pracy następuje 10 min odpoczynku dla wzroku.
+                Pojedyncza sesja pracy trwa pełne 60 minut bez przerw. Każda ukończona godzina posłuży do precyzyjnej weryfikacji rentowności Twoich zleceń 3D.
               </span>
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0 self-start sm:self-center">
               <span className="px-2.5 py-1 rounded-xl text-xs font-mono font-medium bg-[#2a1e16] text-[#f1c38e] border border-[#d99b5a]/30">
-                ⚡ 60m Praca
+                ⚡ 60m Ciągła praca
               </span>
-              <span className="px-2.5 py-1 rounded-xl text-xs font-mono font-medium bg-[#18261e] text-[#9ee2b9] border border-[#7ec29a]/30">
-                ☕ 10m Przerwa
+              <span className="px-2.5 py-1 rounded-xl text-xs font-mono font-medium bg-[#1e1713] text-[#c4b5a5] border border-[#382b20]">
+                🎯 Zero przerw
               </span>
             </div>
           </div>
@@ -341,7 +293,7 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
           <div className="pt-2">
             <label className="block text-xs font-medium text-[#c4b5a5] mb-1.5 flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5 text-[#d99b5a]" />
-              Przypisz sesję do zlecenia 3D (opcjonalne)
+              Przypisz sesję do zlecenia 3D (dla analizy rentowności)
             </label>
             <select
               value={selectedTaskId}
@@ -399,8 +351,8 @@ export const PomodoroView: React.FC<PomodoroViewProps> = ({ tasks }) => {
 
           <div className="p-3 rounded-2xl bg-[#18120e] border border-[#2e231c] flex items-center justify-between text-xs text-[#9e8f82]">
             <div className="flex items-center gap-2">
-              <Coffee className="w-4 h-4 text-[#d99b5a]" />
-              <span>Pamiętaj o piciu wody i odpoczynku dla wzroku!</span>
+              <Sparkles className="w-4 h-4 text-[#d99b5a]" />
+              <span>Śledź godziny pracy – sesje 1h posłużą do analizy rentowności zleceń.</span>
             </div>
           </div>
         </div>

@@ -68,7 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenChangePassword,
 }) => {
   const [showCategoryMenu, setShowCategoryMenu] = React.useState(false);
-  const { isRunning: isPomodoroRunning, formattedTime: pomodoroTime, mode: pomodoroMode } = usePomodoro();
+  const { isRunning: isPomodoroRunning, formattedTime: pomodoroTime } = usePomodoro();
 
   const handleNav = (view: ViewMode) => {
     onViewChange(view);
@@ -211,8 +211,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
           <span className="pointer-events-none absolute right-14 md:right-auto md:left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
             {isPomodoroRunning
-              ? `Pomodoro (${pomodoroTime} • ${pomodoroMode === 'focus' ? 'Praca' : 'Przerwa'})`
-              : 'Pomodoro Focus'}
+              ? `Sesja 1h (${pomodoroTime} • Praca)`
+              : 'Sesja 1h Focus'}
           </span>
         </button>
 

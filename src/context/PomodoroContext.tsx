@@ -23,10 +23,10 @@ export const POMODORO_PRESETS: Preset[] = [
   {
     id: 'flow_1h',
     name: 'Sesja 1h (Deep Flow)',
-    desc: '60 min głębokiej pracy 3D • 10 min odpoczynku',
+    desc: '60 min głębokiej pracy 3D bez przerw',
     focus: 60,
-    shortBreak: 10,
-    longBreak: 20,
+    shortBreak: 0,
+    longBreak: 0,
   },
 ];
 
@@ -83,22 +83,11 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const activePreset = POMODORO_PRESETS.find((p) => p.id === selectedPresetId) || POMODORO_PRESETS[0];
 
-  const [mode, setMode] = useState<PomodoroMode>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_STATE);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed.mode) return parsed.mode;
-      }
-    } catch {}
-    return 'focus';
-  });
+  const [mode, setMode] = useState<PomodoroMode>('focus');
 
-  // Calculate default mode seconds
-  const getModeSeconds = useCallback((m: PomodoroMode, preset: Preset) => {
-    if (m === 'focus') return preset.focus * 60;
-    if (m === 'short_break') return preset.shortBreak * 60;
-    return preset.longBreak * 60;
+  // Calculate default mode seconds (always 1h focus)
+  const getModeSeconds = useCallback((_m: PomodoroMode, preset: Preset) => {
+    return preset.focus * 60;
   }, []);
 
   // Time left in seconds
@@ -271,37 +260,26 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   // Send desktop/phone notification when session completes
-  const sendCompletionNotification = useCallback(
-    (finishedMode: PomodoroMode) => {
-      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-        try {
-          if (finishedMode === 'focus') {
-            new Notification('JC Studio: Czas na przerwę! ☕', {
-              body: 'Świetna robota! Sesja skupienia zakończona. Odpocznij od monitora i napij się wody.',
-              icon: '/favicon.svg',
-            });
-          } else {
-            new Notification('JC Studio: Koniec przerwy! ⚡', {
-              body: 'Czas wrócić do modelowania i ujęć 3D.',
-              icon: '/favicon.svg',
-            });
-          }
-        } catch {}
-      }
-    },
-    []
-  );
+  const sendCompletionNotification = useCallback(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification('JC Studio: Sesja 1h ukończona! ⚡', {
+          body: 'Świetna robota! Pełna godzina (60 min) pracy nad zleceniami 3D zaliczona.',
+          icon: '/favicon.svg',
+        });
+      } catch {}
+    }
+  }, []);
 
-  // Switch Mode
+  // Switch Mode (locked to focus)
   const switchMode = useCallback(
-    (newMode: PomodoroMode) => {
-      setMode(newMode);
+    (_newMode?: PomodoroMode) => {
+      setMode('focus');
       setIsRunning(false);
       targetEndTimeRef.current = null;
-      const newSecs = getModeSeconds(newMode, activePreset);
-      setTimeLeft(newSecs);
+      setTimeLeft(activePreset.focus * 60);
     },
-    [activePreset, getModeSeconds]
+    [activePreset]
   );
 
   // Start timer
@@ -334,13 +312,12 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setTimeLeft(getModeSeconds(mode, activePreset));
   }, [mode, activePreset, getModeSeconds]);
 
-  // Skip to next stage
+  // Skip to next session (resets to 1h focus)
   const skip = useCallback(() => {
     setIsRunning(false);
     targetEndTimeRef.current = null;
-    if (mode === 'focus') switchMode('short_break');
-    else switchMode('focus');
-  }, [mode, switchMode]);
+    setTimeLeft(activePreset.focus * 60);
+  }, [activePreset]);
 
   // Select Preset
   const selectPreset = useCallback(
@@ -427,54 +404,43 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           targetEndTimeRef.current = null;
 
           playChime();
-          sendCompletionNotification(mode);
+          sendCompletionNotification();
 
-          if (mode === 'focus') {
-            const isLong = true;
-            const newItem: CompletedSessionItem = {
-              id: `${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-              duration: activePreset.focus,
-              isLong,
-              completedAt: new Date().toISOString(),
-            };
-            const updatedItems = [...completedSessionItems, newItem];
-            setCompletedSessionItems(updatedItems);
+          const isLong = true;
+          const newItem: CompletedSessionItem = {
+            id: `${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+            duration: activePreset.focus,
+            isLong,
+            completedAt: new Date().toISOString(),
+          };
+          const updatedItems = [...completedSessionItems, newItem];
+          setCompletedSessionItems(updatedItems);
 
-            const newSessions = updatedItems.length;
-            const newMinutes = totalFocusMinutesToday + activePreset.focus;
-            setCompletedSessionsToday(newSessions);
-            setTotalFocusMinutesToday(newMinutes);
+          const newSessions = updatedItems.length;
+          const newMinutes = totalFocusMinutesToday + activePreset.focus;
+          setCompletedSessionsToday(newSessions);
+          setTotalFocusMinutesToday(newMinutes);
 
-            try {
-              const today = new Date().toISOString().slice(0, 10);
-              localStorage.setItem(STORAGE_KEY_DATE, today);
-              localStorage.setItem(STORAGE_KEY_SESSION_ITEMS, JSON.stringify(updatedItems));
-              localStorage.setItem(STORAGE_KEY_SESSIONS, newSessions.toString());
-              localStorage.setItem(STORAGE_KEY_MINUTES, newMinutes.toString());
-            } catch {}
+          try {
+            const today = new Date().toISOString().slice(0, 10);
+            localStorage.setItem(STORAGE_KEY_DATE, today);
+            localStorage.setItem(STORAGE_KEY_SESSION_ITEMS, JSON.stringify(updatedItems));
+            localStorage.setItem(STORAGE_KEY_SESSIONS, newSessions.toString());
+            localStorage.setItem(STORAGE_KEY_MINUTES, newMinutes.toString());
+          } catch {}
 
-            try {
-              confetti({
-                particleCount: 70,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#d99b5a', '#7ec29a', '#f5ede4'],
-              });
-            } catch {}
+          try {
+            confetti({
+              particleCount: 75,
+              spread: 75,
+              origin: { y: 0.6 },
+              colors: ['#d99b5a', '#f5ede4', '#e6ab6e'],
+            });
+          } catch {}
 
-            // Auto suggest break
-            if (newSessions % 4 === 0) {
-              setMode('long_break');
-              setTimeLeft(activePreset.longBreak * 60);
-            } else {
-              setMode('short_break');
-              setTimeLeft(activePreset.shortBreak * 60);
-            }
-          } else {
-            // Break ended, prepare focus
-            setMode('focus');
-            setTimeLeft(activePreset.focus * 60);
-          }
+          // Reset to 1h for the next session (no breaks!)
+          setMode('focus');
+          setTimeLeft(activePreset.focus * 60);
         }
       }, 500);
     }
@@ -485,7 +451,6 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [
     isRunning,
     timeLeft,
-    mode,
     activePreset,
     completedSessionsToday,
     completedSessionItems,
@@ -499,10 +464,9 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const mins = Math.floor(timeLeft / 60);
     const secs = timeLeft % 60;
     const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-    const modeLabel = mode === 'focus' ? 'Skupienie' : 'Przerwa';
 
     if (isRunning) {
-      document.title = `(${formatted}) ${modeLabel} • JC Studio`;
+      document.title = `(${formatted}) Praca 1h • JC Studio`;
     } else {
       document.title = 'JC Studio TaskHub';
     }
@@ -510,7 +474,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => {
       document.title = 'JC Studio TaskHub';
     };
-  }, [timeLeft, isRunning, mode]);
+  }, [timeLeft, isRunning]);
 
   // Save active timer state in localStorage
   useEffect(() => {
@@ -537,8 +501,7 @@ export const PomodoroProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const seconds = timeLeft % 60;
   const formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-  const themeColor =
-    mode === 'focus' ? '#d99b5a' : mode === 'short_break' ? '#7ec29a' : '#e07a68';
+  const themeColor = '#d99b5a';
 
   const value: PomodoroContextType = {
     mode,
