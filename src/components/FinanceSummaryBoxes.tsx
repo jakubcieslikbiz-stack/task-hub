@@ -457,11 +457,11 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
                     {hoveredCoord.pt.isToday && ' • Dziś ✨'}
                   </div>
                   <div className="font-semibold text-[#f5ede4]">
-                    Suma: {hoveredCoord.pt.val.toLocaleString('pl-PL')} zł
+                    Suma: <span className="privacy-mask">{hoveredCoord.pt.val.toLocaleString('pl-PL')} zł</span>
                   </div>
                   {hoveredCoord.pt.dailyVal > 0 && (
                     <div className="text-[10px] text-[#7ec29a] font-mono">
-                      +{hoveredCoord.pt.dailyVal.toLocaleString('pl-PL')} zł w tym dniu
+                      <span className="privacy-mask">+{hoveredCoord.pt.dailyVal.toLocaleString('pl-PL')} zł</span> w tym dniu
                     </div>
                   )}
                   {hoveredCoord.pt.tasks.length > 0 && (
@@ -651,9 +651,19 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#7ec29a]" />
             <span>
-              {monthlyBillsTotal > 0
-                ? `Koszty stałe z Moich Spraw: ${totalCosts.toLocaleString('pl-PL')} zł (${filledBillsCount} pozycji)`
-                : `Domyślne koszty stałe: ${totalCosts.toLocaleString('pl-PL')} zł (ZUS + Podatek)`}
+              {monthlyBillsTotal > 0 ? (
+                <>
+                  Koszty stałe z Moich Spraw:{' '}
+                  <strong className="text-[#f5ede4] font-mono privacy-mask">{totalCosts.toLocaleString('pl-PL')} zł</strong>{' '}
+                  ({filledBillsCount} pozycji)
+                </>
+              ) : (
+                <>
+                  Domyślne koszty stałe:{' '}
+                  <strong className="text-[#f5ede4] font-mono privacy-mask">{totalCosts.toLocaleString('pl-PL')} zł</strong>{' '}
+                  (ZUS + Podatek)
+                </>
+              )}
             </span>
           </div>
 
@@ -695,7 +705,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
               {animInProgressCount}
             </span>
           </div>
-          <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono">
+          <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono privacy-mask">
             {animInProgressValue.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">
@@ -722,7 +732,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
               {animDoneCount}
             </span>
           </div>
-          <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono">
+          <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono privacy-mask">
             {animDoneValue.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">
@@ -749,7 +759,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
               {animPaidCount}
             </span>
           </div>
-          <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono">
+          <div className="text-xl sm:text-2xl font-light text-[#f5ede4] tracking-tight font-mono privacy-mask">
             {animPaidValue.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">
@@ -774,7 +784,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           </div>
 
           <div
-            className={`text-xl sm:text-2xl font-semibold tracking-tight font-mono ${
+            className={`text-xl sm:text-2xl font-semibold tracking-tight font-mono privacy-mask ${
               netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'
             }`}
           >
@@ -782,7 +792,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           </div>
 
           <div className="mt-1 text-[11px] text-[#9e8f82] flex items-center justify-between">
-            <span>Koszty: {totalCosts} zł</span>
+            <span>Koszty: <strong className="privacy-mask">{totalCosts} zł</strong></span>
             <span className="text-[10px] text-[#d99b5a] group-hover:underline">panel →</span>
           </div>
         </div>

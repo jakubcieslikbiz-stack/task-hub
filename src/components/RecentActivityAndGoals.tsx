@@ -66,7 +66,7 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
               <span className="text-[10px] font-mono uppercase text-[#7a6b5e] block">
                 2 aktywne cele
               </span>
-              <span className="text-sm font-medium text-[#7ec29a] font-mono">
+              <span className="text-sm font-medium text-[#7ec29a] font-mono privacy-mask">
                 {animAverageProgress}% średni postęp
               </span>
             </div>
@@ -91,13 +91,13 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
                 <Target className="w-3.5 h-3.5 text-[#d99b5a]" />
                 Przychód miesięczny
               </span>
-              <span className="font-mono text-[#d99b5a] font-medium">
+              <span className="font-mono text-[#d99b5a] font-medium privacy-mask">
                 {animQ4Progress}%
               </span>
             </div>
 
             {/* Animated filling progress bar with shimmer sweep */}
-            <div className="w-full h-2.5 rounded-full bg-[#201712] overflow-hidden my-1 relative border border-[#2e231c]">
+            <div className="w-full h-2.5 rounded-full bg-[#201712] overflow-hidden my-1 relative border border-[#2e231c] privacy-mask">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#d99b5a]/70 via-[#f5ede4] to-white shadow-[0_0_12px_rgba(245,237,228,0.45)] relative overflow-hidden"
                 style={{
@@ -122,13 +122,13 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
                 <Cpu className="w-3.5 h-3.5 text-[#f1c38e]" />
                 Fundusz sprzętowy (GPU RTX)
               </span>
-              <span className="font-mono text-[#f1c38e] font-medium">
+              <span className="font-mono text-[#f1c38e] font-medium privacy-mask">
                 {animHardwareProgress}%
               </span>
             </div>
 
             {/* Animated filling progress bar with shimmer sweep */}
-            <div className="w-full h-2.5 rounded-full bg-[#201712] overflow-hidden my-1 relative border border-[#2e231c]">
+            <div className="w-full h-2.5 rounded-full bg-[#201712] overflow-hidden my-1 relative border border-[#2e231c] privacy-mask">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#8a5223] via-[#d99b5a] to-[#f1c38e] shadow-[0_0_12px_rgba(217,155,90,0.4)] relative overflow-hidden"
                 style={{
