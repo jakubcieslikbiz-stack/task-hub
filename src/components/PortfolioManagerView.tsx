@@ -39,9 +39,9 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
   const [year, setYear] = useState('2026');
   const [tagsStr, setTagsStr] = useState('');
 
-  // Własna domena dla portfolio (np. https://jc-visualization-studio.vercel.app lub domena z Vercel)
+  // Własna domena dla portfolio (domyślnie aktywny adres w Vercel: https://task-hub-pied-delta.vercel.app)
   const [customDomain, setCustomDomain] = useState<string>(() => {
-    return localStorage.getItem('taskhub_custom_portfolio_domain') || 'https://jc-visualization-studio.vercel.app';
+    return localStorage.getItem('taskhub_custom_portfolio_domain') || '';
   });
   const [isEditingDomain, setIsEditingDomain] = useState(false);
   const [tempDomain, setTempDomain] = useState(customDomain);
@@ -49,9 +49,9 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
 
   const publicUrl = customDomain
     ? `${customDomain.replace(/\/+$/, '')}/portfolio`
-    : typeof window !== 'undefined'
+    : typeof window !== 'undefined' && !window.location.origin.includes('localhost')
     ? `${window.location.origin}/portfolio`
-    : 'https://jc-visualization-studio.vercel.app/portfolio';
+    : 'https://task-hub-pied-delta.vercel.app/portfolio';
 
   const handleSaveCustomDomain = () => {
     const formatted = tempDomain.trim().replace(/\/+$/, '');
@@ -61,12 +61,9 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
   };
 
   const handleResetToOrigin = () => {
-    if (typeof window !== 'undefined') {
-      const origin = window.location.origin;
-      setCustomDomain(origin);
-      setTempDomain(origin);
-      localStorage.setItem('taskhub_custom_portfolio_domain', origin);
-    }
+    setCustomDomain('');
+    setTempDomain('');
+    localStorage.removeItem('taskhub_custom_portfolio_domain');
     setIsEditingDomain(false);
   };
 
@@ -241,10 +238,10 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
               />
               <button
                 type="button"
-                onClick={() => setTempDomain('https://jc-visualization-studio.vercel.app')}
+                onClick={() => setTempDomain('https://task-hub-pied-delta.vercel.app')}
                 className="px-2.5 py-1.5 rounded-xl bg-[#1e1713] hover:bg-[#2a1e16] text-[#d99b5a] border border-[#2e231c] text-xs font-mono whitespace-nowrap"
               >
-                jc-visualization-studio.vercel.app
+                task-hub-pied-delta.vercel.app
               </button>
               <button
                 type="button"
