@@ -49,16 +49,16 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
       number: '02',
       title: 'System Znaku & Modularność',
       subtitle: 'Konstrukcja, proporcje i pole ochronne',
-      desc: 'Podstawowa geometria sygnetu "jc studio", siatka konstrukcyjna, proporcje oraz warianty na jasnych tłach alabastrowych i głębokiej czerni obsydianu.',
+      desc: 'Sygnet "jc studio", siatka modularna i warianty na jasnym i ciemnym tle.',
       image: '/brand/jc-studio-02-system-znaku.svg',
       tag: 'Konstrukcja & Siatka',
     },
     {
       id: 'kolor-typografia',
       number: '03',
-      title: 'Kolorystyka & Architektura Pisma',
+      title: 'Kolorystyka & Pismo',
       subtitle: 'Obsydian, Alabaster, Szałwia & Terakota',
-      desc: 'Ziemista paleta barw: #181B18 (Obsydian), #F4F3EE (Alabaster), #8CA168 (Oliwkowa Szałwia), #864C4C (Ceglana Terakota) oraz #E1E5D9 (Pistacja).',
+      desc: 'Paleta barw: #181B18, #F4F3EE, #8CA168, #864C4C i #E1E5D9.',
       image: '/brand/jc-studio-03-kolor-typografia.svg',
       tag: 'Paleta Barw & Fonty',
       palette: ['#181B18', '#F4F3EE', '#8CA168', '#864C4C', '#E1E5D9'],
@@ -66,18 +66,18 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
     {
       id: 'materialy-firmowe',
       number: '04',
-      title: 'Materiały Firmowe & Akcydensy A4',
-      subtitle: 'Wizytówki luxury, teczki, certyfikaty i oferty',
-      desc: 'Standaryzacja nośników drukowanych dla inwestorów i architektów: papier firmowy o minimalistycznej architekturze, karty ofertowe, wizytówki z akcentem oliwkowym.',
+      title: 'Materiały Firmowe A4',
+      subtitle: 'Wizytówki, teczki, certyfikaty i oferty',
+      desc: 'Papier firmowy A4, karty ofertowe i wizytówki inwestycyjne.',
       image: '/brand/jc-studio-04-materialy-firmowe.svg',
       tag: 'Druk A4 & Akcydensy',
     },
     {
       id: 'komunikacja-cyfrowa',
       number: '05',
-      title: 'Komunikacja Cyfrowa & Ekosystem Web',
-      subtitle: 'Wielkoformatowe banery, awatary i social media',
-      desc: 'Adaptacja sygnetu do formatów cyfrowych: banery nagłówkowe, awatary społecznościowe (LinkedIn/IG), miniatury oraz favicony.',
+      title: 'Komunikacja Cyfrowa & Web',
+      subtitle: 'Banery, awatary i social media',
+      desc: 'Wielkoformatowe banery, awatary społecznościowe oraz favicony.',
       image: '/brand/jc-studio-05-komunikacja-cyfrowa.svg',
       tag: 'Web & Social Media',
     },
@@ -506,10 +506,10 @@ export const PublicPortfolioView: React.FC<PublicPortfolioViewProps> = ({ projec
                 Autorski Standard Marki • Identyfikacja Wizualna
               </div>
               <h2 className="text-3xl sm:text-4xl font-light text-white tracking-tight">
-                Architektoniczna spójność od sygnetu po nośniki inwestycji
+                Identyfikacja wizualna & standard marki
               </h2>
               <p className="text-xs sm:text-sm text-neutral-400 font-light max-w-2xl leading-relaxed">
-                Każdy materiał sprzedażowy, wizualizację i kartę lokalu tworzę w oparciu o precyzyjne zasady estetyczne. Poniżej znajduje się oficjalna księga tożsamości JC Studio — kliknij dowolną planszę, by obejrzeć oryginalny wektorowy arkusz SVG.
+                Oficjalna księga tożsamości JC Studio. Kliknij planszę, aby wyświetlić arkusz wektorowy SVG.
               </p>
             </div>
 

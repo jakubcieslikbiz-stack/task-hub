@@ -400,7 +400,7 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
             Sporządź profesjonalną umowę z klientem
           </h2>
           <p className="text-xs text-[#9e8f82] mt-0.5">
-            Podaj podstawowe wytyczne (zakres, termin, cenę), a sztuczna inteligencja przygotuje kompletny, prawnie zabezpieczony dokument z przeniesieniem praw autorskich.
+            Podaj zakres, termin i cenę – AI przygotuje umowę z przeniesieniem praw autorskich.
           </p>
         </div>
 
@@ -773,7 +773,7 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
               isEditingManually || previewTab === 'raw_editor' ? (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-[11px] text-[#9e8f82] font-mono">
-                    <span>Tryb edycji bezpośredniej — zmiany widoczne są w szablonie A4:</span>
+                    <span>Edycja tekstu umowy (widoczna w szablonie A4):</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -782,7 +782,7 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
                       }}
                       className="text-[#d99b5a] hover:underline"
                     >
-                      Wróć do szablonu A4 →
+                      Szablon A4 →
                     </button>
                   </div>
                   <textarea
@@ -949,7 +949,7 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
                     Brak wygenerowanej umowy
                   </h4>
                   <p className="text-xs text-[#9e8f82] max-w-sm mx-auto">
-                    Wybierz preset lub wprowadź zakres i cenę po lewej stronie, a następnie kliknij <strong>„Generuj umowę przez AI”</strong>.
+                    Wprowadź parametry i kliknij <strong>„Generuj umowę przez AI”</strong>.
                   </p>
                 </div>
               </div>

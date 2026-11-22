@@ -504,7 +504,7 @@ export const MortgageView: React.FC = () => {
               Wybierz kiedy chcesz całkowicie zamknąć kredyt
             </h3>
             <p className="text-xs text-[#9e8f82]">
-              Wprowadź docelowy rok i miesiąc, a system precyzyjnie obliczy wymaganą miesięczną nadpłatę oraz zaoszczędzone odsetki.
+              Wskaż rok i miesiąc spłaty, aby obliczyć wymaganą nadpłatę i oszczędności.
             </p>
           </div>
 
@@ -847,7 +847,7 @@ export const MortgageView: React.FC = () => {
               Szacunkowe łączne odsetki w zależności od parametrów
             </h3>
             <p className="text-xs text-[#9e8f82] mt-0.5">
-              Porównanie całkowitych odsetek zapłaconych bankowi w pełnym cyklu życia kredytu dla 3 strategii
+              Całkowity koszt odsetek dla 3 strategii spłaty
             </p>
           </div>
         </div>
