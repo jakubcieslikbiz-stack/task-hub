@@ -366,7 +366,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 
                     {/* BUDŻET */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <span className="font-mono text-sm font-medium text-[#f5ede4]">
+                      <span className="font-mono text-sm font-medium text-[#f5ede4] privacy-mask">
                         {budgetFormatted} zł
                       </span>
                     </td>

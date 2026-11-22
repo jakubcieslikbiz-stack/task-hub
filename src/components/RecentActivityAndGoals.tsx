@@ -110,8 +110,8 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
             </div>
 
             <div className="flex items-center justify-between text-[11px] text-[#9e8f82] font-mono pt-0.5">
-              <span>{animTotalPaidRevenue.toLocaleString('pl-PL')} zł</span>
-              <span>cel: {q4RevenueTarget.toLocaleString('pl-PL')} zł</span>
+              <span className="privacy-mask">{animTotalPaidRevenue.toLocaleString('pl-PL')} zł</span>
+              <span className="privacy-mask">cel: {q4RevenueTarget.toLocaleString('pl-PL')} zł</span>
             </div>
           </div>
 
@@ -141,8 +141,8 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
             </div>
 
             <div className="flex items-center justify-between text-[11px] text-[#9e8f82] font-mono pt-0.5">
-              <span>{animHardwareCurrent.toLocaleString('pl-PL')} zł</span>
-              <span>cel: {hardwareFundTarget.toLocaleString('pl-PL')} zł</span>
+              <span className="privacy-mask">{animHardwareCurrent.toLocaleString('pl-PL')} zł</span>
+              <span className="privacy-mask">cel: {hardwareFundTarget.toLocaleString('pl-PL')} zł</span>
             </div>
           </div>
         </div>

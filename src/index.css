@@ -272,3 +272,25 @@ html {
 .animate-ai-green-pulse {
   animation: aiGreenScreenPulse 1.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ==========================================================================
+   Privacy Mode / Stealth Masking (Banking App Style)
+   Blurs all financial numbers, balances, installments, and sensitive data
+   ========================================================================== */
+.privacy-mode-active .privacy-mask,
+.privacy-mode-active [data-sensitive="true"] {
+  filter: blur(8px) !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  transition: filter 0.22s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease !important;
+  display: inline-block;
+  cursor: pointer;
+}
+
+/* Hover-to-peek: allows user to temporarily unblur a single amount by hovering over it */
+.privacy-mode-active .privacy-mask:hover,
+.privacy-mode-active [data-sensitive="true"]:hover {
+  filter: blur(0px) !important;
+  background-color: rgba(217, 155, 90, 0.12) !important;
+  border-radius: 6px;
+}

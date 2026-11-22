@@ -224,7 +224,7 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
             <span>Zarobiono (Opłacone)</span>
             <TrendingUp className="w-4 h-4" />
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-light text-[#f5ede4] font-mono">
+          <div className="mt-3 text-2xl sm:text-3xl font-light text-[#f5ede4] font-mono privacy-mask">
             {animEarnings.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82]">
@@ -238,7 +238,7 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
             <span>Oczekujące płatności</span>
             <FileText className="w-4 h-4" />
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-light text-[#f5ede4] font-mono">
+          <div className="mt-3 text-2xl sm:text-3xl font-light text-[#f5ede4] font-mono privacy-mask">
             {animPendingValue.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82]">
@@ -252,11 +252,11 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
             <span>Koszty (ZUS + Podatek)</span>
             <TrendingDown className="w-4 h-4" />
           </div>
-          <div className="mt-3 text-2xl sm:text-3xl font-light text-[#e07a68] font-mono">
+          <div className="mt-3 text-2xl sm:text-3xl font-light text-[#e07a68] font-mono privacy-mask">
             {animTotalCosts.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82]">
-            ZUS: {currentZus} zł | Podatek: {currentTax} zł
+            ZUS: <span className="privacy-mask">{currentZus} zł</span> | Podatek: <span className="privacy-mask">{currentTax} zł</span>
           </div>
         </div>
 
@@ -268,7 +268,7 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
             </span>
             <span className="text-base">💰</span>
           </div>
-          <div className={`mt-3 text-2xl sm:text-3xl font-semibold font-mono ${
+          <div className={`mt-3 text-2xl sm:text-3xl font-semibold font-mono privacy-mask ${
             netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'
           }`}>
             {netProfit >= 0 ? '+' : ''}
@@ -376,19 +376,19 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
                   <div className="mt-3 pt-3 border-t border-[#221813] flex items-center justify-between text-xs font-mono">
                     <div>
                       <span className="text-[10px] text-[#9e8f82] block">Przychód</span>
-                      <span className="text-[#7ec29a] font-medium">
+                      <span className="text-[#7ec29a] font-medium privacy-mask">
                         {rep.financials.paidRevenue.toLocaleString('pl-PL')} zł
                       </span>
                     </div>
                     <div>
                       <span className="text-[10px] text-[#9e8f82] block">Koszty</span>
-                      <span className="text-[#e07a68]">
+                      <span className="text-[#e07a68] privacy-mask">
                         {rep.financials.totalCosts.toLocaleString('pl-PL')} zł
                       </span>
                     </div>
                     <div>
                       <span className="text-[10px] text-[#9e8f82] block">Zysk netto</span>
-                      <span className={`font-semibold ${rep.financials.netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'}`}>
+                      <span className={`font-semibold privacy-mask ${rep.financials.netProfit >= 0 ? 'text-[#7ec29a]' : 'text-[#e07a68]'}`}>
                         {rep.financials.netProfit >= 0 ? '+' : ''}{rep.financials.netProfit.toLocaleString('pl-PL')} zł
                       </span>
                     </div>
@@ -460,7 +460,7 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
           <h3 className="font-medium text-[#f5ede4] text-sm mb-1 flex items-center justify-between">
             <span>Zlecenia w miesiącu: {POLISH_MONTH_NAMES[currentMonth]} {currentYear}</span>
             <span className="text-xs text-[#9e8f82] font-light">
-              Łączna wartość: <strong className="text-[#f5ede4] font-mono">{totalValue.toLocaleString('pl-PL')} zł</strong>
+              Łączna wartość: <strong className="text-[#f5ede4] font-mono privacy-mask">{totalValue.toLocaleString('pl-PL')} zł</strong>
             </span>
           </h3>
           <p className="text-xs text-[#9e8f82] mb-4 font-light">
@@ -487,7 +487,7 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-sm font-mono font-medium text-[#f5ede4] block">
+                    <span className="text-sm font-mono font-medium text-[#f5ede4] block privacy-mask">
                       {t.price ? `${t.price.toLocaleString('pl-PL')} zł` : '—'}
                     </span>
                     <span className={`text-[10px] font-mono uppercase ${t.status === 'paid' ? 'text-[#7ec29a]' : 'text-[#d99b5a]'}`}>

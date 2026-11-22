@@ -310,7 +310,7 @@ export const MortgageView: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-[#9e8f82] mt-1 font-light">
-              Rata regularna: <strong className="text-[#f5ede4] font-medium">{config.regularInstallment.toLocaleString('pl-PL')} zł</strong> • Kapitał początkowy: <strong className="text-[#f5ede4] font-medium">{config.originalAmount.toLocaleString('pl-PL')} zł</strong> • Rachunek Pekao: <span className="font-mono text-[#d99b5a]">{config.accountNumber}</span>
+              Rata regularna: <strong className="text-[#f5ede4] font-medium privacy-mask">{config.regularInstallment.toLocaleString('pl-PL')} zł</strong> • Kapitał początkowy: <strong className="text-[#f5ede4] font-medium privacy-mask">{config.originalAmount.toLocaleString('pl-PL')} zł</strong> • Rachunek Pekao: <span className="font-mono text-[#d99b5a] privacy-mask">{config.accountNumber}</span>
             </p>
           </div>
         </div>
@@ -365,7 +365,7 @@ export const MortgageView: React.FC = () => {
               </p>
             )}
             <p className="text-[11px] text-[#9e8f82] mt-1 font-mono">
-              Kwota raty: <strong className="text-[#f5ede4]">{config.regularInstallment.toLocaleString('pl-PL')} zł</strong>
+              Kwota raty: <strong className="text-[#f5ede4] privacy-mask">{config.regularInstallment.toLocaleString('pl-PL')} zł</strong>
             </p>
           </div>
         </div>
@@ -406,7 +406,7 @@ export const MortgageView: React.FC = () => {
           ) : (
             <div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl sm:text-3xl font-light text-[#f5ede4]">
+                <span className="text-2xl sm:text-3xl font-light text-[#f5ede4] privacy-mask">
                   {config.targetMonthlyOverpayment.toLocaleString('pl-PL')}
                 </span>
                 <span className="text-xs text-[#9e8f82]">zł / mc</span>
@@ -429,7 +429,7 @@ export const MortgageView: React.FC = () => {
 
           <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl sm:text-3xl font-light text-[#f5ede4]">
+              <span className="text-2xl sm:text-3xl font-light text-[#f5ede4] privacy-mask">
                 {stats.averageOverpayment.toLocaleString('pl-PL')}
               </span>
               <span className="text-xs text-[#9e8f82]">zł</span>
@@ -462,7 +462,7 @@ export const MortgageView: React.FC = () => {
                 </div>
                 {stats.overpaymentAnalysis.surplus > 0 ? (
                   <p className="text-xs text-[#9ee2b9] mt-0.5 font-mono">
-                    Nadwyżka: +{stats.overpaymentAnalysis.surplus.toLocaleString('pl-PL')} zł
+                    Nadwyżka: <span className="privacy-mask">+{stats.overpaymentAnalysis.surplus.toLocaleString('pl-PL')} zł</span>
                   </p>
                 ) : (
                   <p className="text-[11px] text-[#9e8f82] mt-0.5">
@@ -470,13 +470,13 @@ export const MortgageView: React.FC = () => {
                   </p>
                 )}
                 <p className="text-[10px] text-[#9e8f82] mt-0.5">
-                  Wpłacono 5 000 zł (03.11.2026)
+                  Wpłacono <span className="privacy-mask">5 000 zł</span> (03.11.2026)
                 </p>
               </div>
             ) : (
               <div>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-2xl sm:text-3xl font-light text-[#e6ab6e]">
+                  <span className="text-2xl sm:text-3xl font-light text-[#e6ab6e] privacy-mask">
                     {stats.overpaymentAnalysis.gap.toLocaleString('pl-PL')}
                   </span>
                   <span className="text-xs text-[#9e8f82]">zł</span>
@@ -602,7 +602,7 @@ export const MortgageView: React.FC = () => {
             <span className="text-[10px] font-mono uppercase tracking-wider text-[#7ec29a] block">
               Wymagana nadpłata miesięczna
             </span>
-            <div className="text-2xl font-light text-[#7ec29a] font-mono">
+            <div className="text-2xl font-light text-[#7ec29a] font-mono privacy-mask">
               {stats.simCustom.requiredMonthlyOverpayment.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł
             </div>
             <p className="text-[11px] text-[#9ee2b9]">
@@ -614,7 +614,7 @@ export const MortgageView: React.FC = () => {
             <span className="text-[10px] font-mono uppercase tracking-wider text-[#d99b5a] block">
               Łączny przelew co miesiąc
             </span>
-            <div className="text-2xl font-light text-[#f5ede4] font-mono">
+            <div className="text-2xl font-light text-[#f5ede4] font-mono privacy-mask">
               {stats.simCustom.requiredTotalMonthly.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł
             </div>
             <p className="text-[11px] text-[#9e8f82]">
@@ -631,11 +631,11 @@ export const MortgageView: React.FC = () => {
                 cały okres
               </span>
             </div>
-            <div className="text-2xl font-light text-[#f5ede4] font-mono">
+            <div className="text-2xl font-light text-[#f5ede4] font-mono privacy-mask">
               ~{stats.simCustom.totalInterestOverall.toLocaleString('pl-PL')} zł
             </div>
             <p className="text-[11px] text-[#9e8f82]">
-              {stats.simCustom.alreadyPaidInterest.toLocaleString('pl-PL')} zł spłacone • ~{stats.simCustom.totalInterestRemaining.toLocaleString('pl-PL')} zł pozostało
+              <span className="privacy-mask">{stats.simCustom.alreadyPaidInterest.toLocaleString('pl-PL')} zł</span> spłacone • <span className="privacy-mask">~{stats.simCustom.totalInterestRemaining.toLocaleString('pl-PL')} zł</span> pozostało
             </p>
           </div>
 
@@ -643,11 +643,11 @@ export const MortgageView: React.FC = () => {
             <span className="text-[10px] font-mono uppercase tracking-wider text-[#7ec29a] block">
               Oszczędność na odsetkach
             </span>
-            <div className="text-2xl font-light text-[#7ec29a] font-mono">
+            <div className="text-2xl font-light text-[#7ec29a] font-mono privacy-mask">
               ~{stats.simCustom.totalInterestSaved.toLocaleString('pl-PL')} zł
             </div>
             <p className="text-[11px] text-[#9e8f82]">
-              Zaoszczędzone vs ~{stats.simCustom.baselineTotalInterest.toLocaleString('pl-PL')} zł z umowy
+              Zaoszczędzone vs <span className="privacy-mask">~{stats.simCustom.baselineTotalInterest.toLocaleString('pl-PL')} zł</span> z umowy
             </p>
           </div>
 
@@ -867,11 +867,11 @@ export const MortgageView: React.FC = () => {
             <div className="space-y-1.5 pt-2 border-t border-[#2e231c]/60 text-xs font-mono">
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Łączne odsetki:</span>
-                <strong className="text-[#e07a68]">~{stats.simPastOnly.baselineTotalInterest.toLocaleString('pl-PL')} zł</strong>
+                <strong className="text-[#e07a68] privacy-mask">~{stats.simPastOnly.baselineTotalInterest.toLocaleString('pl-PL')} zł</strong>
               </div>
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Pozostało odsetek:</span>
-                <span className="text-[#f5ede4]">~{(stats.simPastOnly.baselineTotalInterest - stats.simPastOnly.alreadyPaidInterest).toLocaleString('pl-PL')} zł</span>
+                <span className="text-[#f5ede4] privacy-mask">~{(stats.simPastOnly.baselineTotalInterest - stats.simPastOnly.alreadyPaidInterest).toLocaleString('pl-PL')} zł</span>
               </div>
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Termin spłaty:</span>
@@ -891,18 +891,18 @@ export const MortgageView: React.FC = () => {
                 <span className="text-[10px] font-mono uppercase tracking-wider text-[#d99b5a]">Wariant 2: Twój cel</span>
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#d99b5a]/20 text-[#f1c38e]">Aktywny cel</span>
               </div>
-              <h4 className="text-sm font-medium text-[#f5ede4]">Stały pułap {config.targetMonthlyOverpayment.toLocaleString('pl-PL')} zł/mc</h4>
-              <p className="text-[11px] text-[#9e8f82]">Łączny przelew {(config.regularInstallment + config.targetMonthlyOverpayment).toLocaleString('pl-PL')} zł każdego miesiąca</p>
+              <h4 className="text-sm font-medium text-[#f5ede4]">Stały pułap <span className="privacy-mask">{config.targetMonthlyOverpayment.toLocaleString('pl-PL')} zł/mc</span></h4>
+              <p className="text-[11px] text-[#9e8f82]">Łączny przelew <span className="privacy-mask">{(config.regularInstallment + config.targetMonthlyOverpayment).toLocaleString('pl-PL')} zł</span> każdego miesiąca</p>
             </div>
 
             <div className="space-y-1.5 pt-2 border-t border-[#2e231c]/60 text-xs font-mono">
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Łączne odsetki:</span>
-                <strong className="text-[#7ec29a]">~{stats.simTarget.totalInterestOverall.toLocaleString('pl-PL')} zł</strong>
+                <strong className="text-[#7ec29a] privacy-mask">~{stats.simTarget.totalInterestOverall.toLocaleString('pl-PL')} zł</strong>
               </div>
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Pozostało odsetek:</span>
-                <span className="text-[#f5ede4]">~{stats.simTarget.totalInterestRemaining.toLocaleString('pl-PL')} zł</span>
+                <span className="text-[#f5ede4] privacy-mask">~{stats.simTarget.totalInterestRemaining.toLocaleString('pl-PL')} zł</span>
               </div>
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Termin spłaty:</span>
@@ -910,7 +910,7 @@ export const MortgageView: React.FC = () => {
               </div>
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Oszczędność odsetek:</span>
-                <span className="text-[#7ec29a] font-semibold">~{stats.simTarget.totalInterestSaved.toLocaleString('pl-PL')} zł</span>
+                <span className="text-[#7ec29a] font-semibold privacy-mask">~{stats.simTarget.totalInterestSaved.toLocaleString('pl-PL')} zł</span>
               </div>
             </div>
           </div>
@@ -923,17 +923,17 @@ export const MortgageView: React.FC = () => {
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#7ec29a]/20 text-[#9ee2b9]">Ustawiany termin</span>
               </div>
               <h4 className="text-sm font-medium text-[#f5ede4]">Spłata do {stats.simCustom.payoffDateFormatted}</h4>
-              <p className="text-[11px] text-[#9e8f82]">Wymaga nadpłaty {stats.simCustom.requiredMonthlyOverpayment.toLocaleString('pl-PL')} zł/mc</p>
+              <p className="text-[11px] text-[#9e8f82]">Wymaga nadpłaty <span className="privacy-mask">{stats.simCustom.requiredMonthlyOverpayment.toLocaleString('pl-PL')} zł/mc</span></p>
             </div>
 
             <div className="space-y-1.5 pt-2 border-t border-[#2e231c]/60 text-xs font-mono">
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Łączne odsetki:</span>
-                <strong className="text-[#7ec29a]">~{stats.simCustom.totalInterestOverall.toLocaleString('pl-PL')} zł</strong>
+                <strong className="text-[#7ec29a] privacy-mask">~{stats.simCustom.totalInterestOverall.toLocaleString('pl-PL')} zł</strong>
               </div>
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Pozostało odsetek:</span>
-                <span className="text-[#f5ede4]">~{stats.simCustom.totalInterestRemaining.toLocaleString('pl-PL')} zł</span>
+                <span className="text-[#f5ede4] privacy-mask">~{stats.simCustom.totalInterestRemaining.toLocaleString('pl-PL')} zł</span>
               </div>
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Termin spłaty:</span>
@@ -941,7 +941,7 @@ export const MortgageView: React.FC = () => {
               </div>
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Oszczędność odsetek:</span>
-                <span className="text-[#7ec29a] font-semibold">~{stats.simCustom.totalInterestSaved.toLocaleString('pl-PL')} zł</span>
+                <span className="text-[#7ec29a] font-semibold privacy-mask">~{stats.simCustom.totalInterestSaved.toLocaleString('pl-PL')} zł</span>
               </div>
             </div>
           </div>
@@ -981,28 +981,28 @@ export const MortgageView: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 p-4 bg-[#140e0b] border-b border-[#2e231c] text-xs font-mono">
           <div className="p-2.5 rounded-xl bg-[#1c140f] border border-[#2e231c]">
             <span className="text-[10px] uppercase text-[#9e8f82] block">Pozostały kapitał:</span>
-            <span className="text-sm font-semibold text-[#f5ede4]">
+            <span className="text-sm font-semibold text-[#f5ede4] privacy-mask">
               {(config.currentRemainingCapital || 568843.28).toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł
             </span>
           </div>
 
           <div className="p-2.5 rounded-xl bg-[#1c140f] border border-[#2e231c]">
             <span className="text-[10px] uppercase text-[#9e8f82] block">Kapitał spłacony:</span>
-            <span className="text-sm font-semibold text-[#7ec29a]">
+            <span className="text-sm font-semibold text-[#7ec29a] privacy-mask">
               55 186,19 zł
             </span>
           </div>
 
           <div className="p-2.5 rounded-xl bg-[#1c140f] border border-[#2e231c]">
             <span className="text-[10px] uppercase text-[#9e8f82] block">Odsetki spłacone:</span>
-            <span className="text-sm font-semibold text-[#e6ab6e]">
+            <span className="text-sm font-semibold text-[#e6ab6e] privacy-mask">
               32 833,09 zł
             </span>
           </div>
 
           <div className="p-2.5 rounded-xl bg-[#1c140f] border border-[#2e231c]">
             <span className="text-[10px] uppercase text-[#9e8f82] block">Suma nadpłat kapitału:</span>
-            <span className="text-sm font-semibold text-[#f1c38e]">
+            <span className="text-sm font-semibold text-[#f1c38e] privacy-mask">
               {stats.totalOverpaid.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł
             </span>
           </div>
@@ -1053,17 +1053,27 @@ export const MortgageView: React.FC = () => {
                         )}
                       </td>
                       <td className="py-3 px-4 text-[#c4b5a5]">
-                        {p.regularInstallment && p.regularInstallment > 0
-                          ? `${p.regularInstallment.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł`
-                          : '—'}
+                        {p.regularInstallment && p.regularInstallment > 0 ? (
+                          <span className="privacy-mask">
+                            {p.regularInstallment.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł
+                          </span>
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td className="py-3 px-4 font-medium text-[#7ec29a]">
-                        {p.overpayment && p.overpayment > 0
-                          ? `+${p.overpayment.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł`
-                          : '—'}
+                        {p.overpayment && p.overpayment > 0 ? (
+                          <span className="privacy-mask">
+                            +{p.overpayment.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł
+                          </span>
+                        ) : (
+                          '—'
+                        )}
                       </td>
                       <td className="py-3 px-4 font-semibold text-[#f5ede4] font-mono">
-                        {total.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł
+                        <span className="privacy-mask">
+                          {total.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł
+                        </span>
                       </td>
                       <td className="py-3 px-4 text-[#9e8f82] max-w-xs truncate">
                         {p.notes || '—'}

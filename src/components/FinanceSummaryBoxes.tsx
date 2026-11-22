@@ -352,7 +352,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
               <span className="w-1.5 h-1.5 rounded-full bg-[#f5ede4]" />
               Przychód zrealizowany (Opłacone)
             </div>
-            <div className="text-2xl sm:text-3xl font-light text-[#f5ede4] tracking-tight mt-1 font-mono">
+            <div className="text-2xl sm:text-3xl font-light text-[#f5ede4] tracking-tight mt-1 font-mono privacy-mask">
               {paidValue.toLocaleString('pl-PL')} zł
             </div>
           </div>
@@ -375,7 +375,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
                 </span>
               )}
             </div>
-            <div className="text-2xl sm:text-3xl font-light text-[#e07a68] tracking-tight mt-1 font-mono">
+            <div className="text-2xl sm:text-3xl font-light text-[#e07a68] tracking-tight mt-1 font-mono privacy-mask">
               {totalCosts.toLocaleString('pl-PL')} zł
             </div>
             <div className="text-[10px] text-[#7a6b5e] font-mono mt-0.5">
@@ -390,14 +390,14 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
               <span className="w-1.5 h-1.5 rounded-full bg-[#7ec29a]" />
               Zysk netto (Na czysto)
             </div>
-            <div className="text-2xl sm:text-3xl font-semibold text-[#7ec29a] tracking-tight mt-1 font-mono">
+            <div className="text-2xl sm:text-3xl font-semibold text-[#7ec29a] tracking-tight mt-1 font-mono privacy-mask">
               {netProfit >= 0 ? `+${netProfit.toLocaleString('pl-PL')}` : netProfit.toLocaleString('pl-PL')} zł
             </div>
           </div>
         </div>
 
         {/* Interactive Dynamic SVG Line Chart (Scrollable & Zoomable on Mobile) */}
-        <div className="pt-3 space-y-2 select-none">
+        <div className="pt-3 space-y-2 select-none privacy-mask">
           {/* Zoom Controls & Mobile Swipe Hint Bar */}
           <div className="flex items-center justify-between text-xs px-1">
             <div className="flex items-center gap-1.5 text-[#9e8f82] text-[11px] font-mono">

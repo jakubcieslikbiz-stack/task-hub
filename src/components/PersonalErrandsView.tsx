@@ -512,7 +512,7 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
             <span className="text-[10px] uppercase tracking-wider font-semibold text-[#9e8f82] block">
               Suma opłat stałych
             </span>
-            <div className="text-lg md:text-xl font-bold font-mono text-[#f5ede4] mt-1">
+            <div className="text-lg md:text-xl font-bold font-mono text-[#f5ede4] mt-1 privacy-mask">
               {totalDeclaredAmount.toLocaleString('pl-PL')} zł
             </div>
             <span className="text-[10px] text-[#7a6b5e]">
@@ -525,7 +525,7 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
             <span className="text-[10px] uppercase tracking-wider font-semibold text-[#7ec29a] block">
               Opłacone
             </span>
-            <div className="text-lg md:text-xl font-bold font-mono text-[#7ec29a] mt-1">
+            <div className="text-lg md:text-xl font-bold font-mono text-[#7ec29a] mt-1 privacy-mask">
               {totalPaidAmount.toLocaleString('pl-PL')} zł
             </div>
             <span className="text-[10px] text-[#7ec29a]/80">
@@ -538,7 +538,7 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
             <span className="text-[10px] uppercase tracking-wider font-semibold text-[#d99b5a] block">
               Do zapłaty
             </span>
-            <div className="text-lg md:text-xl font-bold font-mono text-[#d99b5a] mt-1">
+            <div className="text-lg md:text-xl font-bold font-mono text-[#d99b5a] mt-1 privacy-mask">
               {unpaidAmount.toLocaleString('pl-PL')} zł
             </div>
             <span className="text-[10px] text-[#9e8f82]">
@@ -718,7 +718,7 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
                         placeholder="0.00"
                         value={amount}
                         onChange={(e) => handleAmountChange(bill.id, e.target.value)}
-                        className="w-full bg-[#100c09] border border-[#382b20] focus:border-[#d99b5a] rounded-xl px-3 py-2 text-sm font-mono font-semibold text-[#f5ede4] placeholder-[#5a4c40] outline-none transition-all pr-10"
+                        className="w-full bg-[#100c09] border border-[#382b20] focus:border-[#d99b5a] rounded-xl px-3 py-2 text-sm font-mono font-semibold text-[#f5ede4] placeholder-[#5a4c40] outline-none transition-all pr-10 privacy-mask"
                       />
                       <span className="absolute right-3 text-xs text-[#7a6b5e] font-mono pointer-events-none">
                         zł

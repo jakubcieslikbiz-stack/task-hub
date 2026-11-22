@@ -1,10 +1,13 @@
 import React from 'react';
 import type { ViewMode } from '../types';
 import { useAnimatedCounter } from '../hooks/useAnimatedCounter';
+import { usePrivacyMode } from '../context/PrivacyContext';
 import {
   Search,
   Sparkles,
   X,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -48,6 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { title, subtitle, short } = VIEW_TITLES[currentView];
   const percent = totalTodayCount > 0 ? Math.round((completedTodayCount / totalTodayCount) * 100) : 0;
   const animPercent = useAnimatedCounter(percent, 1000);
+  const { isPrivacyMode, togglePrivacyMode } = usePrivacyMode();
 
   return (
     <header className="space-y-4 mb-6">
@@ -71,6 +75,37 @@ export const Header: React.FC<HeaderProps> = ({
           <p className="text-xs sm:text-sm text-[#9e8f82] mt-1 font-light max-w-xl">
             {subtitle}
           </p>
+        </div>
+
+        {/* Action Controls: Privacy Mode Button */}
+        <div className="flex items-center gap-2 self-start sm:self-end">
+          <button
+            type="button"
+            onClick={togglePrivacyMode}
+            title={
+              isPrivacyMode
+                ? 'Wyłącz tryb prywatności (pokaż kwoty) [Alt+P]'
+                : 'Włącz tryb prywatności (zamazuje kwoty i wrażliwe dane jak w banku) [Alt+P]'
+            }
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-mono transition-all active:scale-95 shadow-md border ${
+              isPrivacyMode
+                ? 'bg-[#2a1e16] text-[#f1c38e] border-[#d99b5a]/50 ring-1 ring-[#d99b5a]/30'
+                : 'bg-[#18120e] hover:bg-[#221812] text-[#9e8f82] hover:text-[#f5ede4] border-[#2e231c]'
+            }`}
+          >
+            {isPrivacyMode ? (
+              <>
+                <EyeOff className="w-3.5 h-3.5 text-[#d99b5a]" />
+                <span className="font-semibold text-[#f1c38e]">Kwoty ukryte</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#d99b5a] animate-pulse" />
+              </>
+            ) : (
+              <>
+                <Eye className="w-3.5 h-3.5 text-[#9e8f82]" />
+                <span className="hidden xs:inline">Tryb prywatności</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 

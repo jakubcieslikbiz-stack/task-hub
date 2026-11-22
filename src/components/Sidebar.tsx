@@ -2,6 +2,7 @@ import React from 'react';
 import type { ViewMode } from '../types';
 import { CATEGORIES } from '../data/initialData';
 import { usePomodoro } from '../context/PomodoroContext';
+import { usePrivacyMode } from '../context/PrivacyContext';
 import {
   Calendar,
   CheckSquare,
@@ -24,6 +25,8 @@ import {
   Settings,
   Bell,
   Landmark,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -69,6 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [showCategoryMenu, setShowCategoryMenu] = React.useState(false);
   const { isRunning: isPomodoroRunning, formattedTime: pomodoroTime } = usePomodoro();
+  const { isPrivacyMode, togglePrivacyMode } = usePrivacyMode();
 
   const handleNav = (view: ViewMode) => {
     onViewChange(view);
@@ -391,6 +395,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           )}
         </div>
+
+        {/* Privacy Mode toggle */}
+        <button
+          onClick={togglePrivacyMode}
+          title={isPrivacyMode ? 'Wyłącz tryb prywatności (pokaż kwoty)' : 'Włącz tryb prywatności (zamazuje kwoty)'}
+          className={`group relative p-2.5 rounded-full transition-all ${
+            isPrivacyMode
+              ? 'text-[#d99b5a] bg-[#2e1f14] shadow-[0_0_12px_rgba(217,155,90,0.3)] ring-1 ring-[#d99b5a]/50'
+              : 'text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#221a14]/60'
+          }`}
+        >
+          {isPrivacyMode ? <EyeOff className="w-4 h-4 text-[#d99b5a]" /> : <Eye className="w-4 h-4" />}
+          <span className="pointer-events-none absolute right-14 md:right-auto md:left-14 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-xl text-[11px] font-medium bg-[#1a1410] text-[#f5ede4] border border-[#382b20] shadow-xl opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+            {isPrivacyMode ? 'Prywatność: WŁ (Ukryte)' : 'Tryb prywatności'}
+          </span>
+        </button>
 
         {/* Phone connect modal */}
         <button
