@@ -39,9 +39,9 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
   const [year, setYear] = useState('2026');
   const [tagsStr, setTagsStr] = useState('');
 
-  // Własna domena dla portfolio (np. https://jcstudio.vercel.app lub domena z Vercel)
+  // Własna domena dla portfolio (np. https://jc-visualization-studio.vercel.app lub domena z Vercel)
   const [customDomain, setCustomDomain] = useState<string>(() => {
-    return localStorage.getItem('taskhub_custom_portfolio_domain') || 'https://jcstudio.vercel.app';
+    return localStorage.getItem('taskhub_custom_portfolio_domain') || 'https://jc-visualization-studio.vercel.app';
   });
   const [isEditingDomain, setIsEditingDomain] = useState(false);
   const [tempDomain, setTempDomain] = useState(customDomain);
@@ -51,7 +51,7 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
     ? `${customDomain.replace(/\/+$/, '')}/portfolio`
     : typeof window !== 'undefined'
     ? `${window.location.origin}/portfolio`
-    : 'https://jcstudio.vercel.app/portfolio';
+    : 'https://jc-visualization-studio.vercel.app/portfolio';
 
   const handleSaveCustomDomain = () => {
     const formatted = tempDomain.trim().replace(/\/+$/, '');
@@ -241,10 +241,10 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
               />
               <button
                 type="button"
-                onClick={() => setTempDomain('https://jcstudio.vercel.app')}
+                onClick={() => setTempDomain('https://jc-visualization-studio.vercel.app')}
                 className="px-2.5 py-1.5 rounded-xl bg-[#1e1713] hover:bg-[#2a1e16] text-[#d99b5a] border border-[#2e231c] text-xs font-mono whitespace-nowrap"
               >
-                jcstudio.vercel.app
+                jc-visualization-studio.vercel.app
               </button>
               <button
                 type="button"
@@ -267,7 +267,7 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
             {showDomainHelp && (
               <div className="p-3.5 rounded-xl bg-[#140e0b] border border-[#d99b5a]/30 space-y-2 text-xs text-[#c4b5a5]">
                 <strong className="text-[#f5ede4] block">
-                  Kroki, aby Twój projekt działał pod adresem <span className="font-mono text-[#d99b5a]">jcstudio.vercel.app</span>:
+                  Kroki, aby Twój projekt działał pod adresem <span className="font-mono text-[#d99b5a]">jc-visualization-studio.vercel.app</span>:
                 </strong>
                 <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed text-[#9e8f82]">
                   <li>
@@ -280,10 +280,10 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
                     W górnym menu wejdź w <strong>Settings</strong> → <strong>Domains</strong>.
                   </li>
                   <li>
-                    Przy domenie <em>task-hub-pied-delta.vercel.app</em> kliknij <strong>Edit</strong> (lub kliknij przycisk <strong>Add</strong>) i wpisz: <strong className="text-[#f5ede4] font-mono">jcstudio.vercel.app</strong> (jeśli nazwa byłaby zajęta, możesz wybrać np. <em>jc-studio.vercel.app</em> lub <em>jcstudio3d.vercel.app</em>).
+                    Przy domenie <em>task-hub-pied-delta.vercel.app</em> kliknij <strong>Edit</strong> (lub kliknij przycisk <strong>Add</strong>) i wpisz: <strong className="text-[#f5ede4] font-mono">jc-visualization-studio.vercel.app</strong>.
                   </li>
                   <li>
-                    Kliknij <strong>Save</strong>. Gotowe! Vercel w kilka sekund przekieruje ruch na nowy adres, a certyfikat SSL wygeneruje się automatycznie.
+                    Kliknij <strong>Save</strong> / <strong>Add</strong>. Gotowe! Vercel w kilka sekund przekieruje ruch na nowy adres, a certyfikat SSL wygeneruje się automatycznie.
                   </li>
                 </ol>
               </div>
