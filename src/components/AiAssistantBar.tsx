@@ -6,6 +6,7 @@ import {
   calculateReminderTimestamp,
   formatScheduledReminder,
 } from '../lib/email';
+import { triggerAiTaskAddedEffect } from '../lib/effects';
 import {
   Mic,
   MicOff,
@@ -199,6 +200,8 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
             emailReminderSentAt: scheduledAtIso ? undefined : (wantsEmail ? new Date().toISOString() : undefined),
             emailReminderId,
           });
+
+          triggerAiTaskAddedEffect();
 
           if (wantsEmail && scheduledTimeLabel) {
             const reply = `Dodałam ${categoryDesc}: "${result.name}"${dateDesc}${timeDesc} i zaplanowałam przypomnienie e-mail na ${scheduledTimeLabel}!`;

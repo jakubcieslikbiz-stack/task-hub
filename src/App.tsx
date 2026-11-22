@@ -29,6 +29,8 @@ import { SettingsView } from './components/SettingsView';
 import { PersonalErrandsView } from './components/PersonalErrandsView';
 import { RemindersScheduleView } from './components/RemindersScheduleView';
 import { MortgageView } from './components/MortgageView';
+import { AiTaskPulseOverlay } from './components/AiTaskPulseOverlay';
+import { triggerAiTaskAddedEffect } from './lib/effects';
 import { getInitialPreviewsInfo } from './utils/initialPreviews';
 import { sendTaskReminderEmail, calculateReminderTimestamp } from './lib/email';
 import {
@@ -777,6 +779,7 @@ export function App() {
     const updated = [newTask, ...tasks];
     setTasks(updated);
     syncTasksToCloud(updated);
+    triggerAiTaskAddedEffect();
   };
 
   const handleAiAddTodo = (text: string) => {
@@ -789,6 +792,7 @@ export function App() {
     const updated = [newNote, ...notes];
     setNotes(updated);
     syncNotesToCloud(updated);
+    triggerAiTaskAddedEffect();
   };
 
   const handleAiAddCost = (costData: { name: string; cost: number; type: 'business' | 'private' }) => {
@@ -1764,6 +1768,9 @@ export function App() {
         onNavigateToPomodoro={() => setCurrentView('pomodoro')}
         tasks={tasks}
       />
+
+      {/* Subtle green screen pulse when AI task is added */}
+      <AiTaskPulseOverlay />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import {
   sendTaskReminderEmail,
   calculateReminderTimestamp,
 } from '../lib/email';
+import { triggerAiTaskAddedEffect } from '../lib/effects';
 import { Sparkles, Key, X, CheckCircle2, AlertCircle, Loader2, Mail } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -130,6 +131,8 @@ export const AiTaskModal: React.FC<AiTaskModalProps> = ({
       emailReminderId,
       subtasks,
     });
+
+    triggerAiTaskAddedEffect();
 
     confetti({
       particleCount: 60,

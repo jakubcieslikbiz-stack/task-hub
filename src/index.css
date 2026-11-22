@@ -246,3 +246,29 @@ html {
 .stagger-4 {
   animation: slideUpStagger 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
 }
+
+/* ==========================================================================
+   AI Task Success Green Screen Pulse Effect (Mobile & Desktop)
+   Subtle, elegant pulse confirmation when AI creates a task
+   ========================================================================== */
+@keyframes aiGreenScreenPulse {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  44% {
+    opacity: 0.42;
+  }
+  66% {
+    opacity: 0.88;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-ai-green-pulse {
+  animation: aiGreenScreenPulse 1.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

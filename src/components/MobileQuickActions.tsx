@@ -26,6 +26,7 @@ import {
   calculateReminderTimestamp,
   formatScheduledReminder,
 } from '../lib/email';
+import { triggerAiTaskAddedEffect } from '../lib/effects';
 
 interface MobileQuickActionsProps {
   currentView: ViewMode;
@@ -224,6 +225,8 @@ export const MobileQuickActions: React.FC<MobileQuickActionsProps> = ({
             emailReminderSentAt: scheduledAtIso ? undefined : (wantsEmail ? new Date().toISOString() : undefined),
             emailReminderId,
           });
+
+          triggerAiTaskAddedEffect();
 
           if (wantsEmail && scheduledDateText) {
             const reply = `Dodałam ${catName}: "${result.name}" i zaplanowałam maila na ${scheduledDateText}!`;
