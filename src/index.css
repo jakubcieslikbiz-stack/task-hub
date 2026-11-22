@@ -294,3 +294,54 @@ html {
   background-color: rgba(217, 155, 90, 0.12) !important;
   border-radius: 6px;
 }
+
+/* ==========================================================================
+   High-End Document Print & PDF Styling for Contracts & Proposals
+   Hides dashboard UI and prints an authentic, pristine architectural document
+   ========================================================================== */
+@media print {
+  /* Hide all dashboard chrome: sidebars, navbars, modals, floating FABs */
+  body {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #181b18 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  aside,
+  header,
+  nav,
+  .no-print,
+  button,
+  input,
+  textarea,
+  .glass-panel:not(.printable-document-root) {
+    display: none !important;
+  }
+
+  /* Make printable document take 100% width and clean white canvas */
+  #printable-contract,
+  .printable-document-root {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    color: #181b18 !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 2cm 2.5cm !important;
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+  }
+
+  .print-page-break {
+    page-break-before: always;
+  }
+
+  .print-avoid-break {
+    page-break-inside: avoid;
+  }
+}

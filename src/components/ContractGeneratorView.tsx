@@ -4,6 +4,7 @@ import {
   type GenerateContractParams,
   type GenerateContractResult,
 } from '../lib/ai';
+import { JCStudioLogo } from './brand/JCStudioLogo';
 import {
   FileText,
   Sparkles,
@@ -22,6 +23,7 @@ import {
   Building2,
   User,
   DollarSign,
+  Eye,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -85,6 +87,71 @@ interface ContractGeneratorViewProps {
   apiKey: string;
 }
 
+/**
+ * Format markdown/raw contract text into elegant, highly readable paragraphs & legal clauses
+ */
+const renderFormattedContractText = (text: string) => {
+  const paragraphs = text.split(/\n\s*\n/);
+  return (
+    <div className="space-y-4 text-[12px] sm:text-[13px] text-[#222522] leading-relaxed font-serif">
+      {paragraphs.map((para, idx) => {
+        const trimmed = para.trim();
+        if (!trimmed) return null;
+
+        // Heading detection: §, Art., # or uppercase titles
+        const isHeading =
+          trimmed.startsWith('#') ||
+          trimmed.startsWith('§') ||
+          trimmed.startsWith('Art.') ||
+          trimmed.startsWith('ROZDZIAŁ') ||
+          trimmed.startsWith('UMOWA') ||
+          trimmed.startsWith('OFERTA') ||
+          (trimmed.length < 75 && trimmed.toUpperCase() === trimmed && !trimmed.includes('.'));
+
+        if (isHeading) {
+          const cleanHeading = trimmed.replace(/^#+\s*/, '');
+          const isMainTitle = cleanHeading.includes('UMOWA') || cleanHeading.includes('OFERTA');
+          return (
+            <div
+              key={idx}
+              className={`font-sans font-bold tracking-wide text-[#181b18] ${
+                isMainTitle
+                  ? 'text-sm sm:text-base text-center uppercase tracking-widest pt-4 pb-2 border-b border-[#e5e2da]'
+                  : 'text-xs sm:text-sm pt-3 pb-1 border-b border-[#ece8e0] text-[#1e231e]'
+              }`}
+            >
+              {cleanHeading}
+            </div>
+          );
+        }
+
+        // List item detection
+        if (trimmed.startsWith('- ') || trimmed.startsWith('• ') || /^\d+\.\s/.test(trimmed)) {
+          const lines = trimmed.split('\n');
+          return (
+            <ul key={idx} className="space-y-1.5 pl-4 list-disc list-outside text-[#2a2d2a] my-2">
+              {lines.map((l, lIdx) => {
+                const cleanLine = l.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '');
+                return (
+                  <li key={lIdx} className="leading-relaxed">
+                    {cleanLine}
+                  </li>
+                );
+              })}
+            </ul>
+          );
+        }
+
+        return (
+          <p key={idx} className="text-justify leading-relaxed whitespace-pre-line text-[#282b28]">
+            {trimmed}
+          </p>
+        );
+      })}
+    </div>
+  );
+};
+
 export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ apiKey }) => {
   const [selectedPresetId, setSelectedPresetId] = useState<string>('interior_3d');
 
@@ -112,7 +179,7 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
   const [contractorDetails, setContractorDetails] = useState(() => {
     return (
       localStorage.getItem('taskhub_contractor_details') ||
-      'NIP: [Twój NIP], ul. [Twój Adres], 30-001 Kraków, e-mail: jakub@jcstudio.pl'
+      'NIP: [Twój NIP], tel. +48 600 113 078, e-mail: jc.visualization.studio@gmail.com'
     );
   });
   const [city, setCity] = useState('Kraków');
@@ -123,6 +190,7 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
   const [generatedContract, setGeneratedContract] = useState<GenerateContractResult | null>(null);
   const [editedText, setEditedText] = useState('');
   const [isEditingManually, setIsEditingManually] = useState(false);
+  const [previewTab, setPreviewTab] = useState<'a4_document' | 'raw_editor'>('a4_document');
 
   // Copy & Action toasts
   const [copied, setCopied] = useState(false);
@@ -619,17 +687,41 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
 
               {generatedContract && (
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <button
-                    onClick={() => setIsEditingManually(!isEditingManually)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-1.5 ${
-                      isEditingManually
-                        ? 'bg-[#7ec29a] text-[#120e0a] font-semibold'
-                        : 'bg-[#1e1713] text-[#c4b5a5] hover:text-[#f5ede4] border border-[#382b20]'
-                    }`}
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>{isEditingManually ? 'Gotowe' : 'Edytuj ręcznie'}</span>
-                  </button>
+                  {/* Tab Selector: Luxury A4 Template vs Raw Editor */}
+                  <div className="flex items-center p-0.5 rounded-xl bg-[#140e0b] border border-[#2e231c] mr-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreviewTab('a4_document');
+                        setIsEditingManually(false);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${
+                        previewTab === 'a4_document' && !isEditingManually
+                          ? 'bg-[#d99b5a] text-[#120e0a] font-semibold shadow-sm'
+                          : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                      }`}
+                      title="Podgląd oficjalnego szablonu firmowego A4"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Szablon A4 (Druk/PDF)</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreviewTab('raw_editor');
+                        setIsEditingManually(true);
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${
+                        isEditingManually || previewTab === 'raw_editor'
+                          ? 'bg-[#7ec29a] text-[#120e0a] font-semibold shadow-sm'
+                          : 'text-[#9e8f82] hover:text-[#f5ede4]'
+                      }`}
+                      title="Edycja treści umowy"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>Edytor tekstu</span>
+                    </button>
+                  </div>
 
                   <button
                     onClick={handleCopy}
@@ -641,17 +733,17 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
 
                   <button
                     onClick={handlePrint}
-                    className="px-3 py-1.5 rounded-xl text-xs bg-[#1e1713] text-[#c4b5a5] hover:text-[#f5ede4] border border-[#382b20] transition-all flex items-center gap-1.5 active:scale-95"
-                    title="Drukuj lub zapisz jako PDF"
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#f5ede4] hover:bg-white text-[#120e0a] transition-all flex items-center gap-1.5 active:scale-95 shadow-md"
+                    title="Drukuj lub zapisz jako profesjonalny PDF"
                   >
-                    <Printer className="w-3.5 h-3.5" />
+                    <Printer className="w-3.5 h-3.5 text-[#120e0a]" />
                     <span>Drukuj / PDF</span>
                   </button>
 
                   <button
                     onClick={handleDownloadDoc}
                     className="p-1.5 rounded-xl bg-[#1e1713] text-[#c4b5a5] hover:text-[#f5ede4] border border-[#382b20] transition-all"
-                    title="Pobierz plik tekstowy"
+                    title="Pobierz plik tekstowy (.txt)"
                   >
                     <Download className="w-3.5 h-3.5" />
                   </button>
@@ -661,7 +753,7 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
 
             {/* Podsumowanie kluczowych punktów */}
             {generatedContract?.keyPoints && generatedContract.keyPoints.length > 0 && (
-              <div className="p-3 rounded-2xl bg-[#18120e] border border-[#d99b5a]/30 space-y-1.5 text-xs">
+              <div className="p-3 rounded-2xl bg-[#18120e] border border-[#d99b5a]/30 space-y-1.5 text-xs no-print">
                 <span className="text-[10px] font-mono uppercase text-[#d99b5a] block font-semibold">
                   Kluczowe ustalenia umowy:
                 </span>
@@ -678,19 +770,173 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
 
             {/* Obszar treści umowy */}
             {generatedContract ? (
-              isEditingManually ? (
-                <textarea
-                  rows={26}
-                  value={editedText}
-                  onChange={(e) => setEditedText(e.target.value)}
-                  className="w-full bg-[#120e0a] border border-[#382b20] focus:border-[#7ec29a] rounded-2xl p-4 text-xs font-mono text-[#f5ede4] outline-none leading-relaxed resize-y selection:bg-[#d99b5a]/30"
-                />
+              isEditingManually || previewTab === 'raw_editor' ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[11px] text-[#9e8f82] font-mono">
+                    <span>Tryb edycji bezpośredniej — zmiany widoczne są w szablonie A4:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingManually(false);
+                        setPreviewTab('a4_document');
+                      }}
+                      className="text-[#d99b5a] hover:underline"
+                    >
+                      Wróć do szablonu A4 →
+                    </button>
+                  </div>
+                  <textarea
+                    rows={26}
+                    value={editedText}
+                    onChange={(e) => setEditedText(e.target.value)}
+                    className="w-full bg-[#120e0a] border border-[#382b20] focus:border-[#7ec29a] rounded-2xl p-4 text-xs font-mono text-[#f5ede4] outline-none leading-relaxed resize-y selection:bg-[#d99b5a]/30"
+                  />
+                </div>
               ) : (
-                <div
-                  id="printable-contract"
-                  className="bg-[#120e0a] border border-[#2e231c] rounded-2xl p-6 text-xs text-[#ded5cb] font-serif leading-relaxed whitespace-pre-wrap max-h-[650px] overflow-y-auto selection:bg-[#d99b5a]/30 shadow-inner"
-                >
-                  {editedText || generatedContract.contractText}
+                /* OFICJALNY ARCHITEKTONICZNY SZABLON A4 (JC STUDIO BRANDING) */
+                <div className="overflow-x-auto p-1 sm:p-2 bg-[#0c0907]/60 rounded-2xl border border-[#2e231c]">
+                  <div
+                    id="printable-contract"
+                    className="printable-document-root bg-[#ffffff] text-[#181b18] rounded-xl p-8 sm:p-12 shadow-2xl max-w-4xl mx-auto border border-[#e8e4dc] font-sans transition-all selection:bg-[#8CA168]/20"
+                    style={{ minHeight: '1000px' }}
+                  >
+                    {/* A4 Letterhead Header: Authentic JC Studio Vector Branding */}
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-[#CFD2C7]">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-xl border border-[#e2decb] bg-[#f9f8f4] flex items-center justify-center p-2 shadow-sm flex-shrink-0">
+                          <JCStudioLogo variant="light" size="custom" className="w-11 h-auto" />
+                        </div>
+                        <div>
+                          <h1 className="text-xl sm:text-2xl font-bold tracking-[0.22em] uppercase text-[#181b18] leading-none">
+                            JC STUDIO
+                          </h1>
+                          <span className="block text-[11px] tracking-[0.2em] uppercase text-[#8CA168] font-semibold mt-1">
+                            Architectural CGI & Marketing Inwestycji
+                          </span>
+                          <span className="block text-[10px] text-[#7a746e] tracking-wider uppercase mt-0.5">
+                            Jakub Cieślik • www: task-hub-pied-delta.vercel.app/portfolio
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Header Right Reference & Date */}
+                      <div className="text-left sm:text-right text-[11px] font-mono text-[#4a4642] space-y-0.5 pt-1">
+                        <div>
+                          <span className="text-[#8a857e] uppercase text-[10px]">Nr dokumentu:</span>{' '}
+                          <strong className="text-[#181b18] font-bold">{generatedContract.contractNumber}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[#8a857e] uppercase text-[10px]">Miejscowość, data:</span>{' '}
+                          <span>{city}, {new Date().toLocaleDateString('pl-PL')}</span>
+                        </div>
+                        <div>
+                          <span className="text-[#8a857e] uppercase text-[10px]">Kontakt:</span>{' '}
+                          <span>+48 600 113 078</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Accent Olive Dividing Hairline */}
+                    <div className="w-full h-[2px] bg-[#8CA168] my-4" />
+
+                    {/* Document Title Header */}
+                    <div className="text-center py-3">
+                      <h2 className="text-base sm:text-lg font-bold tracking-wider uppercase text-[#181b18]">
+                        {generatedContract.title || 'UMOWA O DZIEŁO Z PRZENIESIENIEM PRAW AUTORSKICH'}
+                      </h2>
+                      <span className="text-[11px] font-mono text-[#7a746e] uppercase tracking-widest block mt-0.5">
+                        Dokument handlowy JC Studio
+                      </span>
+                    </div>
+
+                    {/* Parties Section (Metryczka stron umowy) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-5 text-xs">
+                      {/* Zamawiający */}
+                      <div className="p-4 rounded-xl bg-[#f9f8f4] border border-[#e5e1d5] space-y-1">
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#8CA168] block">
+                          ZAMAWIAJĄCY:
+                        </span>
+                        <div className="font-semibold text-[#181b18] text-sm">
+                          {clientName || '[Nazwa / Imię i Nazwisko Zamawiającego]'}
+                        </div>
+                        <p className="text-[11px] text-[#55504a] leading-relaxed">
+                          {clientDetails || '[NIP, adres siedziby lub zamieszkania, dane kontaktowe]'}
+                        </p>
+                      </div>
+
+                      {/* Wykonawca */}
+                      <div className="p-4 rounded-xl bg-[#f9f8f4] border border-[#e5e1d5] space-y-1">
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#8CA168] block">
+                          WYKONAWCA:
+                        </span>
+                        <div className="font-semibold text-[#181b18] text-sm">
+                          {contractorName}
+                        </div>
+                        <p className="text-[11px] text-[#55504a] leading-relaxed">
+                          {contractorDetails}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Key Terms Badges (Podsumowanie ustaleń) */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-[#f4f3ee] border border-[#e0dcce] my-4 text-xs font-mono">
+                      <div>
+                        <span className="text-[10px] text-[#7a746e] uppercase block">Wynagrodzenie:</span>
+                        <strong className="text-[#181b18] font-bold">{price}</strong>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-[#7a746e] uppercase block">Termin:</span>
+                        <strong className="text-[#181b18] font-semibold">{deadline}</strong>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-[#7a746e] uppercase block">Tury poprawek:</span>
+                        <strong className="text-[#8CA168] font-semibold">{revisionsCount} serie uwag w cenie</strong>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-[#7a746e] uppercase block">Prawa autorskie:</span>
+                        <strong className="text-[#181b18] font-semibold">100% autorskie prawa majątkowe</strong>
+                      </div>
+                    </div>
+
+                    {/* Main Legal Clauses & Text Body */}
+                    <div className="my-6 pt-2 border-t border-[#e8e4dc]">
+                      {renderFormattedContractText(editedText || generatedContract.contractText)}
+                    </div>
+
+                    {/* Signatures Block (Podpisy stron) */}
+                    <div className="grid grid-cols-2 gap-8 pt-10 mt-8 border-t border-[#CFD2C7] text-xs font-sans print-avoid-break">
+                      <div className="text-center space-y-8">
+                        <span className="text-[11px] text-[#7a746e] uppercase tracking-wider block font-medium">
+                          W imieniu Zamawiającego:
+                        </span>
+                        <div className="pt-8 border-b border-dashed border-[#8a857e] w-4/5 mx-auto" />
+                        <span className="text-[10px] text-[#8a857e] block">
+                          (podpis i pieczęć)
+                        </span>
+                      </div>
+
+                      <div className="text-center space-y-8">
+                        <span className="text-[11px] text-[#7a746e] uppercase tracking-wider block font-medium">
+                          W imieniu Wykonawcy (JC Studio):
+                        </span>
+                        <div className="pt-8 border-b border-dashed border-[#8a857e] w-4/5 mx-auto" />
+                        <span className="text-[10px] text-[#8a857e] block">
+                          Jakub Cieślik — JC Studio
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Official Letterhead Footer */}
+                    <div className="mt-14 pt-4 border-t border-[#e8e4dc] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[10px] font-mono text-[#8a857e]">
+                      <div className="flex items-center gap-2">
+                        <JCStudioLogo variant="light" size="custom" className="w-4 h-auto opacity-75" />
+                        <span>JC Studio • Jakub Cieślik • tel. +48 600 113 078</span>
+                      </div>
+                      <div>
+                        <span>jc.visualization.studio@gmail.com • Strona 1/1</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )
             ) : (
