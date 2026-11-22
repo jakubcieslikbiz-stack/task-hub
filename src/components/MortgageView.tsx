@@ -31,6 +31,7 @@ import {
   Info,
   CalendarDays,
   Calculator,
+  Sparkles,
 } from 'lucide-react';
 
 const POLISH_MONTHS = [
@@ -52,6 +53,18 @@ export const MortgageView: React.FC = () => {
   // Modal: Edycja parametrów kredytu
   const [isEditConfigOpen, setIsEditConfigOpen] = useState(false);
   const [tempConfig, setTempConfig] = useState<MortgageConfig>(config);
+
+  // Dynamiczna symulacja dla parametrów w modalu edycji
+  const liveSimModal = useMemo(() => {
+    return simulateAmortizationSchedule({
+      currentBalance: tempConfig.currentRemainingCapital || 568843.28,
+      annualInterestRate: tempConfig.interestRate || 6.05,
+      regularInstallment: tempConfig.regularInstallment || 3759.64,
+      monthlyOverpayment: tempConfig.targetMonthlyOverpayment || 0,
+      originalLoanAmount: tempConfig.originalAmount || 624029.47,
+      originalTermMonths: tempConfig.loanTermMonths || 360,
+    });
+  }, [tempConfig]);
 
   // Quick edit target overpayment modal
   const [isEditingTarget, setIsEditingTarget] = useState(false);
@@ -584,7 +597,7 @@ export const MortgageView: React.FC = () => {
         </div>
 
         {/* Wyniki kalkulacji dla wybranego terminu */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
           <div className="p-4 rounded-2xl bg-[#140e0b] border border-[#2e231c] space-y-1">
             <span className="text-[10px] font-mono uppercase tracking-wider text-[#7ec29a] block">
               Wymagana nadpłata miesięczna
@@ -609,6 +622,23 @@ export const MortgageView: React.FC = () => {
             </p>
           </div>
 
+          <div className="p-4 rounded-2xl bg-[#140e0b] border border-[#d99b5a]/40 space-y-1 relative overflow-hidden">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#d99b5a] block">
+                Szacunkowe łączne odsetki
+              </span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#d99b5a]/20 text-[#f1c38e] font-mono">
+                cały okres
+              </span>
+            </div>
+            <div className="text-2xl font-light text-[#f5ede4] font-mono">
+              ~{stats.simCustom.totalInterestOverall.toLocaleString('pl-PL')} zł
+            </div>
+            <p className="text-[11px] text-[#9e8f82]">
+              {stats.simCustom.alreadyPaidInterest.toLocaleString('pl-PL')} zł spłacone • ~{stats.simCustom.totalInterestRemaining.toLocaleString('pl-PL')} zł pozostało
+            </p>
+          </div>
+
           <div className="p-4 rounded-2xl bg-[#140e0b] border border-[#2e231c] space-y-1">
             <span className="text-[10px] font-mono uppercase tracking-wider text-[#7ec29a] block">
               Oszczędność na odsetkach
@@ -617,7 +647,7 @@ export const MortgageView: React.FC = () => {
               ~{stats.simCustom.totalInterestSaved.toLocaleString('pl-PL')} zł
             </div>
             <p className="text-[11px] text-[#9e8f82]">
-              Pieniądze zaoszczędzone vs harmonogram banku
+              Zaoszczędzone vs ~{stats.simCustom.baselineTotalInterest.toLocaleString('pl-PL')} zł z umowy
             </p>
           </div>
 
@@ -631,6 +661,58 @@ export const MortgageView: React.FC = () => {
             <p className="text-[11px] text-[#9e8f82]">
               Spłata w {stats.simCustom.payoffDateFormatted} (zamiast 2055 r.)
             </p>
+          </div>
+        </div>
+
+        {/* Wizualny pasek struktury łącznych kosztów i odsetek */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#140e0a]/90 border border-[#2e231c] space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+            <span className="text-[#c4b5a5]">
+              Całkowity koszt kredytu (Kapitał + Łączne odsetki):{' '}
+              <strong className="text-[#f5ede4] font-mono font-medium">
+                ~{stats.simCustom.totalLoanCost.toLocaleString('pl-PL')} zł
+              </strong>{' '}
+              <span className="text-[#9e8f82]">
+                (zamiast {(config.originalAmount + stats.simCustom.baselineTotalInterest).toLocaleString('pl-PL')} zł w standardzie)
+              </span>
+            </span>
+            <span className="text-[#7ec29a] font-mono font-semibold">
+              Oszczędzasz {Math.round((stats.simCustom.totalInterestSaved / stats.simCustom.baselineTotalInterest) * 100)}% wszystkich odsetek!
+            </span>
+          </div>
+
+          {/* Kolorowy pasek podziału */}
+          <div className="w-full h-2.5 rounded-full bg-[#1e1713] overflow-hidden flex border border-[#2e231c]/60">
+            <div
+              style={{ width: `${Math.max(2, (stats.simCustom.alreadyPaidInterest / stats.simCustom.baselineTotalInterest) * 100)}%` }}
+              className="bg-[#d99b5a] h-full"
+              title={`Spłacone dotychczas odsetki: ${stats.simCustom.alreadyPaidInterest.toLocaleString('pl-PL')} zł`}
+            />
+            <div
+              style={{ width: `${Math.max(4, (stats.simCustom.totalInterestRemaining / stats.simCustom.baselineTotalInterest) * 100)}%` }}
+              className="bg-[#e6ab6e]/70 h-full"
+              title={`Pozostałe odsetki w tym planie: ~${stats.simCustom.totalInterestRemaining.toLocaleString('pl-PL')} zł`}
+            />
+            <div
+              style={{ width: `${Math.max(8, (stats.simCustom.totalInterestSaved / stats.simCustom.baselineTotalInterest) * 100)}%` }}
+              className="bg-[#7ec29a] h-full"
+              title={`Zaoszczędzone odsetki: ~${stats.simCustom.totalInterestSaved.toLocaleString('pl-PL')} zł`}
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 text-[11px] text-[#9e8f82] font-mono">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#d99b5a]" />
+              <span>Odsetki już spłacone: <strong className="text-[#f5ede4]">{stats.simCustom.alreadyPaidInterest.toLocaleString('pl-PL')} zł</strong></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#e6ab6e]/70" />
+              <span>Odsetki pozostałe do spłaty: <strong className="text-[#f5ede4]">~{stats.simCustom.totalInterestRemaining.toLocaleString('pl-PL')} zł</strong></span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#7ec29a]" />
+              <span>Zaoszczędzone odsetki w kieszeni: <strong className="text-[#7ec29a]">~{stats.simCustom.totalInterestSaved.toLocaleString('pl-PL')} zł</strong></span>
+            </div>
           </div>
         </div>
       </div>
@@ -751,6 +833,116 @@ export const MortgageView: React.FC = () => {
                 {copiedAccount ? <Check className="w-3 h-3 text-[#7ec29a]" /> : <Copy className="w-3 h-3" />}
                 <span>{copiedAccount ? 'Skopiowano!' : 'Kopiuj'}</span>
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* PORÓWNANIE WARIANTÓW SPŁATY I ŁĄCZNYCH ODSETEK DLA USTAWIONYCH PARAMETRÓW */}
+      <div className="p-6 rounded-3xl border border-[#2e231c] glass-panel shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#2e231c]">
+          <div>
+            <h3 className="text-base font-medium text-[#f5ede4] flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#d99b5a]" />
+              Szacunkowe łączne odsetki w zależności od parametrów
+            </h3>
+            <p className="text-xs text-[#9e8f82] mt-0.5">
+              Porównanie całkowitych odsetek zapłaconych bankowi w pełnym cyklu życia kredytu dla 3 strategii
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          {/* Wariant 1: Bez nadpłat (harmonogram bankowy) */}
+          <div className="p-4 rounded-2xl bg-[#140e0a] border border-[#2e231c] space-y-3 flex flex-col justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#9e8f82]">Wariant 1: Bankowy</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#2e231c] text-[#9e8f82]">Brak nadpłat</span>
+              </div>
+              <h4 className="text-sm font-medium text-[#f5ede4]">Harmonogram umowy (30 lat)</h4>
+              <p className="text-[11px] text-[#9e8f82]">Tylko standardowa rata bankowa {config.regularInstallment.toLocaleString('pl-PL')} zł/mc do 2055 r.</p>
+            </div>
+
+            <div className="space-y-1.5 pt-2 border-t border-[#2e231c]/60 text-xs font-mono">
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Łączne odsetki:</span>
+                <strong className="text-[#e07a68]">~{stats.simPastOnly.baselineTotalInterest.toLocaleString('pl-PL')} zł</strong>
+              </div>
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Pozostało odsetek:</span>
+                <span className="text-[#f5ede4]">~{(stats.simPastOnly.baselineTotalInterest - stats.simPastOnly.alreadyPaidInterest).toLocaleString('pl-PL')} zł</span>
+              </div>
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Termin spłaty:</span>
+                <span className="text-[#9e8f82]">Listopad 2055 r.</span>
+              </div>
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Oszczędność:</span>
+                <span className="text-[#9e8f82]">0 zł (baza)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Wariant 2: Twój stały cel bazowy */}
+          <div className="p-4 rounded-2xl bg-[#140e0a] border border-[#2e231c] space-y-3 flex flex-col justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#d99b5a]">Wariant 2: Twój cel</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#d99b5a]/20 text-[#f1c38e]">Aktywny cel</span>
+              </div>
+              <h4 className="text-sm font-medium text-[#f5ede4]">Stały pułap {config.targetMonthlyOverpayment.toLocaleString('pl-PL')} zł/mc</h4>
+              <p className="text-[11px] text-[#9e8f82]">Łączny przelew {(config.regularInstallment + config.targetMonthlyOverpayment).toLocaleString('pl-PL')} zł każdego miesiąca</p>
+            </div>
+
+            <div className="space-y-1.5 pt-2 border-t border-[#2e231c]/60 text-xs font-mono">
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Łączne odsetki:</span>
+                <strong className="text-[#7ec29a]">~{stats.simTarget.totalInterestOverall.toLocaleString('pl-PL')} zł</strong>
+              </div>
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Pozostało odsetek:</span>
+                <span className="text-[#f5ede4]">~{stats.simTarget.totalInterestRemaining.toLocaleString('pl-PL')} zł</span>
+              </div>
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Termin spłaty:</span>
+                <span className="text-[#f1c38e]">{stats.simTarget.payoffDateFormatted} ({stats.simTarget.yearsRemaining} l. {stats.simTarget.monthsRemainder} m.)</span>
+              </div>
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Oszczędność odsetek:</span>
+                <span className="text-[#7ec29a] font-semibold">~{stats.simTarget.totalInterestSaved.toLocaleString('pl-PL')} zł</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Wariant 3: Wybrany termin w kalkulatorze */}
+          <div className="p-4 rounded-2xl bg-[#140e0a] border border-[#d99b5a]/40 space-y-3 flex flex-col justify-between relative overflow-hidden">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#7ec29a]">Wariant 3: Własny termin</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#7ec29a]/20 text-[#9ee2b9]">Ustawiany termin</span>
+              </div>
+              <h4 className="text-sm font-medium text-[#f5ede4]">Spłata do {stats.simCustom.payoffDateFormatted}</h4>
+              <p className="text-[11px] text-[#9e8f82]">Wymaga nadpłaty {stats.simCustom.requiredMonthlyOverpayment.toLocaleString('pl-PL')} zł/mc</p>
+            </div>
+
+            <div className="space-y-1.5 pt-2 border-t border-[#2e231c]/60 text-xs font-mono">
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Łączne odsetki:</span>
+                <strong className="text-[#7ec29a]">~{stats.simCustom.totalInterestOverall.toLocaleString('pl-PL')} zł</strong>
+              </div>
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Pozostało odsetek:</span>
+                <span className="text-[#f5ede4]">~{stats.simCustom.totalInterestRemaining.toLocaleString('pl-PL')} zł</span>
+              </div>
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Termin spłaty:</span>
+                <span className="text-[#f1c38e]">{stats.simCustom.payoffDateFormatted} (za {stats.simCustom.yearsRemaining} l. {stats.simCustom.monthsRemainder} m.)</span>
+              </div>
+              <div className="flex justify-between text-[#c4b5a5]">
+                <span>Oszczędność odsetek:</span>
+                <span className="text-[#7ec29a] font-semibold">~{stats.simCustom.totalInterestSaved.toLocaleString('pl-PL')} zł</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1115,6 +1307,32 @@ export const MortgageView: React.FC = () => {
                   onChange={(e) => setTempConfig({ ...tempConfig, accountNumber: e.target.value })}
                   className="w-full bg-[#120e0a] border border-[#382b20] focus:border-[#d99b5a] rounded-xl px-3 py-2 text-xs text-[#f5ede4] outline-none font-mono"
                 />
+              </div>
+
+              {/* Dynamiczny podgląd łącznych odsetek dla ustawianych parametrów */}
+              <div className="p-3.5 rounded-2xl bg-[#140e0b] border border-[#d99b5a]/30 space-y-2 text-xs font-mono">
+                <div className="flex items-center justify-between text-[#d99b5a]">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold">
+                    Dynamiczny podgląd łącznych odsetek (na żywo):
+                  </span>
+                  <span className="text-[10px] text-[#9e8f82]">
+                    Stopa: {tempConfig.interestRate}%
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div className="p-2 rounded-xl bg-[#1c140f] border border-[#2e231c]">
+                    <span className="text-[10px] text-[#9e8f82] block">Bez nadpłat (bank):</span>
+                    <strong className="text-[#e07a68]">~{liveSimModal.baselineTotalInterest.toLocaleString('pl-PL')} zł</strong>
+                  </div>
+                  <div className="p-2 rounded-xl bg-[#1c140f] border border-[#7ec29a]/30">
+                    <span className="text-[10px] text-[#7ec29a] block">Z Twoją nadpłatą ({tempConfig.targetMonthlyOverpayment.toLocaleString('pl-PL')} zł):</span>
+                    <strong className="text-[#7ec29a]">~{liveSimModal.totalInterestOverall.toLocaleString('pl-PL')} zł</strong>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center text-[11px] text-[#c4b5a5] pt-1 border-t border-[#2e231c]">
+                  <span>Szacunkowa oszczędność na odsetkach:</span>
+                  <strong className="text-[#7ec29a] font-semibold">~{liveSimModal.totalInterestSaved.toLocaleString('pl-PL')} zł (o {liveSimModal.yearsReduced} lat szybciej)</strong>
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#2e231c]">

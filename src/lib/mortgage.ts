@@ -415,6 +415,9 @@ export interface MortgageSimulationResult {
   totalInterestRemaining: number;
   totalInterestOverall: number;
   totalInterestSaved: number;
+  baselineTotalInterest: number;
+  totalLoanCost: number;
+  alreadyPaidInterest: number;
   monthsReduced: number;
   yearsReduced: number;
 }
@@ -497,6 +500,9 @@ export function simulateAmortizationSchedule(params: {
     totalInterestRemaining: Math.round(totalInterestRemaining),
     totalInterestOverall: Math.round(totalInterestOverall),
     totalInterestSaved: Math.round(totalInterestSaved),
+    baselineTotalInterest: Math.round(baselineTotalInterest),
+    totalLoanCost: Math.round(originalLoanAmount + totalInterestOverall),
+    alreadyPaidInterest: Math.round(alreadyPaidInterest * 100) / 100,
     monthsReduced,
     yearsReduced: Math.round((monthsReduced / 12) * 10) / 10,
   };
@@ -539,8 +545,12 @@ export interface TargetPayoffCalculation {
   requiredTotalMonthly: number;
   payoffDate: string; // YYYY-MM
   payoffDateFormatted: string; // e.g. "Grudzień 2032"
+  totalInterestRemaining: number;
   totalInterestOverall: number;
   totalInterestSaved: number;
+  baselineTotalInterest: number;
+  totalLoanCost: number;
+  alreadyPaidInterest: number;
   yearsReduced: number;
   isValid: boolean;
   errorMessage?: string;
@@ -584,6 +594,7 @@ export function calculateRequiredOverpaymentForTargetDate(params: {
   const payoffDateFormatted = `${polishMonthsCap[targetMonth - 1] || 'Miesiąc'} ${targetYear}`;
 
   if (monthsRemaining <= 0) {
+    const baseInterest = (regularInstallment * originalTermMonths) - originalLoanAmount;
     return {
       monthsRemaining: 0,
       yearsRemaining: 0,
@@ -592,8 +603,12 @@ export function calculateRequiredOverpaymentForTargetDate(params: {
       requiredTotalMonthly: regularInstallment,
       payoffDate,
       payoffDateFormatted,
+      totalInterestRemaining: 0,
       totalInterestOverall: alreadyPaidInterest,
       totalInterestSaved: 0,
+      baselineTotalInterest: Math.round(baseInterest),
+      totalLoanCost: Math.round(originalLoanAmount + alreadyPaidInterest),
+      alreadyPaidInterest,
       yearsReduced: 0,
       isValid: false,
       errorMessage: 'Docelowy termin spłaty musi być w przyszłości.',
@@ -630,8 +645,12 @@ export function calculateRequiredOverpaymentForTargetDate(params: {
     requiredTotalMonthly,
     payoffDate,
     payoffDateFormatted,
+    totalInterestRemaining: sim.totalInterestRemaining,
     totalInterestOverall: sim.totalInterestOverall,
     totalInterestSaved: sim.totalInterestSaved,
+    baselineTotalInterest: sim.baselineTotalInterest,
+    totalLoanCost: sim.totalLoanCost,
+    alreadyPaidInterest,
     yearsReduced: sim.yearsReduced,
     isValid: true,
   };
