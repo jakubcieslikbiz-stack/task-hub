@@ -9,7 +9,9 @@ import {
   Image as ImageIcon,
   Eye,
   Globe,
-  X
+  X,
+  Settings,
+  ExternalLink,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -37,9 +39,36 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
   const [year, setYear] = useState('2026');
   const [tagsStr, setTagsStr] = useState('');
 
-  const publicUrl = typeof window !== 'undefined'
+  // Własna domena dla portfolio (np. https://jcstudio.vercel.app lub domena z Vercel)
+  const [customDomain, setCustomDomain] = useState<string>(() => {
+    return localStorage.getItem('taskhub_custom_portfolio_domain') || 'https://jcstudio.vercel.app';
+  });
+  const [isEditingDomain, setIsEditingDomain] = useState(false);
+  const [tempDomain, setTempDomain] = useState(customDomain);
+  const [showDomainHelp, setShowDomainHelp] = useState(false);
+
+  const publicUrl = customDomain
+    ? `${customDomain.replace(/\/+$/, '')}/portfolio`
+    : typeof window !== 'undefined'
     ? `${window.location.origin}/portfolio`
-    : 'https://twoja-domena.vercel.app/portfolio';
+    : 'https://jcstudio.vercel.app/portfolio';
+
+  const handleSaveCustomDomain = () => {
+    const formatted = tempDomain.trim().replace(/\/+$/, '');
+    setCustomDomain(formatted);
+    localStorage.setItem('taskhub_custom_portfolio_domain', formatted);
+    setIsEditingDomain(false);
+  };
+
+  const handleResetToOrigin = () => {
+    if (typeof window !== 'undefined') {
+      const origin = window.location.origin;
+      setCustomDomain(origin);
+      setTempDomain(origin);
+      localStorage.setItem('taskhub_custom_portfolio_domain', origin);
+    }
+    setIsEditingDomain(false);
+  };
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(publicUrl);
@@ -143,33 +172,124 @@ export const PortfolioManagerView: React.FC<PortfolioManagerViewProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Compact Client Share Link Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-2xl glass-panel border border-[#2e231c] shadow-lg">
-        <div className="flex items-center gap-2 text-xs text-[#9e8f82]">
-          <Globe className="w-4 h-4 text-[#d99b5a]" />
-          <span>Publiczny link portfolio dla klienta:</span>
+      <div className="p-4 rounded-2xl glass-panel border border-[#2e231c] shadow-lg space-y-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs text-[#9e8f82]">
+            <Globe className="w-4 h-4 text-[#d99b5a]" />
+            <span>Publiczny link portfolio dla klienta:</span>
+            {customDomain && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#d99b5a]/15 text-[#f1c38e] border border-[#d99b5a]/30">
+                Własna domena
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <input
+              type="text"
+              readOnly
+              value={publicUrl}
+              className="w-full sm:w-80 px-3 py-1.5 bg-[#140f0c] rounded-xl border border-[#2e231c] text-[#f5ede4] text-xs font-mono select-all focus:outline-none"
+            />
+            <button
+              onClick={handleCopyLink}
+              className="px-3.5 py-1.5 rounded-xl bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md flex items-center gap-1.5 transition-all flex-shrink-0 active:scale-95"
+            >
+              {copiedLink ? <Check className="w-3.5 h-3.5 text-[#7ec29a]" /> : <Copy className="w-3.5 h-3.5 text-[#120e0a]" />}
+              <span>{copiedLink ? 'Skopiowano' : 'Kopiuj'}</span>
+            </button>
+            <button
+              onClick={onOpenClientPreview}
+              className="px-3 py-1.5 rounded-xl bg-[#140f0c] hover:bg-[#1e1713] text-[#d99b5a] border border-[#2e231c] text-xs font-medium flex items-center gap-1.5 transition-all flex-shrink-0"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>Podgląd</span>
+            </button>
+            <button
+              onClick={() => setIsEditingDomain(!isEditingDomain)}
+              className="p-1.5 rounded-xl bg-[#140f0c] hover:bg-[#1e1713] text-[#9e8f82] hover:text-[#f5ede4] border border-[#2e231c] text-xs transition-all flex-shrink-0"
+              title="Zmień domenę lub zobacz instrukcję Vercel"
+            >
+              <Settings className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          <input
-            type="text"
-            readOnly
-            value={publicUrl}
-            className="w-full sm:w-72 px-3 py-1.5 bg-[#140f0c] rounded-xl border border-[#2e231c] text-[#f5ede4] text-xs font-mono select-all focus:outline-none"
-          />
-          <button
-            onClick={handleCopyLink}
-            className="px-3.5 py-1.5 rounded-xl bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-medium shadow-md flex items-center gap-1.5 transition-all flex-shrink-0 active:scale-95"
-          >
-            {copiedLink ? <Check className="w-3.5 h-3.5 text-[#7ec29a]" /> : <Copy className="w-3.5 h-3.5 text-[#120e0a]" />}
-            <span>{copiedLink ? 'Skopiowano' : 'Kopiuj'}</span>
-          </button>
-          <button
-            onClick={onOpenClientPreview}
-            className="px-3 py-1.5 rounded-xl bg-[#140f0c] hover:bg-[#1e1713] text-[#d99b5a] border border-[#2e231c] text-xs font-medium flex items-center gap-1.5 transition-all flex-shrink-0"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span>Podgląd</span>
-          </button>
-        </div>
+
+        {/* Panel konfiguracji domeny (np. jcstudio.vercel.app) */}
+        {isEditingDomain && (
+          <div className="pt-3 border-t border-[#2e231c] space-y-3 animate-in fade-in duration-150">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-xs font-mono text-[#d99b5a] flex items-center gap-1.5">
+                <span>Adres domeny bazowej dla linków:</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowDomainHelp(!showDomainHelp)}
+                className="text-[11px] text-[#7ec29a] hover:underline flex items-center gap-1"
+              >
+                <span>{showDomainHelp ? 'Ukryj instrukcję Vercel' : 'Jak zmienić domenę w Vercel na jcstudio.vercel.app?'}</span>
+                <ExternalLink className="w-3 h-3" />
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <input
+                type="text"
+                value={tempDomain}
+                onChange={(e) => setTempDomain(e.target.value)}
+                placeholder="np. https://jcstudio.vercel.app"
+                className="w-full sm:flex-1 px-3 py-1.5 bg-[#140f0c] rounded-xl border border-[#382b20] focus:border-[#d99b5a] text-[#f5ede4] text-xs font-mono outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setTempDomain('https://jcstudio.vercel.app')}
+                className="px-2.5 py-1.5 rounded-xl bg-[#1e1713] hover:bg-[#2a1e16] text-[#d99b5a] border border-[#2e231c] text-xs font-mono whitespace-nowrap"
+              >
+                jcstudio.vercel.app
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveCustomDomain}
+                className="px-3.5 py-1.5 rounded-xl bg-[#d99b5a] hover:bg-[#e6ab6e] text-[#120e0a] text-xs font-semibold whitespace-nowrap shadow-sm active:scale-95"
+              >
+                Zapisz
+              </button>
+              <button
+                type="button"
+                onClick={handleResetToOrigin}
+                className="px-2.5 py-1.5 rounded-xl bg-[#1e1713] text-[#9e8f82] hover:text-[#f5ede4] text-xs whitespace-nowrap"
+                title="Wykryj automatycznie z aktualnego adresu"
+              >
+                Resetuj
+              </button>
+            </div>
+
+            {/* Pomoc / Instrukcja zmiany w panelu Vercel */}
+            {showDomainHelp && (
+              <div className="p-3.5 rounded-xl bg-[#140e0b] border border-[#d99b5a]/30 space-y-2 text-xs text-[#c4b5a5]">
+                <strong className="text-[#f5ede4] block">
+                  Kroki, aby Twój projekt działał pod adresem <span className="font-mono text-[#d99b5a]">jcstudio.vercel.app</span>:
+                </strong>
+                <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed text-[#9e8f82]">
+                  <li>
+                    Wejdź na stronę <a href="https://vercel.com/dashboard" target="_blank" rel="noopener noreferrer" className="text-[#d99b5a] underline">vercel.com/dashboard</a> i zaloguj się.
+                  </li>
+                  <li>
+                    Kliknij na swój projekt (<strong>task-hub</strong>).
+                  </li>
+                  <li>
+                    W górnym menu wejdź w <strong>Settings</strong> → <strong>Domains</strong>.
+                  </li>
+                  <li>
+                    Przy domenie <em>task-hub-pied-delta.vercel.app</em> kliknij <strong>Edit</strong> (lub kliknij przycisk <strong>Add</strong>) i wpisz: <strong className="text-[#f5ede4] font-mono">jcstudio.vercel.app</strong> (jeśli nazwa byłaby zajęta, możesz wybrać np. <em>jc-studio.vercel.app</em> lub <em>jcstudio3d.vercel.app</em>).
+                  </li>
+                  <li>
+                    Kliknij <strong>Save</strong>. Gotowe! Vercel w kilka sekund przekieruje ruch na nowy adres, a certyfikat SSL wygeneruje się automatycznie.
+                  </li>
+                </ol>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Projects Management Header */}
