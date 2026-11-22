@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { draftEmailWithOpenAI, type DraftEmailResult } from '../lib/ai';
 import { sendCustomEmail } from '../lib/email';
+import { ContractGeneratorView } from './ContractGeneratorView';
 import {
   Sparkles,
   Send,
@@ -77,6 +78,7 @@ interface EmailOfferDrafterViewProps {
 }
 
 export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ apiKey }) => {
+  const [activeTab, setActiveTab] = useState<'offers' | 'contracts'>('offers');
   const [selectedPreset, setSelectedPreset] = useState<string>('oferta_3d');
   const [clientMessage, setClientMessage] = useState<string>('');
   const [myNotes, setMyNotes] = useState<string>(PRESETS[0].defaultPrompt);
@@ -276,8 +278,50 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Preset Buttons */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      {/* Przełącznik podmodułów: Oferty & E-mail vs Generator Umów */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-1.5 rounded-2xl bg-[#140e0b] border border-[#2e231c]">
+        <div className="flex items-center gap-1.5 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab('offers')}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs transition-all ${
+              activeTab === 'offers'
+                ? 'bg-[#d99b5a] text-[#120e0a] font-semibold shadow-md'
+                : 'text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#1e1713]'
+            }`}
+          >
+            <Mail className="w-3.5 h-3.5" />
+            <span>Oferty & Wiadomości E-mail</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('contracts')}
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs transition-all ${
+              activeTab === 'contracts'
+                ? 'bg-[#d99b5a] text-[#120e0a] font-semibold shadow-md'
+                : 'text-[#9e8f82] hover:text-[#f5ede4] hover:bg-[#1e1713]'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Generator Umów z Klientem</span>
+            <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold ${
+              activeTab === 'contracts'
+                ? 'bg-[#120e0a]/20 text-[#120e0a]'
+                : 'bg-[#7ec29a]/20 text-[#7ec29a] border border-[#7ec29a]/40'
+            }`}>
+              NOWOŚĆ
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {activeTab === 'contracts' ? (
+        <ContractGeneratorView apiKey={apiKey} />
+      ) : (
+        <>
+          {/* Preset Buttons */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {PRESETS.map((preset) => {
           const Icon = preset.icon;
           const isSelected = selectedPreset === preset.id;
@@ -646,6 +690,8 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
             ))}
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

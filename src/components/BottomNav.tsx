@@ -107,7 +107,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
         }`}
       >
         <MailCheck className="w-4 h-4" />
-        <span className="text-[9px]">Oferty AI</span>
+        <span className="text-[9px]">Oferty / Umowy</span>
       </button>
     </nav>
   );

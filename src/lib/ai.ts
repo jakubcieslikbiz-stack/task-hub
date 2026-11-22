@@ -346,3 +346,139 @@ ${params.adjustmentInstruction ? `Dodatkowa instrukcja poprawki: ${params.adjust
     summary: parsed.summary,
   };
 }
+
+export interface GenerateContractParams {
+  contractType: 'dzielo_prawa' | 'b2b_uslugi' | 'wizualizacje_3d';
+  contractTitle?: string;
+  scope: string;
+  deadline: string;
+  price: string;
+  paymentTerms?: string;
+  includeInitialPreviewsClause?: boolean;
+  revisionsCount?: number;
+  includeCopyrightTransfer?: boolean;
+  includePortfolioClause?: boolean;
+  clientName?: string;
+  clientDetails?: string;
+  contractorName?: string;
+  contractorDetails?: string;
+  city?: string;
+  date?: string;
+  additionalClauses?: string;
+}
+
+export interface GenerateContractResult {
+  title: string;
+  contractNumber: string;
+  contractText: string;
+  summary: string;
+  keyPoints: string[];
+}
+
+export async function generateContractWithOpenAI(
+  params: GenerateContractParams,
+  apiKey: string
+): Promise<GenerateContractResult> {
+  const typeMap: Record<string, string> = {
+    dzielo_prawa: 'Umowa o dzieło z przeniesieniem autorskich praw majątkowych',
+    b2b_uslugi: 'Umowa B2B o świadczenie usług graficznych / wizualizacji 3D (faktura VAT)',
+    wizualizacje_3d: 'Umowa o wykonanie wizualizacji architektonicznych 3D',
+  };
+
+  const systemPrompt = `Jesteś radcą prawnym specjalizującym się w prawie autorskim, umowach B2B oraz umowach o dzieło w branży grafiki komputerowej, architektury i wizualizacji 3D w Polsce.
+Twoim zadaniem jest sporządzenie kompletnej, profesjonalnej, w pełni sformatowanej i gotowej do druku oraz podpisu umowy w języku polskim dla studia "JC Studio" (Jakub Cieślik).
+
+Kluczowe wymogi prawne i standardy branżowe:
+1. Zgodność z polskim Kodeksem Cywilnym oraz Ustawą o prawie autorskim i prawach pokrewnych.
+2. Struktura umowy:
+   - Data i miejsce zawarcia (np. Kraków).
+   - Oznaczenie Stron (Zamawiający oraz Wykonawca).
+   - § 1. Przedmiot umowy (dokładne określenie zakresu prac, formatu, liczby ujęć).
+   - § 2. Materiały wyjściowe i współdziałanie (dostarczenie rzutów DWG/modeli/wytycznych przez Zamawiającego).
+   - § 3. Terminy i etapy realizacji${params.includeInitialPreviewsClause ? ' - uwzględnij etap ujęć wstępnych (tzw. próbnych kadrów/brył) po pierwszych 3-4 dniach roboczych w celu akceptacji kątów kamery' : ''}.
+   - § 4. Procedura odbioru i poprawki (uwzględnij ${params.revisionsCount || 2} bezpłatne rundy poprawek w ramach pierwotnego zakresu; zmiany założeń projektowych płatne dodatkowo).
+   - § 5. Wynagrodzenie i warunki płatności (zadatek/zaliczka, termin płatności).
+   - § 6. Prawa autorskie i licencje (BARDZO WAŻNE: autorskie prawa majątkowe lub licencja przechodzą na Zamawiającego DOPIERO Z CHWILĄ ZAPŁATY 100% CAŁOŚCI WYNAGRODZENIA).
+   - § 7. Prawo do portfolio${params.includePortfolioClause !== false ? ' - Wykonawca ma prawo do umieszczenia dzieła w swoim portfolio JC Studio, na stronie www oraz w materiałach promocyjnych' : ''}.
+   - § 8. Poufność i dane osobowe (RODO).
+   - § 9. Postanowienia końcowe (właściwość sądu, forma pisemna/elektroniczna).
+   - Miejsca na podpisy obu Stron.
+
+Odpowiedz TYLKO I WYŁĄCZNIE poprawnym obiektem JSON w formacie:
+{
+  "title": (string) Oficjalny tytuł umowy (np. "UMOWA O DZIEŁO Z PRZENIESIENIEM PRAW AUTORSKICH"),
+  "contractNumber": (string) Wygenerowany numer umowy (np. "JC/2026/11/01"),
+  "contractText": (string) Pełny, sformatowany tekst całej umowy podzielony na paragrafy i ustępy, gotowy do druku i podpisania,
+  "summary": (string) Krótkie 1-2 zdaniowe podsumowanie warunków umowy,
+  "keyPoints": (string[]) Lista 3-5 kluczowych punktów umowy (np. zakres, cena, termin, prawa autorskie).
+}`;
+
+  const userPrompt = `
+Typ umowy: ${typeMap[params.contractType] || params.contractType}
+${params.contractTitle ? `Tytuł roboczy: ${params.contractTitle}` : ''}
+Data: ${params.date || new Date().toLocaleDateString('pl-PL')}
+Miejscowość: ${params.city || 'Kraków'}
+
+WYKONAWCA:
+${params.contractorName || 'Jakub Cieślik - JC Studio'}
+${params.contractorDetails ? `Dane wykonawcy: ${params.contractorDetails}` : ''}
+
+ZAMAWIAJĄCY (KLIENT):
+${params.clientName ? `Klient: ${params.clientName}` : '[Do uzupełnienia: Imię i Nazwisko / Nazwa Firmy Zamawiającego]'}
+${params.clientDetails ? `Dane klienta: ${params.clientDetails}` : '[Adres, NIP / PESEL Zamawiającego]'}
+
+ZAKRES PRAC (PRZEDMIOT UMOWY):
+"""
+${params.scope}
+"""
+
+TERMIN REALIZACJI:
+${params.deadline}
+
+WYNAGRODZENIE I PŁATNOŚCI:
+Kwota: ${params.price}
+Warunki płatności: ${params.paymentTerms || 'Płatność w 2 transzach: 30% zadatku przed rozpoczęciem prac, 70% po akceptacji renderów poglądowych przed przekazaniem ujęć w pełnej rozdzielczości.'}
+
+DODATKOWE KLAUZULE I USTALENIA:
+- Etap ujęć wstępnych: ${params.includeInitialPreviewsClause ? 'TAK (po 3-4 dniach roboczych)' : 'Standardowy'}
+- Rundy poprawek w cenie: ${params.revisionsCount || 2}
+- Przejście praw autorskich: ${params.includeCopyrightTransfer !== false ? 'TAK (wyłącznie po 100% zapłacie)' : 'Licencja niewyłączna'}
+- Prawo do portfolio JC Studio: ${params.includePortfolioClause !== false ? 'TAK' : 'NIE'}
+${params.additionalClauses ? `Dodatkowe instrukcje: ${params.additionalClauses}` : ''}
+`;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey.trim()}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.2,
+      response_format: { type: 'json_object' },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData?.error?.message || `Błąd OpenAI (${response.status})`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error('Pusta odpowiedź z OpenAI.');
+
+  const parsed = JSON.parse(content);
+  return {
+    title: parsed.title || 'UMOWA O DZIEŁO',
+    contractNumber: parsed.contractNumber || `JC/${new Date().getFullYear()}/${String(new Date().getMonth() + 1).padStart(2, '0')}/01`,
+    contractText: parsed.contractText || '',
+    summary: parsed.summary || 'Umowa sporządzona pomyślnie.',
+    keyPoints: Array.isArray(parsed.keyPoints) ? parsed.keyPoints : [],
+  };
+}
