@@ -242,6 +242,8 @@ export const MortgageView: React.FC = () => {
               <span>•</span>
               <span>Rata bankowa: <strong className="text-[#f5ede4] font-medium font-mono privacy-mask">{config.regularInstallment.toLocaleString('pl-PL')} zł</strong></span>
               <span>•</span>
+              <span>Łącznie (rata + nadpłata): <strong className="text-[#f1c38e] font-semibold font-mono privacy-mask">{nextTotalStandard.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</strong></span>
+              <span>•</span>
               <span>Najbliższa rata: <strong className="text-[#d99b5a] font-medium">{nextPaymentInfo.dateString}</strong> (za {nextPaymentInfo.daysLeft} dni)</span>
             </p>
           </div>
@@ -340,48 +342,51 @@ export const MortgageView: React.FC = () => {
 
       {/* 3 KLUCZOWE KARTY: ODPOWIEDZI NA 3 GŁÓWNE PYTANIA UŻYTKOWNIKA */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* KARTA 1: ILE NADPŁACIĆ POZA RATĄ W KOLEJNYM MIESIĄCU */}
-        <div className="p-5 sm:p-6 rounded-3xl border border-[#7ec29a]/40 bg-gradient-to-b from-[#162118]/90 to-[#121612]/95 shadow-xl flex flex-col justify-between space-y-4 relative overflow-hidden">
+        {/* KARTA 1: ILE ŁĄCZNIE PRZELAĆ NA RATĘ + NADPŁATĘ */}
+        <div className="p-5 sm:p-6 rounded-3xl border border-[#d99b5a]/45 bg-gradient-to-b from-[#1c1610]/95 via-[#16120e]/95 to-[#120e0a]/95 shadow-xl flex flex-col justify-between space-y-4 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-[#7ec29a] flex items-center gap-1.5 font-semibold">
-              <Sparkles className="w-3.5 h-3.5" />
-              Kolejny miesiąc ({nextMonthName})
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#d99b5a] flex items-center gap-1.5 font-semibold">
+              <Sparkles className="w-3.5 h-3.5 text-[#d99b5a]" />
+              Łączny przelew ({nextMonthName})
             </span>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#7ec29a]/20 text-[#9ee2b9] font-mono border border-[#7ec29a]/30">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#d99b5a]/20 text-[#f1c38e] font-mono border border-[#d99b5a]/30">
               Termin: {nextPaymentInfo.dateString}
             </span>
           </div>
 
           <div>
-            <span className="text-xs text-[#9e8f82] block">Nadpłata poza ratą:</span>
-            <div className="flex items-baseline gap-2 mt-0.5">
-              <span className="text-3xl sm:text-4xl font-light text-[#7ec29a] font-mono privacy-mask">
-                {nextOverpaymentStandard.toLocaleString('pl-PL')}
+            <span className="text-xs text-[#c4b5a5] block font-medium">
+              Łącznie na ratę + nadpłatę:
+            </span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-3xl sm:text-4xl font-light text-[#f1c38e] font-mono privacy-mask">
+                {nextTotalStandard.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
-              <span className="text-sm text-[#9ee2b9] font-mono">zł</span>
+              <span className="text-sm text-[#d99b5a] font-mono font-medium">zł</span>
             </div>
 
-            <div className="mt-3 pt-3 border-t border-[#2e231c]/80 space-y-1.5 text-xs font-mono">
+            <div className="mt-3 p-3 rounded-2xl bg-[#140e0a] border border-[#2e231c] space-y-1.5 text-xs font-mono">
               <div className="flex justify-between text-[#c4b5a5]">
-                <span>Rata bankowa (pobiera bank):</span>
-                <span className="text-[#f5ede4] privacy-mask">{config.regularInstallment.toLocaleString('pl-PL')} zł</span>
+                <span>1. Rata banku (pobiera Pekao):</span>
+                <span className="text-[#f5ede4] privacy-mask">{config.regularInstallment.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł</span>
               </div>
-              <div className="flex justify-between text-[#c4b5a5]">
-                <span>Nadpłata kapitału:</span>
-                <span className="text-[#7ec29a] font-semibold privacy-mask">+{nextOverpaymentStandard.toLocaleString('pl-PL')} zł</span>
+              <div className="flex justify-between text-[#7ec29a]">
+                <span>2. Nadpłata kapitału (poza ratą):</span>
+                <span className="font-semibold privacy-mask">+{nextOverpaymentStandard.toLocaleString('pl-PL')} zł</span>
               </div>
-              <div className="pt-2 border-t border-[#2e231c]/60 flex justify-between text-sm font-semibold text-[#f5ede4]">
-                <span>Łącznie do przygotowania:</span>
-                <span className="text-[#f1c38e] privacy-mask">{nextTotalStandard.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</span>
+              <div className="pt-2 border-t border-[#2e231c] flex justify-between font-semibold text-[#f1c38e]">
+                <span>= Łącznie do przelania:</span>
+                <span className="privacy-mask">{nextTotalStandard.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł</span>
               </div>
             </div>
 
             {/* Informacja o zaliczce lub nadwyżce */}
             {hasSurplus && (
               <div className="mt-3 p-2.5 rounded-xl bg-[#1e2a20] border border-[#7ec29a]/30 text-[11px] text-[#9ee2b9] leading-relaxed">
-                🎯 W {currentMonthName} wpłacono {overpaymentThisMonth.toLocaleString('pl-PL')} zł (+{currentMonthDiff.toLocaleString('pl-PL')} zł nadwyżki).
-                <div className="text-[10px] text-[#7ec29a] mt-0.5">
-                  Standardowo: <strong>{nextOverpaymentStandard.toLocaleString('pl-PL')} zł</strong> (razem {nextTotalStandard.toLocaleString('pl-PL')} zł) lub z zaliczką: <strong>{nextOverpaymentMin.toLocaleString('pl-PL')} zł</strong> (razem {nextTotalMin.toLocaleString('pl-PL')} zł).
+                🎯 W {currentMonthName} masz <strong>+{currentMonthDiff.toLocaleString('pl-PL')} zł</strong> nadwyżki.
+                <div className="text-[10px] text-[#7ec29a] mt-1 space-y-0.5">
+                  <div>• Pełny przelew: <strong>{nextTotalStandard.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</strong> (rata + nadpłata {nextOverpaymentStandard.toLocaleString('pl-PL')} zł)</div>
+                  <div>• Z zaliczką: <strong>{nextTotalMin.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</strong> (rata + nadpłata {nextOverpaymentMin.toLocaleString('pl-PL')} zł)</div>
                 </div>
               </div>
             )}
@@ -390,7 +395,7 @@ export const MortgageView: React.FC = () => {
               <div className="mt-3 p-2.5 rounded-xl bg-[#2a1c18] border border-[#e07a68]/30 text-[11px] text-[#f19b8c] leading-relaxed">
                 ⚠️ W {currentMonthName} brakuje {Math.abs(currentMonthDiff).toLocaleString('pl-PL')} zł do celu.
                 <div className="text-[10px] text-[#e07a68] mt-0.5">
-                  Nadpłata wyrównująca: <strong>{nextOverpaymentMin.toLocaleString('pl-PL')} zł</strong> (razem {nextTotalMin.toLocaleString('pl-PL')} zł).
+                  Łącznie z dopłatą wyrównującą: <strong>{nextTotalMin.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</strong>.
                 </div>
               </div>
             )}
