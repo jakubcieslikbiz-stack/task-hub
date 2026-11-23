@@ -33,6 +33,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const [category, setCategory] = useState(CATEGORIES[0].id);
   const [priority, setPriority] = useState<Priority>('medium');
   const [status, setStatus] = useState<Status>('in_progress');
+  const [isPaid, setIsPaid] = useState(false);
   const [isWaitingForFeedback, setIsWaitingForFeedback] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -54,7 +55,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       );
       setCategory(initialTask.category || CATEGORIES[0].id);
       setPriority(initialTask.priority || 'medium');
-      setStatus(initialTask.status || 'in_progress');
+      setStatus(initialTask.status === 'paid' ? 'done' : (initialTask.status || 'in_progress'));
+      setIsPaid(Boolean(initialTask.isPaid || initialTask.status === 'paid'));
       setIsWaitingForFeedback(Boolean(initialTask.isWaitingForFeedback));
       setStartDate(typeof initialTask.startDate === 'string' ? initialTask.startDate : '');
       setDueDate(typeof initialTask.dueDate === 'string' ? initialTask.dueDate : '');
@@ -81,6 +83,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       setCategory(defaultCategory || CATEGORIES[0].id);
       setPriority('medium');
       setStatus('in_progress');
+      setIsPaid(false);
       setIsWaitingForFeedback(false);
       setStartDate(todayStr);
       setDueDate(todayStr);
@@ -176,6 +179,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
       category,
       priority,
       status,
+      isPaid,
+      paidAt: isPaid ? (initialTask?.paidAt || new Date().toISOString()) : undefined,
       isWaitingForFeedback,
       startDate: startDate || undefined,
       dueDate: dueDate || undefined,
@@ -250,19 +255,52 @@ export const TaskModal: React.FC<TaskModalProps> = ({
 
             <div>
               <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1.5">
-                Status
+                Status realizacji
               </label>
               <select
-                value={status}
+                value={status === 'paid' ? 'done' : status}
                 onChange={(e) => setStatus(e.target.value as Status)}
                 className="w-full px-3.5 py-2 rounded-2xl glass-input text-sm"
               >
                 <option value="in_progress" className="bg-[#140f0c]">⚡ W toku</option>
                 <option value="todo" className="bg-[#140f0c]">📋 Do decyzji (klient się zastanawia)</option>
                 <option value="done" className="bg-[#140f0c]">✓ Gotowe</option>
-                <option value="paid" className="bg-[#140f0c]">💰 Opłacone</option>
               </select>
             </div>
+          </div>
+
+          {/* Przełącznik: Zlecenie opłacone */}
+          <div className="p-3.5 rounded-2xl bg-[#1e1713] border border-[#2e231c] flex items-center justify-between gap-3">
+            <div>
+              <label
+                className="text-xs font-medium text-[#f5ede4] flex items-center gap-1.5 cursor-pointer"
+                onClick={() => setIsPaid(!isPaid)}
+              >
+                <DollarSign className={`w-3.5 h-3.5 ${isPaid ? 'text-[#7ec29a]' : 'text-[#9e8f82]'}`} />
+                <span>Zlecenie opłacone przez klienta</span>
+                {isPaid && (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-[#7ec29a]/20 text-[#9ee2b9] border border-[#7ec29a]/30">
+                    Opłacone ✓
+                  </span>
+                )}
+              </label>
+              <p className="text-[11px] text-[#9e8f82] font-light mt-0.5">
+                Możesz zaznaczyć opłacenie w dowolnym momencie – zlecenie nadal może pozostać „W toku”
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPaid(!isPaid)}
+              className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 flex items-center p-0.5 ${
+                isPaid ? 'bg-[#7ec29a]' : 'bg-[#2b211a]'
+              }`}
+            >
+              <span
+                className={`w-5 h-5 rounded-full bg-white transition-transform duration-200 ${
+                  isPaid ? 'translate-x-5 shadow-sm' : 'translate-x-0 bg-[#857567]'
+                }`}
+              />
+            </button>
           </div>
 
           {/* Przełącznik: Czekam na uwagi */}

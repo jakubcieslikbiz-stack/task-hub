@@ -681,7 +681,7 @@ export function App() {
 
   const monthlyIncome = currentMonthTasks.reduce((sum, t) => sum + (t.price || 0), 0);
   const monthlyPaid = currentMonthTasks
-    .filter((t) => t.status === 'paid')
+    .filter((t) => t.isPaid || t.status === 'paid')
     .reduce((sum, t) => sum + (t.price || 0), 0);
   const monthlyTotalCosts = (costs.zus || 0) + (costs.tax || 0);
   const monthlyNet = monthlyPaid - monthlyTotalCosts;
@@ -834,18 +834,33 @@ export function App() {
   const handleToggleStatus = (id: string) => {
     const updated = tasks.map((t) => {
       if (t.id === id) {
-        // Cycle: in_progress -> done -> paid -> todo
-        const nextStatus: Record<Status, Status> = {
-          todo: 'in_progress',
-          in_progress: 'done',
-          done: 'paid',
-          paid: 'in_progress',
-        };
-        const newStatus = nextStatus[t.status];
+        // Przełączanie statusu realizacji: jeśli gotowe -> w toku; w przeciwnym razie -> gotowe
+        const isDone = t.status === 'done';
+        const newStatus: Status = isDone ? 'in_progress' : 'done';
         return {
           ...t,
           status: newStatus,
-          completedAt: newStatus === 'done' || newStatus === 'paid' ? new Date().toISOString() : undefined,
+          completedAt: newStatus === 'done' ? new Date().toISOString() : undefined,
+        };
+      }
+      return t;
+    });
+    setTasks(updated);
+    syncTasksToCloud(updated);
+  };
+
+  const handleTogglePaid = (id: string) => {
+    const updated = tasks.map((t) => {
+      if (t.id === id) {
+        const currentlyPaid = Boolean(t.isPaid || t.status === 'paid');
+        const nextPaid = !currentlyPaid;
+        // Płatność nie zmienia statusu realizacji (np. in_progress pozostaje in_progress)
+        const currentExecutionStatus: Status = t.status === 'paid' ? 'done' : t.status;
+        return {
+          ...t,
+          status: currentExecutionStatus,
+          isPaid: nextPaid,
+          paidAt: nextPaid ? new Date().toISOString() : undefined,
         };
       }
       return t;
@@ -896,18 +911,20 @@ export function App() {
       updated = tasks.map((t) => {
         if (t.id === taskData.id) {
           const isNewlyCompleted =
-            (taskData.status === 'paid' || taskData.status === 'done') &&
-            (!t.completedAt || t.status !== taskData.status);
+            taskData.status === 'done' && (!t.completedAt || t.status !== 'done');
+          const isPaid = taskData.isPaid !== undefined ? taskData.isPaid : Boolean(t.isPaid || t.status === 'paid');
           return {
             ...t,
             ...taskData,
+            isPaid,
+            paidAt: isPaid ? (t.paidAt || new Date().toISOString()) : undefined,
             completedAt: isNewlyCompleted ? new Date().toISOString() : taskData.completedAt || t.completedAt,
           };
         }
         return t;
       });
     } else {
-      const isPaidOrDone = taskData.status === 'paid' || taskData.status === 'done';
+      const isPaid = Boolean(taskData.isPaid || taskData.status === 'paid');
       const newTask: Task = {
         id: Date.now().toString(),
         title: taskData.title,
@@ -918,6 +935,8 @@ export function App() {
         category: taskData.category,
         priority: taskData.priority,
         status: defaultStatusForNewTask || taskData.status || 'in_progress',
+        isPaid,
+        paidAt: isPaid ? new Date().toISOString() : undefined,
         isWaitingForFeedback: Boolean(taskData.isWaitingForFeedback),
         notes: taskData.notes,
         remindByEmail: taskData.remindByEmail,
@@ -926,7 +945,7 @@ export function App() {
         emailReminderId: taskData.emailReminderId,
         subtasks: taskData.subtasks || [],
         createdAt: new Date().toISOString(),
-        completedAt: isPaidOrDone ? new Date().toISOString() : undefined,
+        completedAt: taskData.status === 'done' ? new Date().toISOString() : undefined,
         stickyColor: taskData.stickyColor,
       };
       updated = [newTask, ...tasks];
@@ -1076,7 +1095,7 @@ export function App() {
   const todayTasks = sortTasksByClosestDeadline(
     tasks.filter((t) => t.dueDate === todayStr || t.status === 'in_progress')
   );
-  const completedToday = todayTasks.filter((t) => t.status === 'done' || t.status === 'paid').length;
+  const completedToday = todayTasks.filter((t) => t.status === 'done').length;
 
   const filteredTasks = sortTasksByClosestDeadline(
     tasks.filter((task) => {
@@ -1103,7 +1122,7 @@ export function App() {
       if (statusFilter === 'in_progress' && task.status !== 'in_progress') return false;
       if (statusFilter === 'todo' && task.status !== 'todo') return false;
       if (statusFilter === 'done' && task.status !== 'done') return false;
-      if (statusFilter === 'paid' && task.status !== 'paid') return false;
+      if (statusFilter === 'paid' && !(task.isPaid || task.status === 'paid')) return false;
 
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
@@ -1199,9 +1218,9 @@ export function App() {
         onViewChange={setCurrentView}
         selectedCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
-        todayCount={todayTasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
-        totalCount={tasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
-        personalCount={tasks.filter((t) => t.category === 'personal' && t.status !== 'done' && t.status !== 'paid').length}
+        todayCount={todayTasks.filter((t) => t.status !== 'done').length}
+        totalCount={tasks.filter((t) => t.status !== 'done').length}
+        personalCount={tasks.filter((t) => t.category === 'personal' && t.status !== 'done').length}
         remindersCount={
           tasks.filter((t) => {
             if ((t.remindByEmail || t.emailReminderScheduledAt) && !t.emailReminderSentAt) return true;
@@ -1342,8 +1361,8 @@ export function App() {
             onOpenPhoneModal={() => setIsPhoneModalOpen(true)}
             completedTodayCount={completedToday}
             totalTodayCount={todayTasks.length}
-            todayCount={todayTasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
-            totalCount={tasks.filter((t) => t.status !== 'done' && t.status !== 'paid').length}
+            todayCount={todayTasks.filter((t) => t.status !== 'done').length}
+            totalCount={tasks.filter((t) => t.status !== 'done').length}
             monthlyRevenue={monthlyPaid}
           />
 
@@ -1640,6 +1659,7 @@ export function App() {
                 <TaskTable
                   tasks={filteredTasks}
                   onToggleStatus={handleToggleStatus}
+                  onTogglePaid={handleTogglePaid}
                   onUpdateStatus={handleUpdateStatus}
                   onToggleSubtask={handleToggleSubtask}
                   onEdit={handleOpenEdit}
@@ -1669,6 +1689,7 @@ export function App() {
                       key={task.id}
                       task={task}
                       onToggleStatus={handleToggleStatus}
+                      onTogglePaid={handleTogglePaid}
                       onUpdateStatus={handleUpdateStatus}
                       onToggleSubtask={handleToggleSubtask}
                       onEdit={handleOpenEdit}

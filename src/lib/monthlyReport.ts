@@ -90,7 +90,7 @@ export const generateMonthlyReport = (
 
   const monthTasks = filterTasksForMonth(tasks, year, month);
 
-  const paidTasks = monthTasks.filter((t) => t.status === 'paid');
+  const paidTasks = monthTasks.filter((t) => t.isPaid || t.status === 'paid');
   const paidRevenue = paidTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
 
   const pendingTasks = monthTasks.filter((t) => t.status === 'in_progress' || t.status === 'todo');

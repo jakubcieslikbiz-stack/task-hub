@@ -55,13 +55,18 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
     return `${y}-${m}-${day}`;
   };
 
+  const isTaskPaid = (t: Task): boolean => Boolean(t.isPaid || t.status === 'paid');
+
   const getTaskCashFlowDate = (t: Task): string => {
-    // 1. If task is paid and completedAt is set, this is the exact payment transaction date
-    if (t.status === 'paid' && t.completedAt) {
-      try {
-        const d = new Date(t.completedAt);
-        if (!isNaN(d.getTime())) return toLocalDateStr(d);
-      } catch {}
+    // 1. If task is paid and paidAt/completedAt is set, this is the exact payment transaction date
+    if (isTaskPaid(t)) {
+      const pDate = t.paidAt || t.completedAt;
+      if (pDate) {
+        try {
+          const d = new Date(pDate);
+          if (!isNaN(d.getTime())) return toLocalDateStr(d);
+        } catch {}
+      }
     }
 
     // 2. dueDate
@@ -119,7 +124,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
   const doneTasks = currentMonthTasks.filter((t) => t.status === 'done');
   const doneValue = doneTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
 
-  const paidTasks = currentMonthTasks.filter((t) => t.status === 'paid');
+  const paidTasks = currentMonthTasks.filter((t) => isTaskPaid(t));
   const paidValue = paidTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
 
   // Calculate monthly bills total for the current month from Moje Sprawy
@@ -216,7 +221,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
       let dayVal = 0;
       if (statusFilter === 'paid') {
         dayVal = dayTasks
-          .filter((t) => t.status === 'paid')
+          .filter((t) => isTaskPaid(t))
           .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
       } else if (statusFilter === 'in_progress') {
         dayVal = dayTasks

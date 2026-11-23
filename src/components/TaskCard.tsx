@@ -26,6 +26,7 @@ import confetti from 'canvas-confetti';
 interface TaskCardProps {
   task: Task;
   onToggleStatus: (id: string) => void;
+  onTogglePaid?: (id: string) => void;
   onUpdateStatus: (id: string, status: Status) => void;
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
   onEdit: (task: Task) => void;
@@ -43,6 +44,7 @@ const PRIORITY_CONFIG: Record<Priority, { label: string; color: string; badge: s
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
   onToggleStatus,
+  onTogglePaid,
   onUpdateStatus,
   onToggleSubtask,
   onEdit,
@@ -55,7 +57,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const [emailSentStatus, setEmailSentStatus] = useState<string | null>(null);
 
   const isDone = task.status === 'done';
-  const isPaid = task.status === 'paid';
+  const isPaid = Boolean(task.isPaid || task.status === 'paid');
   const category = CATEGORIES.find((c) => c.id === task.category);
   const priority = PRIORITY_CONFIG[task.priority];
 
@@ -128,11 +130,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <button
           onClick={handleToggle}
           className="mt-0.5 flex-shrink-0 text-[#9e8f82] hover:text-[#f5ede4] transition-all duration-150 active:scale-90 hover:scale-110 focus:outline-none"
-          title={isPaid ? 'Opłacone' : isDone ? 'Oznacz jako niewykonane' : 'Oznacz jako zrobione'}
+          title={isDone ? 'Oznacz jako w toku' : 'Oznacz jako gotowe'}
         >
-          {isPaid ? (
-            <CheckCircle2 className="w-6 h-6 text-[#7ec29a] fill-[#7ec29a]/20" />
-          ) : isDone ? (
+          {isDone ? (
             <CheckCircle2 className="w-6 h-6 text-[#7ec29a] fill-[#7ec29a]/20" />
           ) : (
             <Circle className="w-6 h-6 hover:stroke-[#f5ede4] transition-transform active:scale-90" />
@@ -143,9 +143,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="flex items-start justify-between gap-2">
             <h3
               className={`text-base font-medium leading-snug break-words transition-all ${
-                isPaid
-                  ? 'text-[#f5ede4]'
-                  : isDone
+                isDone
                   ? 'line-through text-[#7a6b5e]'
                   : 'text-[#f5ede4]'
               }`}
@@ -153,13 +151,33 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               {task.title}
             </h3>
 
-            {/* Price Badge (Warm champagne / sage) */}
-            {task.price !== undefined && task.price !== null && (
-              <span className="flex-shrink-0 inline-flex items-center gap-0.5 px-3 py-1 rounded-full text-xs font-medium font-mono bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30 privacy-mask" title="Kwota zlecenia">
-                <DollarSign className="w-3 h-3 text-[#7ec29a] -mr-0.5" />
-                {Number(task.price).toLocaleString('pl-PL')} zł
-              </span>
-            )}
+            {/* Price & Payment Badge */}
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              {task.price !== undefined && task.price !== null && (
+                <span className="inline-flex items-center gap-0.5 px-3 py-1 rounded-full text-xs font-medium font-mono bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30 privacy-mask" title="Kwota zlecenia">
+                  <DollarSign className="w-3 h-3 text-[#7ec29a] -mr-0.5" />
+                  {Number(task.price).toLocaleString('pl-PL')} zł
+                </span>
+              )}
+              {onTogglePaid && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTogglePaid(task.id);
+                  }}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-mono transition-all active:scale-95 ${
+                    isPaid
+                      ? 'bg-[#7ec29a]/20 text-[#9ee2b9] border border-[#7ec29a]/40 shadow-sm shadow-[#7ec29a]/20'
+                      : 'bg-[#1e1713] text-[#9e8f82] border border-[#2e231c] hover:border-[#d99b5a]/40 hover:text-[#f1c38e]'
+                  }`}
+                  title={isPaid ? 'Zlecenie opłacone. Kliknij, aby zmienić.' : 'Zlecenie oczekuje na płatność. Kliknij, aby oznaczyć jako opłacone.'}
+                >
+                  <DollarSign className="w-3 h-3" />
+                  <span>{isPaid ? 'Opłacone' : 'Oczekuje'}</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {task.description && (
@@ -215,9 +233,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             {/* Status Badge */}
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-[11px] font-medium ${
-                isPaid
-                  ? 'bg-[#7ec29a]/20 text-[#9ee2b9] border-[#7ec29a]/40'
-                  : isDone
+                isDone
                   ? 'bg-[#251b14] text-[#9e8f82] border-[#382b20]'
                   : task.status === 'in_progress'
                   ? 'bg-[#d99b5a]/20 text-[#f1c38e] border-[#d99b5a]/40'
@@ -226,10 +242,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   : 'bg-[#251b14] text-[#9e8f82] border-[#382b20]'
               }`}
             >
-              {isPaid
-                ? 'Opłacone ✓'
-                : isDone
-                ? 'Gotowe'
+              {isDone
+                ? 'Gotowe ✓'
                 : task.status === 'in_progress'
                 ? 'W toku'
                 : task.status === 'todo'
@@ -447,10 +461,28 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   </button>
                 )}
 
+                {onTogglePaid && (
+                  <>
+                    <div className="border-t border-[#2e231c] my-1" />
+                    <button
+                      onClick={() => {
+                        setShowMenu(false);
+                        onTogglePaid(task.id);
+                      }}
+                      className={`flex items-center gap-2.5 w-full px-3.5 py-2 hover:bg-[#251b14] text-left transition-colors ${
+                        isPaid ? 'text-[#7ec29a]' : 'text-[#f5ede4]'
+                      }`}
+                    >
+                      <DollarSign className="w-4 h-4 text-[#7ec29a]" />
+                      <span>{isPaid ? 'Oznacz jako nieopłacone' : 'Oznacz jako opłacone ✓'}</span>
+                    </button>
+                  </>
+                )}
+
                 <div className="border-t border-[#2e231c] my-1" />
 
                 <div className="px-3.5 py-1 text-[10px] font-mono uppercase tracking-wider text-[#9e8f82]">
-                  Zmień status
+                  Status realizacji
                 </div>
                 <button
                   onClick={() => {
@@ -472,7 +504,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     task.status === 'in_progress' ? 'text-[#d99b5a] font-semibold' : 'text-[#9e8f82]'
                   }`}
                 >
-                  W toku
+                  ⚡ W toku
                 </button>
                 <button
                   onClick={() => {
@@ -483,18 +515,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     task.status === 'done' ? 'text-[#7ec29a] font-semibold' : 'text-[#9e8f82]'
                   }`}
                 >
-                  Gotowe
-                </button>
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    onUpdateStatus(task.id, 'paid');
-                  }}
-                  className={`w-full text-left px-3.5 py-1.5 hover:bg-[#251b14] ${
-                    task.status === 'paid' ? 'text-[#7ec29a] font-semibold' : 'text-[#9e8f82]'
-                  }`}
-                >
-                  💰 Opłacone
+                  ✓ Gotowe
                 </button>
 
                 <div className="border-t border-[#2e231c] my-1" />

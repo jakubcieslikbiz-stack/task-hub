@@ -95,7 +95,7 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
   });
 
   // Calculate earnings
-  const paidTasks = monthTasks.filter((t) => t.status === 'paid');
+  const paidTasks = monthTasks.filter((t) => t.isPaid || t.status === 'paid');
   const earnings = paidTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
 
   // Total potential value (all orders with price)
@@ -483,15 +483,15 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
                       {t.title}
                     </span>
                     <span className="text-[11px] text-[#9e8f82]">
-                      Termin: {t.dueDate || 'brak'} • Status: {t.status === 'paid' ? 'Opłacone' : t.status === 'done' ? 'Gotowe' : 'W toku'}
+                      Termin: {t.dueDate || 'brak'} • Realizacja: {t.status === 'done' ? 'Gotowe' : t.status === 'todo' ? 'Do decyzji' : 'W toku'}
                     </span>
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-mono font-medium text-[#f5ede4] block privacy-mask">
                       {t.price ? `${t.price.toLocaleString('pl-PL')} zł` : '—'}
                     </span>
-                    <span className={`text-[10px] font-mono uppercase ${t.status === 'paid' ? 'text-[#7ec29a]' : 'text-[#d99b5a]'}`}>
-                      {t.status === 'paid' ? 'Opłacone' : 'Oczekuje'}
+                    <span className={`text-[10px] font-mono uppercase ${(t.isPaid || t.status === 'paid') ? 'text-[#7ec29a]' : 'text-[#d99b5a]'}`}>
+                      {(t.isPaid || t.status === 'paid') ? '✓ Opłacone' : 'Oczekuje'}
                     </span>
                   </div>
                 </div>

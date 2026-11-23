@@ -77,7 +77,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
   );
 
   const monthTotalValue = relevantTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
-  const paidCount = relevantTasks.filter((t) => t.status === 'paid').length;
+  const paidCount = relevantTasks.filter((t) => t.isPaid || t.status === 'paid').length;
 
   return (
     <div className="space-y-4">
@@ -242,7 +242,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ tasks, onEditTask })
                   const start = task.startDate || task.createdAt.slice(0, 10) || task.dueDate || '';
                   const end = task.dueDate || start;
 
-                  const isPaid = task.status === 'paid';
+                  const isPaid = Boolean(task.isPaid || task.status === 'paid');
                   const isDone = task.status === 'done';
                   const isPersonal = task.category === 'personal';
 

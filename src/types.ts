@@ -45,6 +45,8 @@ export interface Task {
   category: string;
   priority: Priority;
   status: Status;        // todo | in_progress | done | paid
+  isPaid?: boolean;      // Czy zlecenie zostało opłacone przez klienta (niezależne od statusu realizacji!)
+  paidAt?: string;       // Data i czas opłacenia zlecenia
   isWaitingForFeedback?: boolean; // Czekam na uwagi od klienta (leci na dół listy w toku)
   notes?: string;        // Uwagi do projektu
   remindByEmail?: boolean; // Czy wysłać/oznaczyć przypomnienie e-mail
@@ -56,6 +58,10 @@ export interface Task {
   createdAt: string;
   completedAt?: string;
   stickyColor?: StickyNoteColor; // Kolor karteczki samoprzylepnej dla spraw osobistych
+}
+
+export function isTaskPaid(task: Task): boolean {
+  return Boolean(task.isPaid || task.status === 'paid');
 }
 
 export type ViewMode =

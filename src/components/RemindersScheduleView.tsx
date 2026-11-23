@@ -212,7 +212,7 @@ export const RemindersScheduleView: React.FC<RemindersScheduleViewProps> = ({
 
     // 1b. Ujęcia wstępne dla aktywnych zleceń (w ostatni dzień z 3/4 dni roboczych)
     tasks.forEach((t) => {
-      if (t.category === 'personal' || t.status === 'done' || t.status === 'paid') return;
+      if (t.category === 'personal' || t.status === 'done') return;
       const previewInfo = getInitialPreviewsInfo(t);
       if (!previewInfo.isApplicable) return;
 

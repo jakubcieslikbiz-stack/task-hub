@@ -20,6 +20,7 @@ import confetti from 'canvas-confetti';
 interface TaskTableProps {
   tasks: Task[];
   onToggleStatus: (id: string) => void;
+  onTogglePaid?: (id: string) => void;
   onUpdateStatus: (id: string, status: Status) => void;
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
   onEdit: (task: Task) => void;
@@ -116,6 +117,8 @@ function getDaysRemainingInfo(
 
 export const TaskTable: React.FC<TaskTableProps> = ({
   tasks,
+  onToggleStatus: _onToggleStatus,
+  onTogglePaid,
   onUpdateStatus,
   onToggleSubtask,
   onEdit,
@@ -134,7 +137,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
   };
 
   const handleToggleDone = (task: Task) => {
-    const isDone = task.status === 'done' || task.status === 'paid';
+    const isDone = task.status === 'done';
     if (!isDone) {
       confetti({
         particleCount: 40,
@@ -149,7 +152,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
   };
 
   const handleTogglePaid = (task: Task) => {
-    const isPaid = task.status === 'paid';
+    const isPaid = Boolean(task.isPaid || task.status === 'paid');
     if (!isPaid) {
       confetti({
         particleCount: 50,
@@ -157,9 +160,9 @@ export const TaskTable: React.FC<TaskTableProps> = ({
         origin: { y: 0.8 },
         colors: ['#f5ede4', '#d99b5a', '#7ec29a', '#c88d51'],
       });
-      onUpdateStatus(task.id, 'paid');
-    } else {
-      onUpdateStatus(task.id, 'done');
+    }
+    if (onTogglePaid) {
+      onTogglePaid(task.id);
     }
   };
 
@@ -243,8 +246,8 @@ export const TaskTable: React.FC<TaskTableProps> = ({
           {/* Table Body */}
           <tbody className="divide-y divide-[#261d17]/80 text-xs">
             {tasks.map((task) => {
-              const isDone = task.status === 'done' || task.status === 'paid';
-              const isPaid = task.status === 'paid';
+              const isDone = task.status === 'done';
+              const isPaid = Boolean(task.isPaid || task.status === 'paid');
               const priorityConfig = PRIORITY_BADGES[task.priority] || PRIORITY_BADGES.medium;
               const category = CATEGORIES.find((c) => c.id === task.category);
               const budgetFormatted = (Number(task.price) || 0).toLocaleString('pl-PL', {
@@ -405,7 +408,7 @@ export const TaskTable: React.FC<TaskTableProps> = ({
 
                     {/* CZEKAM NA UWAGI */}
                     <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                      {!isDone && !isPaid && onToggleWaitingForFeedback ? (
+                      {!isDone && onToggleWaitingForFeedback ? (
                         <button
                           type="button"
                           onClick={() => onToggleWaitingForFeedback(task.id)}

@@ -28,7 +28,7 @@ export const RecentActivityAndGoals: React.FC<RecentActivityAndGoalsProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  const paidTasks = tasks.filter((t) => t.status === 'paid');
+  const paidTasks = tasks.filter((t) => t.isPaid || t.status === 'paid');
   const totalPaidRevenue = paidTasks.reduce((sum, t) => sum + (t.price || 0), 0);
 
   // Targets
