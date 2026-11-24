@@ -769,19 +769,10 @@ export const PersonalErrandsView: React.FC<PersonalErrandsViewProps> = ({
         {/* Sticky Notes Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#d99b5a]/15 text-[#d99b5a] border border-[#d99b5a]/30">
-                Prywatne zadania & Wizyty
-              </span>
-              <span className="text-xs text-[#9e8f82]">Karteczki samoprzylepne</span>
-            </div>
-            <h2 className="text-2xl font-light text-[#f5ede4] tracking-tight mt-1 flex items-center gap-2">
+            <h2 className="text-2xl font-light text-[#f5ede4] tracking-tight flex items-center gap-2">
               <StickyIcon className="w-5 h-5 text-[#d99b5a]" />
-              <span>Sprawy Bieżące & Notatki (Sticky Notes)</span>
+              <span>Sprawy bieżące i notatki</span>
             </h2>
-            <p className="text-xs md:text-sm text-[#9e8f82] mt-0.5">
-              Fryzjer, badania, zakupy, wizyty i codzienne prywatne plany w formie szybkich karteczek
-            </p>
           </div>
 
           {/* Controls: Filter Tabs + New Sticky Note Button */}

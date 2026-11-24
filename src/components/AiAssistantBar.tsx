@@ -23,6 +23,7 @@ interface AiAssistantBarProps {
   onAddTask: (task: {
     name: string;
     category?: string;
+    status?: 'todo' | 'in_progress' | 'done' | 'paid';
     price?: number;
     startDate?: string;
     endDate?: string;
@@ -187,9 +188,14 @@ export const AiAssistantBar: React.FC<AiAssistantBarProps> = ({
             }
           }
 
+          const isDecisionTask =
+            /decyzj|zastanawia|oczekuj.*na decyzj|do decyzji/i.test(commandText) ||
+            /decyzj|zastanawia|oczekuj.*na decyzj|do decyzji/i.test(result.name || '');
+
           onAddTask({
             name: result.name || 'Nowe zadanie',
             category: taskCategory,
+            status: isDecisionTask ? 'todo' : 'in_progress',
             price: result.price,
             startDate: result.startDate,
             endDate: result.endDate,

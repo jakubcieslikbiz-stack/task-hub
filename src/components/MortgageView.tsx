@@ -16,8 +16,6 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
-  Copy,
-  Check,
   Settings,
   X,
   Sparkles,
@@ -68,8 +66,7 @@ export const MortgageView: React.FC = () => {
     return 10;
   });
 
-  // Kopiowanie numeru konta & Toast
-  const [copiedAccount, setCopiedAccount] = useState(false);
+  // Toast powiadomień
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -85,7 +82,6 @@ export const MortgageView: React.FC = () => {
   // Aktualny miesiąc YYYY-MM
   const now = new Date();
   const currentYm = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const currentMonthName = POLISH_MONTHS[now.getMonth()];
   const nextMonthIndex = (now.getMonth() + 1) % 12;
   const nextMonthYear = now.getMonth() === 11 ? now.getFullYear() + 1 : now.getFullYear();
   const nextMonthName = `${POLISH_MONTHS[nextMonthIndex]} ${nextMonthYear}`;
@@ -114,6 +110,17 @@ export const MortgageView: React.FC = () => {
   const totalOverpaid = useMemo(() => {
     return calculateTotalOverpayment(payments);
   }, [payments]);
+
+  // Średnia rzeczywista nadpłata ze wszystkich miesięcy od początku (przeliczana dynamicznie)
+  const avgOverpayment = useMemo(() => {
+    const validPayments = payments.filter((p) => p.overpayment > 0);
+    if (validPayments.length === 0) return 4666;
+    const total = validPayments.reduce((sum, p) => sum + p.overpayment, 0);
+    return Math.round(total / validPayments.length);
+  }, [payments]);
+
+  // Nazwa kredytu bez zbędnego dopisku Pekao w nawiasie
+  const displayLoanName = (config.loanName || 'Kredyt mieszkaniowy').replace(/\s*\(?Bank Pekao\)?/gi, '').trim();
 
   // Wymagana nadpłata miesięczna do trzymania się terminu
   const requiredMonthlyOverpayment = Math.round(sim.requiredMonthlyOverpayment);
@@ -153,15 +160,6 @@ export const MortgageView: React.FC = () => {
     setConfig(updated);
     saveStoredMortgageConfig(updated);
     showToast(`Ustawiono ${requiredMonthlyOverpayment.toLocaleString('pl-PL')} zł/mc jako Twój stały cel nadpłaty!`);
-  };
-
-  // Kopiowanie numeru konta
-  const handleCopyAccount = () => {
-    if (!config.accountNumber) return;
-    navigator.clipboard.writeText(config.accountNumber.replace(/\s+/g, ''));
-    setCopiedAccount(true);
-    showToast('Skopiowano numer konta Pekao do schowka!');
-    setTimeout(() => setCopiedAccount(false), 2500);
   };
 
   // Zapis nowej wpłaty
@@ -231,7 +229,7 @@ export const MortgageView: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl sm:text-2xl font-light text-[#f5ede4]">
-                {config.loanName}
+                {displayLoanName}
               </h2>
               <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-medium bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30">
                 {config.interestRate}%
@@ -256,7 +254,7 @@ export const MortgageView: React.FC = () => {
               setIsEditConfigOpen(true);
             }}
             className="flex items-center gap-1.5 px-3 py-2 rounded-2xl text-xs font-medium bg-[#1e1712] hover:bg-[#2b2019] text-[#d99b5a] border border-[#d99b5a]/30 transition-all active:scale-95"
-            title="Edytuj kwoty, oprocentowanie, rachunek"
+            title="Edytuj kwoty i parametry kredytu"
           >
             <Settings className="w-3.5 h-3.5" />
             <span>Parametry</span>
@@ -286,7 +284,7 @@ export const MortgageView: React.FC = () => {
           <div className="flex items-center gap-2 text-xs text-[#9e8f82] font-mono">
             <span>Docelowo: <strong className="text-[#f1c38e] font-semibold">{sim.payoffDateFormatted}</strong></span>
             <span>•</span>
-            <span>za {sim.yearsRemaining} l. {sim.monthsRemainder} m. ({sim.monthsRemaining} rat zamiast 348)</span>
+            <span>za {sim.yearsRemaining} l. {sim.monthsRemainder} m. • <strong className="text-[#f5ede4] font-semibold">{sim.monthsRemaining} rat</strong> do końca</span>
           </div>
         </div>
 
@@ -367,11 +365,11 @@ export const MortgageView: React.FC = () => {
 
             <div className="mt-3 p-3 rounded-2xl bg-[#140e0a] border border-[#2e231c] space-y-1.5 text-xs font-mono">
               <div className="flex justify-between text-[#c4b5a5]">
-                <span>1. Rata banku (pobiera Pekao):</span>
+                <span>1. Rata banku:</span>
                 <span className="text-[#f5ede4] privacy-mask">{config.regularInstallment.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} zł</span>
               </div>
               <div className="flex justify-between text-[#7ec29a]">
-                <span>2. Nadpłata kapitału (poza ratą):</span>
+                <span>2. Nadpłata kapitału:</span>
                 <span className="font-semibold privacy-mask">+{nextOverpaymentStandard.toLocaleString('pl-PL')} zł</span>
               </div>
               <div className="pt-2 border-t border-[#2e231c] flex justify-between font-semibold text-[#f1c38e]">
@@ -382,39 +380,22 @@ export const MortgageView: React.FC = () => {
 
             {/* Informacja o zaliczce lub nadwyżce */}
             {hasSurplus && (
-              <div className="mt-3 p-2.5 rounded-xl bg-[#1e2a20] border border-[#7ec29a]/30 text-[11px] text-[#9ee2b9] leading-relaxed">
-                🎯 W {currentMonthName} masz <strong>+{currentMonthDiff.toLocaleString('pl-PL')} zł</strong> nadwyżki.
-                <div className="text-[10px] text-[#7ec29a] mt-1 space-y-0.5">
-                  <div>• Pełny przelew: <strong>{nextTotalStandard.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</strong> (rata + nadpłata {nextOverpaymentStandard.toLocaleString('pl-PL')} zł)</div>
-                  <div>• Z zaliczką: <strong>{nextTotalMin.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</strong> (rata + nadpłata {nextOverpaymentMin.toLocaleString('pl-PL')} zł)</div>
+              <div className="mt-3 p-3 rounded-2xl bg-[#1e2a20] border border-[#7ec29a]/30 text-xs text-[#9ee2b9] space-y-1">
+                <div className="font-medium font-mono">+{currentMonthDiff.toLocaleString('pl-PL')} zł nadwyżki</div>
+                <div className="text-[11px] text-[#7ec29a] font-mono">
+                  Możesz wpłacić: <strong className="text-[#f5ede4] font-semibold">{nextTotalMin.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</strong>
                 </div>
               </div>
             )}
 
             {hasGap && (
-              <div className="mt-3 p-2.5 rounded-xl bg-[#2a1c18] border border-[#e07a68]/30 text-[11px] text-[#f19b8c] leading-relaxed">
-                ⚠️ W {currentMonthName} brakuje {Math.abs(currentMonthDiff).toLocaleString('pl-PL')} zł do celu.
-                <div className="text-[10px] text-[#e07a68] mt-0.5">
-                  Łącznie z dopłatą wyrównującą: <strong>{nextTotalMin.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</strong>.
+              <div className="mt-3 p-3 rounded-2xl bg-[#2a1c18] border border-[#e07a68]/30 text-xs text-[#f19b8c] space-y-1">
+                <div className="font-medium font-mono">Brakuje {Math.abs(currentMonthDiff).toLocaleString('pl-PL')} zł do celu</div>
+                <div className="text-[11px] text-[#e07a68] font-mono">
+                  Możesz wpłacić: <strong className="text-[#f5ede4] font-semibold">{nextTotalMin.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} zł</strong>
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Szybkie kopiowanie numeru konta Pekao */}
-          <div className="pt-3 border-t border-[#2e231c] flex items-center justify-between gap-2">
-            <div className="text-[11px] text-[#9e8f82] truncate font-mono">
-              Pekao: <strong className="text-[#f5ede4]">{config.accountNumber ? `${config.accountNumber.slice(0, 14)}...` : '—'}</strong>
-            </div>
-            <button
-              type="button"
-              onClick={handleCopyAccount}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-[#2a1e16] hover:bg-[#382b20] text-[#f1c38e] border border-[#d99b5a]/40 transition-all active:scale-95 shrink-0"
-              title="Kopiuj pełny numer rachunku do przelewu nadpłaty"
-            >
-              {copiedAccount ? <Check className="w-3.5 h-3.5 text-[#7ec29a]" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedAccount ? 'Skopiowano' : 'Kopiuj konto'}</span>
-            </button>
           </div>
         </div>
 
@@ -472,16 +453,12 @@ export const MortgageView: React.FC = () => {
                 <span>• Pozostało do spłaty:</span>
                 <span className="privacy-mask">~{sim.totalInterestRemaining.toLocaleString('pl-PL')} zł</span>
               </div>
-              <div className="pt-2 border-t border-[#2e231c]/60 flex justify-between text-xs text-[#9e8f82]">
-                <span>Koszt w umowie bez nadpłat:</span>
-                <span className="line-through text-[#e07a68]/80 privacy-mask">~{sim.baselineTotalInterest.toLocaleString('pl-PL')} zł</span>
-              </div>
             </div>
           </div>
 
           <div className="pt-2 text-[11px] text-[#9ee2b9] flex items-center gap-1.5 font-mono">
             <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 text-[#7ec29a]" />
-            <span>Zamiast 729 tys. zł zapłacisz tylko 161 tys. zł!</span>
+            <span>Oszczędzasz {Math.round((sim.totalInterestSaved / sim.baselineTotalInterest) * 100)}% wszystkich odsetek dzięki nadpłatom</span>
           </div>
         </div>
 
@@ -508,6 +485,10 @@ export const MortgageView: React.FC = () => {
 
             <div className="mt-3 pt-3 border-t border-[#2e231c]/80 space-y-2 text-xs font-mono">
               <div className="flex justify-between text-[#c4b5a5]">
+                <span>Średnia nadpłata z historii:</span>
+                <strong className="text-[#f1c38e] font-mono privacy-mask">{avgOverpayment.toLocaleString('pl-PL')} zł</strong>
+              </div>
+              <div className="flex justify-between text-[#c4b5a5]">
                 <span>Skrócenie umowy kredytowej:</span>
                 <strong className="text-[#7ec29a]">o {sim.yearsReduced} lat!</strong>
               </div>
@@ -517,7 +498,7 @@ export const MortgageView: React.FC = () => {
               </div>
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Termin spłaty:</span>
-                <span className="text-[#f1c38e] font-semibold">{sim.payoffDateFormatted} (zamiast 2055)</span>
+                <span className="text-[#f1c38e] font-semibold">{sim.payoffDateFormatted}</span>
               </div>
               <div className="flex justify-between text-[#c4b5a5]">
                 <span>Łączny koszt kredytu:</span>
@@ -630,7 +611,7 @@ export const MortgageView: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <h3 className="text-base font-medium text-[#f5ede4]">
-                Historia spłat i nadpłat (Bank Pekao)
+                Historia spłat i nadpłat
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#d99b5a]/20 text-[#f1c38e] border border-[#d99b5a]/30">
                 {payments.length} wpisów

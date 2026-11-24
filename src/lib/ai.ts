@@ -14,6 +14,7 @@ export interface AiCommandResult {
   taskName?: string;
   text?: string;
   remindByEmail?: boolean;
+  status?: Status;
 }
 
 export interface ParsedAiTask {
@@ -64,8 +65,9 @@ Dozwolone akcje (action) i struktury:
    - Jeśli podano godzinę (np. "o 14:00", "na 11:30"), wyłuskaj "dueTime": "HH:MM".
    - Jeśli użytkownik wspomina o jakimkolwiek przypomnieniu (np. "przypomnij", "przypomnij mi godzinę przed", "powiadom mnie", "godzinę przed", "przypomnij mailem"), ZAWSZE ustaw "remindByEmail": true oraz wyłuskaj "reminderTime": np. "godzinę przed", "30 minut przed", "1h przed" lub inną podaną wartość.
    - Jeśli podano kwotę w zł -> "price": liczba.
+   - Jeśli zadanie jest "do decyzji", "oczekujące na decyzję" lub "klient się zastanawia" -> "status": "todo", w przeciwnym razie domyślnie "in_progress".
    Format:
-   {"action": "add_task", "name": "nazwa", "category": "work"|"personal", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "dueTime": "HH:MM", "reminderTime": "opis", "price": liczba, "remindByEmail": true/false}
+   {"action": "add_task", "name": "nazwa", "category": "work"|"personal", "status": "in_progress"|"todo", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "dueTime": "HH:MM", "reminderTime": "opis", "price": liczba, "remindByEmail": true/false}
 
 2. Dodanie do To-Do / Szybkich Notatek (np. "dodaj do to do kupić mleko", "muszę zadzwonić do klienta"):
    {"action": "todo", "text": "treść zadania"}

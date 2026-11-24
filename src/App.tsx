@@ -29,6 +29,7 @@ import { SettingsView } from './components/SettingsView';
 import { PersonalErrandsView } from './components/PersonalErrandsView';
 import { RemindersScheduleView } from './components/RemindersScheduleView';
 import { MortgageView } from './components/MortgageView';
+import { UpcomingTasksWidget } from './components/UpcomingTasksWidget';
 import { AiTaskPulseOverlay } from './components/AiTaskPulseOverlay';
 import { triggerAiTaskAddedEffect } from './lib/effects';
 import { getInitialPreviewsInfo } from './utils/initialPreviews';
@@ -690,6 +691,7 @@ export function App() {
   const handleAiAddTask = (taskData: {
     name: string;
     category?: string;
+    status?: Status;
     price?: number;
     startDate?: string;
     endDate?: string;
@@ -733,6 +735,14 @@ export function App() {
       }
     }
 
+    const isDecision =
+      taskData.status === 'todo' ||
+      /decyzj|zastanawia|oczekuj.*na decyzj|do decyzji/i.test(taskData.name || '') ||
+      /decyzj|zastanawia|oczekuj.*na decyzj|do decyzji/i.test(taskData.notes || '') ||
+      /decyzj|zastanawia|oczekuj.*na decyzj|do decyzji/i.test(taskData.description || '');
+
+    const taskStatus: Status = isDecision ? 'todo' : (taskData.status || 'in_progress');
+
     const newTask: Task = {
       id: Date.now().toString(),
       title: taskData.name,
@@ -744,7 +754,7 @@ export function App() {
       reminderTime: taskData.reminderTime,
       category,
       priority: 'high',
-      status: 'in_progress',
+      status: taskStatus,
       subtasks: (taskData.subtasks || []).map((st, i) => ({
         id: `${Date.now()}-${i}`,
         title: st,
@@ -1702,6 +1712,15 @@ export function App() {
             </div>
           ) : (
             <div className="space-y-6">
+              <UpcomingTasksWidget
+                tasks={tasks}
+                onEditTask={handleOpenEdit}
+                onToggleStatus={handleToggleStatus}
+                onNavigateToAll={() => {
+                  setCurrentView('all');
+                  setStatusFilter('in_progress');
+                }}
+              />
               <RecentActivityAndGoals
                 tasks={tasks}
                 onNavigateToFinances={() => setCurrentView('finances')}

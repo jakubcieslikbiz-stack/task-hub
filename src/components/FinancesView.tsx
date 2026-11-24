@@ -110,6 +110,10 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
     0
   );
 
+  // Zaciąganie stałych opłat za ZUS i podatek z sekcji Moje sprawy
+  const taxesZusEntry = currentMonthBillsMap['taxes_zus'];
+  const taxesZusAmount = taxesZusEntry ? Number(taxesZusEntry.amount) || 0 : 0;
+
   const currentZus = Number(zusInput) || 0;
   const currentTax = Number(taxInput) || 0;
   const fallbackCosts = currentZus + currentTax;
@@ -127,6 +131,15 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
     onSaveCosts({ zus: currentZus, tax: currentTax });
     setIsSavedNotice(true);
     setTimeout(() => setIsSavedNotice(false), 2000);
+  };
+
+  const handleSyncFromMojeSprawy = () => {
+    if (taxesZusAmount > 0) {
+      setZusInput(String(taxesZusAmount));
+      onSaveCosts({ zus: taxesZusAmount, tax: currentTax });
+      setIsSavedNotice(true);
+      setTimeout(() => setIsSavedNotice(false), 2000);
+    }
   };
 
   // Generate / Preview report for selected month
@@ -280,7 +293,121 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
         </div>
       </div>
 
-      {/* Automatic Monthly Reports Section (Responsive for vertical and horizontal monitors) */}
+      {/* Costs Configuration Form & Breakdown */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Costs Input Box */}
+        <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-2xl md:col-span-1">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="font-medium text-[#f5ede4] text-sm flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-[#d99b5a]" />
+              Koszty w tym miesiącu
+            </h3>
+            {taxesZusAmount > 0 && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30 font-mono">
+                Moje sprawy: {taxesZusAmount} zł
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-[#9e8f82] mb-3 font-light">
+            Podaj stałe opłaty za ZUS i podatek lub zaciągnij z Moich Spraw
+          </p>
+
+          {taxesZusAmount > 0 && (
+            <button
+              type="button"
+              onClick={handleSyncFromMojeSprawy}
+              className="w-full mb-3 py-2 px-3 rounded-2xl bg-[#2a1e16] hover:bg-[#382b20] border border-[#d99b5a]/30 text-[#f1c38e] text-xs font-mono flex items-center justify-center gap-1.5 transition-all active:scale-95"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-[#d99b5a]" />
+              <span>Zaciągnij {taxesZusAmount} zł z Moich Spraw</span>
+            </button>
+          )}
+
+          <form onSubmit={handleSaveCosts} className="space-y-4">
+            <div>
+              <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1 flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 text-[#7a6b5e]" />
+                ZUS (zł)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={zusInput}
+                onChange={(e) => setZusInput(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm font-mono"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1 flex items-center gap-1.5">
+                <Receipt className="w-3.5 h-3.5 text-[#7a6b5e]" />
+                Podatek (zł)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={taxInput}
+                onChange={(e) => setTaxInput(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm font-mono"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-semibold shadow-md transition-all active:scale-95"
+            >
+              {isSavedNotice ? 'Zapisano pomyślnie ✓' : 'Zapisz koszty'}
+            </button>
+          </form>
+        </div>
+
+        {/* Month Orders Table */}
+        <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-2xl md:col-span-2">
+          <h3 className="font-medium text-[#f5ede4] text-sm mb-1 flex items-center justify-between">
+            <span>Zlecenia w miesiącu: {POLISH_MONTH_NAMES[currentMonth]} {currentYear}</span>
+            <span className="text-xs text-[#9e8f82] font-light">
+              Łączna wartość: <strong className="text-[#f5ede4] font-mono privacy-mask">{totalValue.toLocaleString('pl-PL')} zł</strong>
+            </span>
+          </h3>
+          <p className="text-xs text-[#9e8f82] mb-4 font-light">
+            Lista zleceń powiązanych z tym okresem rozliczeniowym (1 – {daysInMonth} {POLISH_MONTH_NAMES[currentMonth].slice(0, 3)})
+          </p>
+
+          <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
+            {monthTasks.length === 0 ? (
+              <div className="h-32 flex flex-col items-center justify-center border border-dashed border-[#2e231c] rounded-2xl text-xs text-[#7a6b5e] text-center p-3">
+                Brak zleceń w wybranym miesiącu
+              </div>
+            ) : (
+              monthTasks.map((t) => (
+                <div
+                  key={t.id}
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-[#140f0c]/60 border border-[#251b14] hover:border-[#382b20] transition-colors"
+                >
+                  <div>
+                    <span className="text-sm font-medium text-[#f5ede4] block">
+                      {t.title}
+                    </span>
+                    <span className="text-[11px] text-[#9e8f82]">
+                      Termin: {t.dueDate || 'brak'} • Realizacja: {t.status === 'done' ? 'Gotowe' : t.status === 'todo' ? 'Do decyzji' : 'W toku'}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-mono font-medium text-[#f5ede4] block privacy-mask">
+                      {t.price ? `${t.price.toLocaleString('pl-PL')} zł` : '—'}
+                    </span>
+                    <span className={`text-[10px] font-mono uppercase ${(t.isPaid || t.status === 'paid') ? 'text-[#7ec29a]' : 'text-[#d99b5a]'}`}>
+                      {(t.isPaid || t.status === 'paid') ? '✓ Opłacone' : 'Oczekuje'}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Automatic Monthly Reports Section (Przeniesione na sam dół) */}
       <div className="glass-panel border border-[#382b20] rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-[#2e231c]">
           <div className="flex items-start sm:items-center gap-3.5">
@@ -402,102 +529,6 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
               ))}
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Costs Configuration Form & Breakdown */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Costs Input Box */}
-        <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-2xl md:col-span-1">
-          <h3 className="font-medium text-[#f5ede4] text-sm mb-1 flex items-center gap-2">
-            <Receipt className="w-4 h-4 text-[#d99b5a]" />
-            Koszty w tym miesiącu
-          </h3>
-          <p className="text-xs text-[#9e8f82] mb-4 font-light">
-            Podaj stałe opłaty za ZUS i podatek
-          </p>
-
-          <form onSubmit={handleSaveCosts} className="space-y-4">
-            <div>
-              <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-[#7a6b5e]" />
-                ZUS (zł)
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={zusInput}
-                onChange={(e) => setZusInput(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1 flex items-center gap-1.5">
-                <Receipt className="w-3.5 h-3.5 text-[#7a6b5e]" />
-                Podatek (zł)
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={taxInput}
-                onChange={(e) => setTaxInput(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm font-mono"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-semibold shadow-md transition-all active:scale-95"
-            >
-              {isSavedNotice ? 'Zapisano pomyślnie ✓' : 'Zapisz koszty'}
-            </button>
-          </form>
-        </div>
-
-        {/* Month Orders Table */}
-        <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-2xl md:col-span-2">
-          <h3 className="font-medium text-[#f5ede4] text-sm mb-1 flex items-center justify-between">
-            <span>Zlecenia w miesiącu: {POLISH_MONTH_NAMES[currentMonth]} {currentYear}</span>
-            <span className="text-xs text-[#9e8f82] font-light">
-              Łączna wartość: <strong className="text-[#f5ede4] font-mono privacy-mask">{totalValue.toLocaleString('pl-PL')} zł</strong>
-            </span>
-          </h3>
-          <p className="text-xs text-[#9e8f82] mb-4 font-light">
-            Lista zleceń powiązanych z tym okresem rozliczeniowym (1 – {daysInMonth} {POLISH_MONTH_NAMES[currentMonth].slice(0, 3)})
-          </p>
-
-          <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1">
-            {monthTasks.length === 0 ? (
-              <div className="h-32 flex flex-col items-center justify-center border border-dashed border-[#2e231c] rounded-2xl text-xs text-[#7a6b5e] text-center p-3">
-                Brak zleceń w wybranym miesiącu
-              </div>
-            ) : (
-              monthTasks.map((t) => (
-                <div
-                  key={t.id}
-                  className="flex items-center justify-between p-3.5 rounded-2xl bg-[#140f0c]/60 border border-[#251b14] hover:border-[#382b20] transition-colors"
-                >
-                  <div>
-                    <span className="text-sm font-medium text-[#f5ede4] block">
-                      {t.title}
-                    </span>
-                    <span className="text-[11px] text-[#9e8f82]">
-                      Termin: {t.dueDate || 'brak'} • Realizacja: {t.status === 'done' ? 'Gotowe' : t.status === 'todo' ? 'Do decyzji' : 'W toku'}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-sm font-mono font-medium text-[#f5ede4] block privacy-mask">
-                      {t.price ? `${t.price.toLocaleString('pl-PL')} zł` : '—'}
-                    </span>
-                    <span className={`text-[10px] font-mono uppercase ${(t.isPaid || t.status === 'paid') ? 'text-[#7ec29a]' : 'text-[#d99b5a]'}`}>
-                      {(t.isPaid || t.status === 'paid') ? '✓ Opłacone' : 'Oczekuje'}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
         </div>
       </div>
 
