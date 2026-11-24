@@ -855,26 +855,90 @@ export function saveStoredMortgageConfig(config: MortgageConfig): void {
 }
 
 /**
+ * Automatyczne księgowanie raty kredytu (3 759,64 zł) w każdy ostatni dzień roboczy miesiąca
+ * (lub pierwszy dzień roboczy po weekendzie/święcie).
+ * Użytkownik wprowadza wyłącznie swoje własne nadpłaty.
+ */
+export function autoSyncPekaoRegularInstallments(
+  payments: MortgagePaymentRecord[],
+  config: MortgageConfig = DEFAULT_MORTGAGE_CONFIG,
+  refDate: Date = new Date()
+): MortgagePaymentRecord[] {
+  const todayStr = `${refDate.getFullYear()}-${String(refDate.getMonth() + 1).padStart(2, '0')}-${String(refDate.getDate()).padStart(2, '0')}`;
+
+  // Zakres miesięcy: od grudnia 2025 do bieżącego miesiąca
+  const start = new Date(2025, 11, 1);
+  const cur = new Date(start);
+  const end = new Date(refDate.getFullYear(), refDate.getMonth(), 1);
+
+  const updatedPayments = [...payments];
+  let hasChanges = false;
+
+  while (cur <= end) {
+    const y = cur.getFullYear();
+    const m = cur.getMonth(); // 0-11
+    const ym = `${y}-${String(m + 1).padStart(2, '0')}`;
+
+    // Oblicz faktyczną datę pobrania raty za ten miesiąc (ostatni dzień roboczy lub przesunięty po weekendzie/święcie)
+    const debitDateObj = getMortgagePaymentDateForMonth(y, m);
+    const debitYear = debitDateObj.getFullYear();
+    const debitMonth = String(debitDateObj.getMonth() + 1).padStart(2, '0');
+    const debitDay = String(debitDateObj.getDate()).padStart(2, '0');
+    const debitDateStr = `${debitYear}-${debitMonth}-${debitDay}`;
+
+    // Księgujemy ratę, gdy jej termin już nadszedł
+    if (debitDateStr <= todayStr) {
+      const alreadyHasRegular = updatedPayments.some((p) => {
+        if (!p.regularInstallment || p.regularInstallment <= 0) return false;
+        return p.date === debitDateStr || p.id === `pekao-auto-regular-${ym}` || p.notes?.includes(ym);
+      });
+
+      if (!alreadyHasRegular) {
+        hasChanges = true;
+        updatedPayments.push({
+          id: `pekao-auto-regular-${ym}`,
+          date: debitDateStr,
+          regularInstallment: config.regularInstallment,
+          overpayment: 0,
+          totalPaid: config.regularInstallment,
+          notes: `Automatyczna spłata raty Pekao (${debitDateStr})`,
+        });
+      }
+    }
+
+    cur.setMonth(cur.getMonth() + 1);
+  }
+
+  if (hasChanges) {
+    updatedPayments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    saveStoredMortgagePayments(updatedPayments);
+  }
+
+  return updatedPayments;
+}
+
+/**
  * Odczyt historii wpłat (localStorage + chmura)
  */
 export function getStoredMortgagePayments(): MortgagePaymentRecord[] {
-  if (typeof window === 'undefined') return INITIAL_MORTGAGE_PAYMENTS;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY_MORTGAGE_PAYMENTS);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        // Jeśli w pamięci przeglądarki są stare makiety z testowymi ID, migruj do realnych danych Pekao
-        if (parsed.some((p: any) => p.id === 'pay-2026-08' || p.id === 'pay-2026-09' || p.regularInstallment === 2840)) {
-          saveStoredMortgagePayments(INITIAL_MORTGAGE_PAYMENTS);
-          return INITIAL_MORTGAGE_PAYMENTS;
+  let list = INITIAL_MORTGAGE_PAYMENTS;
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_MORTGAGE_PAYMENTS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Jeśli w pamięci przeglądarki są stare makiety z testowymi ID, migruj do realnych danych Pekao
+          if (parsed.some((p: any) => p.id === 'pay-2026-08' || p.id === 'pay-2026-09' || p.regularInstallment === 2840)) {
+            list = INITIAL_MORTGAGE_PAYMENTS;
+          } else {
+            list = parsed;
+          }
         }
-        return parsed;
       }
-    }
-  } catch {}
-  saveStoredMortgagePayments(INITIAL_MORTGAGE_PAYMENTS);
-  return INITIAL_MORTGAGE_PAYMENTS;
+    } catch {}
+  }
+  return autoSyncPekaoRegularInstallments(list);
 }
 
 export function saveStoredMortgagePayments(payments: MortgagePaymentRecord[]): void {

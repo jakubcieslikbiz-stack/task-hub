@@ -35,9 +35,11 @@ export function getInitialPreviewsInfo(task: {
   dueDate?: string;
   price?: number;
   category?: string;
+  status?: string;
+  isWaitingForFeedback?: boolean;
 }): InitialPreviewsInfo {
-  // Nie dotyczy spraw prywatnych / osobistych
-  if (task.category === 'personal') {
+  // Nie dotyczy spraw prywatnych / osobistych ani zadań oczekujących na decyzję (status === 'todo')
+  if (task.category === 'personal' || task.status === 'todo') {
     return {
       isApplicable: false,
       businessDays: 3,

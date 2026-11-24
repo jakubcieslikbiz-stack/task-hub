@@ -49,39 +49,97 @@ interface ContractPreset {
 
 const CONTRACT_PRESETS: ContractPreset[] = [
   {
-    id: 'interior_3d',
-    name: 'Wizualizacje Wnętrz 3D',
-    type: 'dzielo_prawa',
+    id: 'universal_services',
+    name: 'Umowa o świadczenie usług (Wizualizacje 3D / www)',
+    type: 'b2b_uslugi',
     defaultScope:
-      'Wykonanie fotorealistycznych wizualizacji 3D wnętrz: 6 ujęć w rozdzielczości 4K (strefa dzienna, kuchnia, sypialnia, łazienka) na podstawie dostarczonych przez Zamawiającego rzutów DWG, modeli mebli oraz wytycznych materiałowych.',
+      'Świadczenie usług graficznych, wykonanie fotorealistycznych wizualizacji 3D lub projekt i wdrożenie serwisu internetowego na podstawie wytycznych przekazanych przez Zamawiającego.',
+    defaultDeadline: '10 dni roboczych od momentu dostarczenia kompletnych materiałów wyjściowych oraz wpłaty zadatku.',
+    defaultPrice: '3 600 zł netto (+ 23% VAT)',
+    defaultPaymentTerms:
+      'Płatność w 2 transzach: 30% zadatku przed rozpoczęciem prac, 70% po akceptacji prac końcowych.',
+  },
+  {
+    id: 'interior_3d',
+    name: 'Wizualizacje 3D (Wnętrza & Architektura)',
+    type: 'wizualizacje_3d',
+    defaultScope:
+      'Wykonanie fotorealistycznych wizualizacji 3D: 6 ujęć w rozdzielczości 4K na podstawie dostarczonych przez Zamawiającego rzutów DWG, modeli mebli oraz wytycznych materiałowych.',
     defaultDeadline: '10 dni roboczych od momentu dostarczenia kompletnych materiałów wyjściowych oraz wpłaty zadatku.',
     defaultPrice: '3 600 zł netto (+ 23% VAT)',
     defaultPaymentTerms:
       'Płatność w 2 transzach: 30% zadatku przed rozpoczęciem prac, 70% po akceptacji ujęć poglądowych przed przekazaniem plików końcowych w pełnej rozdzielczości.',
   },
   {
-    id: 'architecture_3d',
-    name: 'Architektura & Elewacje 3D',
-    type: 'wizualizacje_3d',
-    defaultScope:
-      'Wykonanie wizualizacji zewnętrznych budynku jednorodzinnego: 4 ujęcia 4K (2 ujęcia dzienne, 1 ujęcie zmierzchowe, 1 detal architektoniczny wraz z zagospodarowaniem terenu i zielenią).',
-    defaultDeadline: '12 dni roboczych od akceptacji bryły 3D i terenu.',
-    defaultPrice: '4 200 zł netto (+ 23% VAT)',
-    defaultPaymentTerms:
-      'Płatność w 2 transzach: 30% zadatek, 70% po ostatecznej akceptacji renderów.',
-  },
-  {
-    id: 'b2b_generic',
-    name: 'Umowa B2B (Faktura VAT)',
+    id: 'website_dev',
+    name: 'Projekt i wdrożenie strony internetowej',
     type: 'b2b_uslugi',
     defaultScope:
-      'Świadczenie usług graficznych i modelowania 3D zgodnie ze szczegółowym zleceniem przekazanym drogą elektroniczną, przygotowanie pakietu materiałów promocyjnych do druku i internetu.',
-    defaultDeadline: '14 dni roboczych od daty zawarcia umowy.',
-    defaultPrice: '5 000 zł netto (+ 23% VAT)',
+      'Projekt graficzny oraz kompleksowe wykonanie responsywnej strony internetowej (UI/UX, responsywność mobile, optymalizacja SEO oraz konfiguracja domeny i hostingu).',
+    defaultDeadline: '14 dni roboczych od daty zawarcia umowy i dostarczenia treści.',
+    defaultPrice: '4 500 zł netto (+ 23% VAT)',
     defaultPaymentTerms:
-      'Faktura VAT z 7-dniowym terminem płatności wystawiona po odbiorze końcowym dzieła.',
+      'Płatność w 2 transzach: 30% zadatku przed rozpoczęciem prac, 70% po wdrożeniu i akceptacji serwisu.',
   },
 ];
+
+const DEFAULT_SAMPLE_CONTRACT: GenerateContractResult = {
+  title: 'UMOWA O ŚWIADCZENIE USŁUG',
+  contractNumber: `JC/${new Date().getFullYear()}/${String(new Date().getMonth() + 1).padStart(2, '0')}/01`,
+  summary: 'Uniwersalna umowa o świadczenie usług (wizualizacje 3D / strony internetowe) z podziałem na etapy i prawami autorskimi.',
+  keyPoints: [
+    'Przedmiot: realizacja usług zgodnie ze specyfikacją zlecenia',
+    'Wynagrodzenie: 3 600 zł netto (+ 23% VAT)',
+    'Termin: 10 dni roboczych od dostarczenia materiałów',
+    'Rundy poprawek: 2 bezpłatne serie uwag',
+    'Prawa autorskie: przejście praw po wpłacie 100% wynagrodzenia',
+  ],
+  contractText: `UMOWA O ŚWIADCZENIE USŁUG
+zawarta w Krakowie pomiędzy:
+
+ZAMAWIAJĄCYM:
+[Nazwa Firmy / Imię i Nazwisko Zamawiającego]
+NIP / PESEL: [NIP / PESEL Zamawiającego], adres: [Adres siedziby / zamieszkania], e-mail: [E-mail]
+
+a
+
+WYKONAWCĄ:
+Jakub Cieślik — JC Studio
+NIP: [Twój NIP], tel. +48 600 113 078, e-mail: jc.visualization.studio@gmail.com
+
+§ 1. Przedmiot umowy
+1. Zamawiający zleca, a Wykonawca przyjmuje do wykonania usługi w zakresie grafiki komputerowej 3D / projektowania i wdrożenia stron internetowych, zgodnie z zakresem i specyfikacją ustaloną przez Strony.
+2. Usługi zostaną wykonane z najwyższą starannością oraz standardami branżowymi obowiązującymi w studiu graficznym i programistycznym.
+
+§ 2. Materiały wyjściowe i współdziałanie
+1. Zamawiający zobowiązuje się do przekazania materiałów wyjściowych (wytyczne, rzuty, modele, teksty lub identyfikacja wizualna) niezbędnych do wykonania zlecenia.
+2. Bieg terminu realizacji rozpoczyna się od dnia dostarczenia kompletu materiałów wyjściowych oraz uregulowania ustalonego zadatku.
+
+§ 3. Terminy i etapy realizacji
+1. Termin realizacji dzieła wynosi 10 dni roboczych od spełnienia warunków z § 2 ust. 2.
+2. W toku prac Wykonawca przedstawia ujęcia wstępne / makietę poglądową w celu weryfikacji i akceptacji kierunku projektu.
+3. Zamawiający zobowiązuje się do zgłoszenia ewentualnych uwag w terminie do 3 dni roboczych od ich otrzymania.
+
+§ 4. Rundy poprawek
+1. W ramach wynagrodzenia umownego Zamawiającemu przysługują 2 serie (rundy) poprawek autorskich, przekazane w formie zbiorczego zestawienia.
+2. Poprawki obejmują modyfikacje materiałowe, kolorystyczne, drobne zmiany układu lub elementów graficznych/kodu.
+3. Wszelkie zmiany wykraczające poza pierwotnie ustalony zakres lub kolejne tury uwag podlegają odrębnej wycenie.
+
+§ 5. Wynagrodzenie i warunki płatności
+1. Za prawidłowe wykonanie przedmiotu umowy Zamawiający zapłaci Wykonawcy wynagrodzenie w kwocie 3 600 zł netto (+ 23% VAT).
+2. Płatność następuje w dwóch transzach:
+   a) 30% zadatku przed rozpoczęciem prac projektowych,
+   b) 70% po akceptacji prac końcowych, przed przekazaniem plików źródłowych / wdrożeniem produkcyjnym.
+
+§ 6. Prawa autorskie
+1. Z chwilą zapłaty 100% całości wynagrodzenia autorskie prawa majątkowe do efektów prac przechodzą na Zamawiającego na polach eksploatacji niezbędnych do korzystania z projektu.
+2. Do momentu pełnego uregulowania wynagrodzenia prawa majątkowe pozostają własnością Wykonawcy.
+3. Wykonawca zachowuje prawo do prezentacji zrealizowanego projektu we własnym portfolio zawodowym JC Studio.
+
+§ 7. Postanowienia końcowe
+1. W sprawach nieuregulowanych niniejszą umową zastosowanie mają przepisy Kodeksu Cywilnego.
+2. Umowę sporządzono w dwóch jednobrzmiących egzemplarzach lub w formie dokumentowej.`,
+};
 
 interface ContractGeneratorViewProps {
   apiKey: string;
@@ -153,11 +211,11 @@ const renderFormattedContractText = (text: string) => {
 };
 
 export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ apiKey }) => {
-  const [selectedPresetId, setSelectedPresetId] = useState<string>('interior_3d');
+  const [selectedPresetId, setSelectedPresetId] = useState<string>('universal_services');
 
   // Contract form parameters
-  const [contractType, setContractType] = useState<GenerateContractParams['contractType']>('dzielo_prawa');
-  const [contractTitle, setContractTitle] = useState('Wizualizacje 3D wnętrz');
+  const [contractType, setContractType] = useState<GenerateContractParams['contractType']>('b2b_uslugi');
+  const [contractTitle, setContractTitle] = useState('Umowa o świadczenie usług');
   const [scope, setScope] = useState(CONTRACT_PRESETS[0].defaultScope);
   const [deadline, setDeadline] = useState(CONTRACT_PRESETS[0].defaultDeadline);
   const [price, setPrice] = useState(CONTRACT_PRESETS[0].defaultPrice);
@@ -187,8 +245,8 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
   // Generation state
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [generatedContract, setGeneratedContract] = useState<GenerateContractResult | null>(null);
-  const [editedText, setEditedText] = useState('');
+  const [generatedContract, setGeneratedContract] = useState<GenerateContractResult | null>(DEFAULT_SAMPLE_CONTRACT);
+  const [editedText, setEditedText] = useState(DEFAULT_SAMPLE_CONTRACT.contractText);
   const [isEditingManually, setIsEditingManually] = useState(false);
   const [previewTab, setPreviewTab] = useState<'a4_document' | 'raw_editor'>('a4_document');
 
@@ -449,14 +507,14 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
                 onChange={(e) => setContractType(e.target.value as any)}
                 className="w-full bg-[#120e0a] border border-[#382b20] focus:border-[#d99b5a] text-[#f5ede4] text-xs rounded-xl px-3 py-2 outline-none cursor-pointer"
               >
-                <option value="dzielo_prawa" className="bg-[#140f0c]">
-                  Umowa o dzieło z przeniesieniem praw autorskich
+                <option value="b2b_uslugi" className="bg-[#140f0c]">
+                  Umowa o świadczenie usług (Uniwersalna: Wizualizacje 3D / www)
                 </option>
                 <option value="wizualizacje_3d" className="bg-[#140f0c]">
                   Umowa o wykonanie wizualizacji 3D
                 </option>
-                <option value="b2b_uslugi" className="bg-[#140f0c]">
-                  Umowa B2B / świadczenie usług (faktura VAT)
+                <option value="dzielo_prawa" className="bg-[#140f0c]">
+                  Umowa o dzieło z przeniesieniem praw autorskich
                 </option>
               </select>
             </div>
@@ -802,19 +860,17 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
                   >
                     {/* A4 Letterhead Header: Authentic JC Studio Vector Branding */}
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-[#CFD2C7]">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-xl border border-[#e2decb] bg-[#f9f8f4] flex items-center justify-center p-2 shadow-sm flex-shrink-0">
-                          <JCStudioLogo variant="light" size="custom" className="w-11 h-auto" />
-                        </div>
+                      <div className="flex items-center gap-3">
+                        <JCStudioLogo variant="light" size="custom" className="w-9 h-auto flex-shrink-0" />
                         <div>
-                          <h1 className="text-xl sm:text-2xl font-bold tracking-[0.22em] uppercase text-[#181b18] leading-none">
+                          <h1 className="text-sm sm:text-base font-bold tracking-[0.16em] uppercase text-[#181b18] leading-none">
                             JC STUDIO
                           </h1>
-                          <span className="block text-[11px] tracking-[0.2em] uppercase text-[#8CA168] font-semibold mt-1">
+                          <span className="block text-[9px] sm:text-[10px] tracking-[0.12em] uppercase text-[#8CA168] font-semibold mt-1">
                             Architectural CGI & Marketing Inwestycji
                           </span>
-                          <span className="block text-[10px] text-[#7a746e] tracking-wider uppercase mt-0.5">
-                            Jakub Cieślik • www: task-hub-pied-delta.vercel.app/portfolio
+                          <span className="block text-[9px] text-[#7a746e] tracking-wider uppercase mt-0.5">
+                            Jakub Cieślik
                           </span>
                         </div>
                       </div>
@@ -842,7 +898,7 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
                     {/* Document Title Header */}
                     <div className="text-center py-3">
                       <h2 className="text-base sm:text-lg font-bold tracking-wider uppercase text-[#181b18]">
-                        {generatedContract.title || 'UMOWA O DZIEŁO Z PRZENIESIENIEM PRAW AUTORSKICH'}
+                        {generatedContract.title || 'UMOWA O ŚWIADCZENIE USŁUG'}
                       </h2>
                       <span className="text-[11px] font-mono text-[#7a746e] uppercase tracking-widest block mt-0.5">
                         Dokument handlowy JC Studio
@@ -878,23 +934,23 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
                       </div>
                     </div>
 
-                    {/* Key Terms Badges (Podsumowanie ustaleń) */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-[#f4f3ee] border border-[#e0dcce] my-4 text-xs font-mono">
-                      <div>
-                        <span className="text-[10px] text-[#7a746e] uppercase block">Wynagrodzenie:</span>
-                        <strong className="text-[#181b18] font-bold">{price}</strong>
+                    {/* Key Terms (Podsumowanie ustaleń) - pionowa lista jedno pod drugim */}
+                    <div className="my-4 py-3 border-y border-[#e8e4dc] text-xs font-sans space-y-2">
+                      <div className="flex items-baseline justify-between sm:justify-start sm:gap-6">
+                        <span className="text-[#7a746e] font-medium w-36">Wynagrodzenie:</span>
+                        <strong className="text-[#181b18] font-semibold">{price}</strong>
                       </div>
-                      <div>
-                        <span className="text-[10px] text-[#7a746e] uppercase block">Termin:</span>
+                      <div className="flex items-baseline justify-between sm:justify-start sm:gap-6">
+                        <span className="text-[#7a746e] font-medium w-36">Termin realizacji:</span>
                         <strong className="text-[#181b18] font-semibold">{deadline}</strong>
                       </div>
-                      <div>
-                        <span className="text-[10px] text-[#7a746e] uppercase block">Tury poprawek:</span>
-                        <strong className="text-[#8CA168] font-semibold">{revisionsCount} serie uwag w cenie</strong>
+                      <div className="flex items-baseline justify-between sm:justify-start sm:gap-6">
+                        <span className="text-[#7a746e] font-medium w-36">Tury poprawek:</span>
+                        <strong className="text-[#181b18] font-semibold">{revisionsCount} serie uwag w cenie</strong>
                       </div>
-                      <div>
-                        <span className="text-[10px] text-[#7a746e] uppercase block">Prawa autorskie:</span>
-                        <strong className="text-[#181b18] font-semibold">100% autorskie prawa majątkowe</strong>
+                      <div className="flex items-baseline justify-between sm:justify-start sm:gap-6">
+                        <span className="text-[#7a746e] font-medium w-36">Prawa autorskie:</span>
+                        <strong className="text-[#181b18] font-semibold">100% autorskie prawa majątkowe (po opłaceniu całości)</strong>
                       </div>
                     </div>
 

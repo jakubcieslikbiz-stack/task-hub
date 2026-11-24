@@ -382,9 +382,10 @@ export async function generateContractWithOpenAI(
   apiKey: string
 ): Promise<GenerateContractResult> {
   const typeMap: Record<string, string> = {
-    dzielo_prawa: 'Umowa o dzieło z przeniesieniem autorskich praw majątkowych',
-    b2b_uslugi: 'Umowa B2B o świadczenie usług graficznych / wizualizacji 3D (faktura VAT)',
+    uslugi_ogolne: 'Umowa o świadczenie usług (wizualizacje 3D / strony www / grafika)',
+    b2b_uslugi: 'Umowa o świadczenie usług (faktura VAT / B2B)',
     wizualizacje_3d: 'Umowa o wykonanie wizualizacji architektonicznych 3D',
+    dzielo_prawa: 'Umowa o dzieło z prawami autorskimi',
   };
 
   const systemPrompt = `Jesteś radcą prawnym specjalizującym się w prawie autorskim, umowach B2B oraz umowach o dzieło w branży grafiki komputerowej, architektury i wizualizacji 3D w Polsce.
@@ -408,7 +409,7 @@ Kluczowe wymogi prawne i standardy branżowe:
 
 Odpowiedz TYLKO I WYŁĄCZNIE poprawnym obiektem JSON w formacie:
 {
-  "title": (string) Oficjalny tytuł umowy (np. "UMOWA O DZIEŁO Z PRZENIESIENIEM PRAW AUTORSKICH"),
+  "title": (string) Oficjalny tytuł umowy (np. "UMOWA O ŚWIADCZENIE USŁUG"),
   "contractNumber": (string) Wygenerowany numer umowy (np. "JC/2026/11/01"),
   "contractText": (string) Pełny, sformatowany tekst całej umowy podzielony na paragrafy i ustępy, gotowy do druku i podpisania,
   "summary": (string) Krótkie 1-2 zdaniowe podsumowanie warunków umowy,
@@ -477,7 +478,7 @@ ${params.additionalClauses ? `Dodatkowe instrukcje: ${params.additionalClauses}`
 
   const parsed = JSON.parse(content);
   return {
-    title: parsed.title || 'UMOWA O DZIEŁO',
+    title: parsed.title || 'UMOWA O ŚWIADCZENIE USŁUG',
     contractNumber: parsed.contractNumber || `JC/${new Date().getFullYear()}/${String(new Date().getMonth() + 1).padStart(2, '0')}/01`,
     contractText: parsed.contractText || '',
     summary: parsed.summary || 'Umowa sporządzona pomyślnie.',

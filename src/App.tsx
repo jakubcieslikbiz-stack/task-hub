@@ -226,7 +226,7 @@ export function App() {
       setTasks((prevTasks) => {
         let changed = false;
         const updated = prevTasks.map((t) => {
-          if (t.remindByEmail && !t.emailReminderSentAt) {
+          if (t.remindByEmail && !t.emailReminderSentAt && t.status !== 'todo') {
             let schedDate = t.emailReminderScheduledAt ? new Date(t.emailReminderScheduledAt) : null;
             if (!schedDate && (t.dueDate || t.dueTime || t.notes)) {
               schedDate = calculateReminderTimestamp({
@@ -266,9 +266,11 @@ export function App() {
           }
 
           // Powiadomienie o ujęciach wstępnych (w ostatni dzień z 3/4 dni roboczych)
+          // Ściśle dla zleceń w toku - pomijaj oczekujące "Do decyzji" oraz czekające na uwagi
           if (
             t.category !== 'personal' &&
             t.status === 'in_progress' &&
+            !t.isWaitingForFeedback &&
             !t.previewReminderSentAt
           ) {
             const previewInfo = getInitialPreviewsInfo(t);

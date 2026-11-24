@@ -262,14 +262,15 @@ export const MortgageView: React.FC = () => {
 
           <button
             onClick={() => {
-              setPaymentRegular(String(config.regularInstallment));
+              setPaymentRegular('0');
               setPaymentOverpayment(String(requiredMonthlyOverpayment));
+              setPaymentNotes('Spłata kapitału (nadpłata)');
               setIsAddPaymentOpen(true);
             }}
             className="flex items-center gap-1.5 px-4 py-2 bg-[#f5ede4] hover:bg-white text-[#120e0a] rounded-2xl text-xs font-semibold shadow-md transition-all active:scale-95"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Zarejestruj wpłatę</span>
+            <span>Dodaj nadpłatę</span>
           </button>
         </div>
       </div>
@@ -624,14 +625,15 @@ export const MortgageView: React.FC = () => {
             </button>
             <button
               onClick={() => {
-                setPaymentRegular(String(config.regularInstallment));
+                setPaymentRegular('0');
                 setPaymentOverpayment(String(requiredMonthlyOverpayment));
+                setPaymentNotes('Spłata kapitału (nadpłata)');
                 setIsAddPaymentOpen(true);
               }}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#d99b5a] hover:bg-[#e6ab6e] text-[#120e0a] rounded-xl text-xs font-semibold shadow-md transition-all active:scale-95"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Dodaj wpłatę</span>
+              <span>Dodaj nadpłatę</span>
             </button>
           </div>
         </div>
@@ -736,7 +738,7 @@ export const MortgageView: React.FC = () => {
                   <Plus className="w-4 h-4" />
                 </div>
                 <h3 className="text-base font-light text-[#f5ede4]">
-                  Zarejestruj wpłatę / nadpłatę
+                  Zarejestruj nadpłatę kredytu
                 </h3>
               </div>
               <button onClick={() => setIsAddPaymentOpen(false)} className="text-[#9e8f82] hover:text-[#f5ede4]">
@@ -745,6 +747,12 @@ export const MortgageView: React.FC = () => {
             </div>
 
             <form onSubmit={handleAddPayment} className="space-y-4 pt-4">
+              <div className="p-3 rounded-2xl bg-[#1c140e] border border-[#7ec29a]/30 text-[11px] text-[#c4b5a5] flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#7ec29a] flex-shrink-0 mt-0.5" />
+                <span>
+                  Rata Pekao (<strong>{config.regularInstallment.toLocaleString('pl-PL')} zł</strong>) księguje się automatycznie w każdy ostatni dzień roboczy miesiąca. Wpisujesz tutaj wyłącznie swoje nadpłaty.
+                </span>
+              </div>
               <div>
                 <label className="block text-xs font-mono uppercase tracking-wider text-[#9e8f82] mb-1">
                   Data wpłaty *

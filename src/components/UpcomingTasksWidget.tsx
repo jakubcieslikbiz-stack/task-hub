@@ -15,12 +15,13 @@ export const UpcomingTasksWidget: React.FC<UpcomingTasksWidgetProps> = ({
   onToggleStatus,
   onNavigateToAll,
 }) => {
-  // 3 najbliższe zadania w toku do realizacji (ściśle aktywne: in_progress lub todo, nigdy zakończone)
+  // 3 najbliższe zadania w toku do realizacji (ściśle aktywne: in_progress lub todo, bez zadań czekających na uwagi i bez zakończonych)
   const activeTasks = tasks.filter(
     (t) =>
       t.category !== 'personal' &&
       (t.status === 'in_progress' || t.status === 'todo') &&
-      !t.completedAt
+      !t.completedAt &&
+      !t.isWaitingForFeedback
   );
 
   const upcomingTasks = [...activeTasks]
