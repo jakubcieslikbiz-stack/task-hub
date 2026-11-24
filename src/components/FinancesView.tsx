@@ -5,8 +5,6 @@ import {
   DollarSign,
   TrendingUp,
   TrendingDown,
-  Building2,
-  Receipt,
   ChevronLeft,
   ChevronRight,
   FileText,
@@ -28,22 +26,17 @@ interface FinancesViewProps {
   tasks: Task[];
   costs: MonthlyCosts;
   monthlyBills?: MonthlyBillsData;
-  onSaveCosts: (costs: MonthlyCosts) => void;
+  onSaveCosts?: (costs: MonthlyCosts) => void;
 }
 
 export const FinancesView: React.FC<FinancesViewProps> = ({
   tasks,
   costs,
   monthlyBills,
-  onSaveCosts,
 }) => {
   const now = new Date();
   const [currentYear, setCurrentYear] = useState(now.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(now.getMonth()); // 0-indexed
-
-  const [zusInput, setZusInput] = useState(costs.zus.toString());
-  const [taxInput, setTaxInput] = useState(costs.tax.toString());
-  const [isSavedNotice, setIsSavedNotice] = useState(false);
 
   // Monthly Reports Archive State
   const [reports, setReports] = useState<MonthlyReport[]>(() => getStoredMonthlyReports());
@@ -102,7 +95,7 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
   const totalValue = monthTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
   const pendingValue = totalValue - earnings;
 
-  // Calculate monthly bills total for selected month from Moje Sprawy
+  // Obliczenie wszystkich kosztów z sekcji Moje Sprawy (ZUS, podatek, prąd, czynsz, itp.)
   const currentMonthBillsMap = monthlyBills?.[ym] || {};
   const currentMonthBillsEntries = Object.entries(currentMonthBillsMap);
   const monthlyBillsTotal = currentMonthBillsEntries.reduce(
@@ -110,13 +103,7 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
     0
   );
 
-  // Zaciąganie stałych opłat za ZUS i podatek z sekcji Moje sprawy
-  const taxesZusEntry = currentMonthBillsMap['taxes_zus'];
-  const taxesZusAmount = taxesZusEntry ? Number(taxesZusEntry.amount) || 0 : 0;
-
-  const currentZus = Number(zusInput) || 0;
-  const currentTax = Number(taxInput) || 0;
-  const fallbackCosts = currentZus + currentTax;
+  const fallbackCosts = (costs.zus || 0) + (costs.tax || 0);
   const totalCosts = monthlyBillsTotal > 0 ? monthlyBillsTotal : fallbackCosts;
   const netProfit = earnings - totalCosts;
 
@@ -126,29 +113,13 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
   const animTotalCosts = useAnimatedCounter(totalCosts, 1000);
   const animNetProfit = useAnimatedCounter(netProfit, 1000);
 
-  const handleSaveCosts = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSaveCosts({ zus: currentZus, tax: currentTax });
-    setIsSavedNotice(true);
-    setTimeout(() => setIsSavedNotice(false), 2000);
-  };
-
-  const handleSyncFromMojeSprawy = () => {
-    if (taxesZusAmount > 0) {
-      setZusInput(String(taxesZusAmount));
-      onSaveCosts({ zus: taxesZusAmount, tax: currentTax });
-      setIsSavedNotice(true);
-      setTimeout(() => setIsSavedNotice(false), 2000);
-    }
-  };
-
   // Generate / Preview report for selected month
   const handleGeneratePreviewReport = () => {
     const report = generateMonthlyReport(
       currentYear,
       currentMonth + 1,
       tasks,
-      { zus: currentZus, tax: currentTax },
+      { zus: totalCosts, tax: 0 },
       false
     );
     const updated = saveMonthlyReport(report);
@@ -262,14 +233,16 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
         {/* Koszty miesięczne */}
         <div className="glass-panel border border-[#e07a68]/30 rounded-3xl p-5 shadow-2xl flex flex-col justify-between stagger-3">
           <div className="flex items-center justify-between text-xs text-[#e07a68] font-medium">
-            <span>Koszty (ZUS + Podatek)</span>
+            <span>Koszty</span>
             <TrendingDown className="w-4 h-4" />
           </div>
           <div className="mt-3 text-2xl sm:text-3xl font-light text-[#e07a68] font-mono privacy-mask">
             {animTotalCosts.toLocaleString('pl-PL')} zł
           </div>
           <div className="mt-1 text-[11px] text-[#9e8f82]">
-            ZUS: <span className="privacy-mask">{currentZus} zł</span> | Podatek: <span className="privacy-mask">{currentTax} zł</span>
+            {monthlyBillsTotal > 0
+              ? 'Wszystkie opłaty z Moich Spraw (ZUS, podatek, media)'
+              : 'Wszystkie koszty stałe'}
           </div>
         </div>
 
@@ -293,76 +266,8 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
         </div>
       </div>
 
-      {/* Costs Configuration Form & Breakdown */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Costs Input Box */}
-        <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-2xl md:col-span-1">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="font-medium text-[#f5ede4] text-sm flex items-center gap-2">
-              <Receipt className="w-4 h-4 text-[#d99b5a]" />
-              Koszty w tym miesiącu
-            </h3>
-            {taxesZusAmount > 0 && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#7ec29a]/15 text-[#9ee2b9] border border-[#7ec29a]/30 font-mono">
-                Moje sprawy: {taxesZusAmount} zł
-              </span>
-            )}
-          </div>
-          <p className="text-xs text-[#9e8f82] mb-3 font-light">
-            Podaj stałe opłaty za ZUS i podatek lub zaciągnij z Moich Spraw
-          </p>
-
-          {taxesZusAmount > 0 && (
-            <button
-              type="button"
-              onClick={handleSyncFromMojeSprawy}
-              className="w-full mb-3 py-2 px-3 rounded-2xl bg-[#2a1e16] hover:bg-[#382b20] border border-[#d99b5a]/30 text-[#f1c38e] text-xs font-mono flex items-center justify-center gap-1.5 transition-all active:scale-95"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#d99b5a]" />
-              <span>Zaciągnij {taxesZusAmount} zł z Moich Spraw</span>
-            </button>
-          )}
-
-          <form onSubmit={handleSaveCosts} className="space-y-4">
-            <div>
-              <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1 flex items-center gap-1.5">
-                <Building2 className="w-3.5 h-3.5 text-[#7a6b5e]" />
-                ZUS (zł)
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={zusInput}
-                onChange={(e) => setZusInput(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-mono uppercase text-[#9e8f82] mb-1 flex items-center gap-1.5">
-                <Receipt className="w-3.5 h-3.5 text-[#7a6b5e]" />
-                Podatek (zł)
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={taxInput}
-                onChange={(e) => setTaxInput(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-2xl glass-input text-sm font-mono"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-2.5 rounded-full bg-[#f5ede4] hover:bg-white text-[#120e0a] text-xs font-semibold shadow-md transition-all active:scale-95"
-            >
-              {isSavedNotice ? 'Zapisano pomyślnie ✓' : 'Zapisz koszty'}
-            </button>
-          </form>
-        </div>
-
-        {/* Month Orders Table */}
-        <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-2xl md:col-span-2">
+      {/* Month Orders Table (Pełna szerokość) */}
+      <div className="glass-panel border border-[#2b211a] rounded-3xl p-6 shadow-2xl">
           <h3 className="font-medium text-[#f5ede4] text-sm mb-1 flex items-center justify-between">
             <span>Zlecenia w miesiącu: {POLISH_MONTH_NAMES[currentMonth]} {currentYear}</span>
             <span className="text-xs text-[#9e8f82] font-light">
@@ -405,7 +310,6 @@ export const FinancesView: React.FC<FinancesViewProps> = ({
             )}
           </div>
         </div>
-      </div>
 
       {/* Automatic Monthly Reports Section (Przeniesione na sam dół) */}
       <div className="glass-panel border border-[#382b20] rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">

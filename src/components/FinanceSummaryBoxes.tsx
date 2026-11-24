@@ -218,18 +218,9 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         return taskDate === dateStr;
       });
 
-      let dayVal = 0;
-      if (statusFilter === 'paid') {
-        dayVal = dayTasks
-          .filter((t) => isTaskPaid(t))
-          .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
-      } else if (statusFilter === 'in_progress') {
-        dayVal = dayTasks
-          .filter((t) => t.status === 'in_progress' || t.status === 'todo')
-          .reduce((sum, t) => sum + (Number(t.price) || 0), 0);
-      } else {
-        dayVal = dayTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
-      }
+      // Wykres sumuje wyłącznie zlecenia opłacone
+      const paidDayTasks = dayTasks.filter((t) => isTaskPaid(t));
+      const dayVal = paidDayTasks.reduce((sum, t) => sum + (Number(t.price) || 0), 0);
 
       runningTotal += dayVal;
 
@@ -238,7 +229,7 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
         label,
         val: runningTotal,
         dailyVal: dayVal,
-        tasks: dayTasks,
+        tasks: paidDayTasks,
         isToday,
       });
     }
@@ -407,8 +398,8 @@ export const FinanceSummaryBoxes: React.FC<FinanceSummaryBoxesProps> = ({
           <div className="flex items-center justify-between text-xs px-1">
             <div className="flex items-center gap-1.5 text-[#9e8f82] text-[11px] font-mono">
               <MoveHorizontal className="w-3.5 h-3.5 text-[#d99b5a] animate-pulse" />
-              <span className="hidden sm:inline">Przesuwaj wykres w poziomie:</span>
-              <span className="sm:hidden">Przesuń w poziomie:</span>
+              <span className="hidden sm:inline">Wykres zrealizowanego przychodu (tylko opłacone):</span>
+              <span className="sm:hidden">Opłacone:</span>
               <span className="text-[10px] text-[#7a6b5e] hidden xs:inline">
                 (od 1 do {daysInMonth} {monthNamePolish.slice(0, 3)})
               </span>
