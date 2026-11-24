@@ -493,14 +493,6 @@ export const MortgageView: React.FC = () => {
                 <strong className="text-[#7ec29a]">o {sim.yearsReduced} lat!</strong>
               </div>
               <div className="flex justify-between text-[#c4b5a5]">
-                <span>Liczba rat do końca:</span>
-                <span className="text-[#f5ede4] font-semibold">{sim.monthsRemaining} rat</span>
-              </div>
-              <div className="flex justify-between text-[#c4b5a5]">
-                <span>Termin spłaty:</span>
-                <span className="text-[#f1c38e] font-semibold">{sim.payoffDateFormatted}</span>
-              </div>
-              <div className="flex justify-between text-[#c4b5a5]">
                 <span>Łączny koszt kredytu:</span>
                 <span className="text-[#f5ede4] privacy-mask">~{sim.totalLoanCost.toLocaleString('pl-PL')} zł</span>
               </div>
