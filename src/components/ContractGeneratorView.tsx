@@ -151,7 +151,7 @@ interface ContractGeneratorViewProps {
 const renderFormattedContractText = (text: string) => {
   const paragraphs = text.split(/\n\s*\n/);
   return (
-    <div className="space-y-4 text-[12px] sm:text-[13px] text-[#222522] leading-relaxed font-serif">
+    <div className="space-y-4 text-[12px] sm:text-[13px] text-[#282b28] leading-relaxed font-sans font-normal">
       {paragraphs.map((para, idx) => {
         const trimmed = para.trim();
         if (!trimmed) return null;
@@ -172,10 +172,10 @@ const renderFormattedContractText = (text: string) => {
           return (
             <div
               key={idx}
-              className={`font-sans font-bold tracking-wide text-[#181b18] ${
+              className={`font-sans tracking-wide text-[#181b18] ${
                 isMainTitle
-                  ? 'text-sm sm:text-base text-center uppercase tracking-widest pt-4 pb-2 border-b border-[#e5e2da]'
-                  : 'text-xs sm:text-sm pt-3 pb-1 border-b border-[#ece8e0] text-[#1e231e]'
+                  ? 'text-sm sm:text-base text-center font-semibold uppercase tracking-widest pt-4 pb-2 border-b border-[#e5e2da]'
+                  : 'text-xs sm:text-sm font-semibold pt-3 pb-1 border-b border-[#ece8e0] text-[#1e231e]'
               }`}
             >
               {cleanHeading}
@@ -187,7 +187,7 @@ const renderFormattedContractText = (text: string) => {
         if (trimmed.startsWith('- ') || trimmed.startsWith('• ') || /^\d+\.\s/.test(trimmed)) {
           const lines = trimmed.split('\n');
           return (
-            <ul key={idx} className="space-y-1.5 pl-4 list-disc list-outside text-[#2a2d2a] my-2">
+            <ul key={idx} className="space-y-1.5 pl-4 list-disc list-outside text-[#2a2d2a] my-2 font-normal font-sans">
               {lines.map((l, lIdx) => {
                 const cleanLine = l.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '');
                 return (
@@ -201,7 +201,7 @@ const renderFormattedContractText = (text: string) => {
         }
 
         return (
-          <p key={idx} className="text-justify leading-relaxed whitespace-pre-line text-[#282b28]">
+          <p key={idx} className="text-justify leading-relaxed whitespace-pre-line text-[#282b28] font-normal font-sans">
             {trimmed}
           </p>
         );
@@ -858,28 +858,25 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
                     className="printable-document-root bg-[#ffffff] text-[#181b18] rounded-xl p-8 sm:p-12 shadow-2xl max-w-4xl mx-auto border border-[#e8e4dc] font-sans transition-all selection:bg-[#8CA168]/20"
                     style={{ minHeight: '1000px' }}
                   >
-                    {/* A4 Letterhead Header: Authentic JC Studio Vector Branding */}
+                    {/* A4 Letterhead Header: Clean Minimal Typographic Branding */}
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-[#CFD2C7]">
-                      <div className="flex items-center gap-3">
-                        <JCStudioLogo variant="light" size="custom" className="w-9 h-auto flex-shrink-0" />
-                        <div>
-                          <h1 className="text-sm sm:text-base font-bold tracking-[0.16em] uppercase text-[#181b18] leading-none">
-                            JC STUDIO
-                          </h1>
-                          <span className="block text-[9px] sm:text-[10px] tracking-[0.12em] uppercase text-[#8CA168] font-semibold mt-1">
-                            Architectural CGI & Marketing Inwestycji
-                          </span>
-                          <span className="block text-[9px] text-[#7a746e] tracking-wider uppercase mt-0.5">
-                            Jakub Cieślik
-                          </span>
-                        </div>
+                      <div>
+                        <h1 className="text-sm sm:text-base font-semibold tracking-[0.16em] uppercase text-[#181b18] leading-none">
+                          JC STUDIO
+                        </h1>
+                        <span className="block text-[9px] sm:text-[10px] tracking-[0.12em] uppercase text-[#8CA168] font-medium mt-1">
+                          Architectural CGI & Marketing Inwestycji
+                        </span>
+                        <span className="block text-[9px] text-[#7a746e] tracking-wider uppercase mt-0.5 font-normal">
+                          Jakub Cieślik
+                        </span>
                       </div>
 
                       {/* Header Right Reference & Date */}
                       <div className="text-left sm:text-right text-[11px] font-mono text-[#4a4642] space-y-0.5 pt-1">
                         <div>
                           <span className="text-[#8a857e] uppercase text-[10px]">Nr dokumentu:</span>{' '}
-                          <strong className="text-[#181b18] font-bold">{generatedContract.contractNumber}</strong>
+                          <strong className="text-[#181b18] font-semibold">{generatedContract.contractNumber}</strong>
                         </div>
                         <div>
                           <span className="text-[#8a857e] uppercase text-[10px]">Miejscowość, data:</span>{' '}
@@ -897,7 +894,7 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
 
                     {/* Document Title Header */}
                     <div className="text-center py-3">
-                      <h2 className="text-base sm:text-lg font-bold tracking-wider uppercase text-[#181b18]">
+                      <h2 className="text-base sm:text-lg font-semibold tracking-wider uppercase text-[#181b18]">
                         {generatedContract.title || 'UMOWA O ŚWIADCZENIE USŁUG'}
                       </h2>
                       <span className="text-[11px] font-mono text-[#7a746e] uppercase tracking-widest block mt-0.5">
@@ -906,51 +903,55 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
                     </div>
 
                     {/* Parties Section (Metryczka stron umowy) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-5 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-5 text-xs font-sans">
                       {/* Zamawiający */}
                       <div className="p-4 rounded-xl bg-[#f9f8f4] border border-[#e5e1d5] space-y-1">
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#8CA168] block">
-                          ZAMAWIAJĄCY:
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8CA168] block">
+                          Zamawiający:
                         </span>
-                        <div className="font-semibold text-[#181b18] text-sm">
+                        <div className="font-medium text-[#181b18] text-sm">
                           {clientName || '[Nazwa / Imię i Nazwisko Zamawiającego]'}
                         </div>
-                        <p className="text-[11px] text-[#55504a] leading-relaxed">
+                        <p className="text-[11px] text-[#55504a] leading-relaxed font-normal">
                           {clientDetails || '[NIP, adres siedziby lub zamieszkania, dane kontaktowe]'}
                         </p>
                       </div>
 
                       {/* Wykonawca */}
                       <div className="p-4 rounded-xl bg-[#f9f8f4] border border-[#e5e1d5] space-y-1">
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#8CA168] block">
-                          WYKONAWCA:
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#8CA168] block">
+                          Wykonawca:
                         </span>
-                        <div className="font-semibold text-[#181b18] text-sm">
+                        <div className="font-medium text-[#181b18] text-sm">
                           {contractorName}
                         </div>
-                        <p className="text-[11px] text-[#55504a] leading-relaxed">
+                        <p className="text-[11px] text-[#55504a] leading-relaxed font-normal">
                           {contractorDetails}
                         </p>
                       </div>
                     </div>
 
-                    {/* Key Terms (Podsumowanie ustaleń) - pionowa lista jedno pod drugim */}
-                    <div className="my-4 py-3 border-y border-[#e8e4dc] text-xs font-sans space-y-2">
-                      <div className="flex items-baseline justify-between sm:justify-start sm:gap-6">
-                        <span className="text-[#7a746e] font-medium w-36">Wynagrodzenie:</span>
-                        <strong className="text-[#181b18] font-semibold">{price}</strong>
+                    {/* Key Terms (Podsumowanie ustaleń) - klasyczna pionowa lista, tylko etykiety pogrubione */}
+                    <div className="my-5 py-3 border-y border-[#e8e4dc] text-xs font-sans space-y-2">
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-semibold text-[#181b18] w-36 flex-shrink-0">Wynagrodzenie:</span>
+                        <span className="text-[#33302c] font-normal">{price}</span>
                       </div>
-                      <div className="flex items-baseline justify-between sm:justify-start sm:gap-6">
-                        <span className="text-[#7a746e] font-medium w-36">Termin realizacji:</span>
-                        <strong className="text-[#181b18] font-semibold">{deadline}</strong>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-semibold text-[#181b18] w-36 flex-shrink-0">Warunki płatności:</span>
+                        <span className="text-[#33302c] font-normal">{paymentTerms || '30% zadatku przed rozpoczęciem prac, 70% po akceptacji dzieła'}</span>
                       </div>
-                      <div className="flex items-baseline justify-between sm:justify-start sm:gap-6">
-                        <span className="text-[#7a746e] font-medium w-36">Tury poprawek:</span>
-                        <strong className="text-[#181b18] font-semibold">{revisionsCount} serie uwag w cenie</strong>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-semibold text-[#181b18] w-36 flex-shrink-0">Termin realizacji:</span>
+                        <span className="text-[#33302c] font-normal">{deadline}</span>
                       </div>
-                      <div className="flex items-baseline justify-between sm:justify-start sm:gap-6">
-                        <span className="text-[#7a746e] font-medium w-36">Prawa autorskie:</span>
-                        <strong className="text-[#181b18] font-semibold">100% autorskie prawa majątkowe (po opłaceniu całości)</strong>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-semibold text-[#181b18] w-36 flex-shrink-0">Rundy poprawek:</span>
+                        <span className="text-[#33302c] font-normal">{revisionsCount} serie uwag autorskich w cenie</span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-semibold text-[#181b18] w-36 flex-shrink-0">Prawa autorskie:</span>
+                        <span className="text-[#33302c] font-normal">Przeniesienie autorskich praw majątkowych z chwilą zapłaty 100% wynagrodzenia</span>
                       </div>
                     </div>
 
@@ -966,7 +967,7 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
                           W imieniu Zamawiającego:
                         </span>
                         <div className="pt-8 border-b border-dashed border-[#8a857e] w-4/5 mx-auto" />
-                        <span className="text-[10px] text-[#8a857e] block">
+                        <span className="text-[10px] text-[#8a857e] block font-normal">
                           (podpis i pieczęć)
                         </span>
                       </div>
@@ -976,20 +977,24 @@ export const ContractGeneratorView: React.FC<ContractGeneratorViewProps> = ({ ap
                           W imieniu Wykonawcy (JC Studio):
                         </span>
                         <div className="pt-8 border-b border-dashed border-[#8a857e] w-4/5 mx-auto" />
-                        <span className="text-[10px] text-[#8a857e] block">
+                        <span className="text-[10px] text-[#8a857e] block font-normal">
                           Jakub Cieślik — JC Studio
                         </span>
                       </div>
                     </div>
 
-                    {/* Official Letterhead Footer */}
-                    <div className="mt-14 pt-4 border-t border-[#e8e4dc] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[10px] font-mono text-[#8a857e]">
-                      <div className="flex items-center gap-2">
-                        <JCStudioLogo variant="light" size="custom" className="w-4 h-auto opacity-75" />
-                        <span>JC Studio • Jakub Cieślik • tel. +48 600 113 078</span>
+                    {/* Official Letterhead Footer with Logo and Company Info */}
+                    <div className="mt-14 pt-4 border-t border-[#CFD2C7] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[11px] text-[#55504a] font-sans">
+                      <div className="flex items-center gap-3">
+                        <JCStudioLogo variant="light" size="custom" className="w-8 h-auto flex-shrink-0" />
+                        <div className="leading-tight">
+                          <strong className="text-[#181b18] font-semibold text-xs block">JC Studio — Jakub Cieślik</strong>
+                          <span className="text-[10px] text-[#7a746e] font-normal">Wizualizacje architektoniczne & strony www • tel. +48 600 113 078</span>
+                        </div>
                       </div>
-                      <div>
-                        <span>jc.visualization.studio@gmail.com • Strona 1/1</span>
+                      <div className="text-left sm:text-right text-[10px] text-[#7a746e] leading-tight font-mono">
+                        <div>e-mail: jc.visualization.studio@gmail.com</div>
+                        <div>Dokument handlowy • Strona 1/1</div>
                       </div>
                     </div>
                   </div>

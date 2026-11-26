@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Task, Note, ViewMode, Status, MonthlyCosts, PortfolioProject } from './types';
+import { isTaskPaid } from './types';
 import { INITIAL_TASKS, INITIAL_NOTES, CATEGORIES } from './data/initialData';
 import { INITIAL_PORTFOLIO_PROJECTS } from './data/initialPortfolio';
 import { Sidebar } from './components/Sidebar';
@@ -849,10 +850,12 @@ export function App() {
         // Przełączanie statusu realizacji: jeśli gotowe -> w toku; w przeciwnym razie -> gotowe
         const isDone = t.status === 'done';
         const newStatus: Status = isDone ? 'in_progress' : 'done';
+        const isPaid = isTaskPaid(t);
         return {
           ...t,
           status: newStatus,
-          completedAt: newStatus === 'done' ? new Date().toISOString() : undefined,
+          isPaid,
+          completedAt: newStatus === 'done' ? (t.completedAt || new Date().toISOString()) : undefined,
         };
       }
       return t;
@@ -864,15 +867,18 @@ export function App() {
   const handleTogglePaid = (id: string) => {
     const updated = tasks.map((t) => {
       if (t.id === id) {
-        const currentlyPaid = Boolean(t.isPaid || t.status === 'paid');
+        const currentlyPaid = isTaskPaid(t);
         const nextPaid = !currentlyPaid;
-        // Płatność nie zmienia statusu realizacji (np. in_progress pozostaje in_progress)
-        const currentExecutionStatus: Status = t.status === 'paid' ? 'done' : t.status;
+        // Płatność jest w 100% niezależna od statusu realizacji
+        let currentExecutionStatus: Status = t.status;
+        if (t.status === 'paid') {
+          currentExecutionStatus = t.completedAt ? 'done' : 'in_progress';
+        }
         return {
           ...t,
           status: currentExecutionStatus,
           isPaid: nextPaid,
-          paidAt: nextPaid ? new Date().toISOString() : undefined,
+          paidAt: nextPaid ? (t.paidAt || new Date().toISOString()) : undefined,
         };
       }
       return t;
@@ -882,15 +888,18 @@ export function App() {
   };
 
   const handleUpdateStatus = (id: string, status: Status) => {
-    const updated = tasks.map((t) =>
-      t.id === id
-        ? {
-            ...t,
-            status,
-            completedAt: status === 'done' || status === 'paid' ? new Date().toISOString() : undefined,
-          }
-        : t
-    );
+    const updated = tasks.map((t) => {
+      if (t.id === id) {
+        const isPaid = isTaskPaid(t);
+        return {
+          ...t,
+          status,
+          isPaid,
+          completedAt: status === 'done' ? (t.completedAt || new Date().toISOString()) : undefined,
+        };
+      }
+      return t;
+    });
     setTasks(updated);
     syncTasksToCloud(updated);
   };

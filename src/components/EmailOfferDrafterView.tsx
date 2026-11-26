@@ -305,13 +305,6 @@ export const EmailOfferDrafterView: React.FC<EmailOfferDrafterViewProps> = ({ ap
           >
             <FileText className="w-3.5 h-3.5" />
             <span>Generator Umów z Klientem</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold ${
-              activeTab === 'contracts'
-                ? 'bg-[#120e0a]/20 text-[#120e0a]'
-                : 'bg-[#7ec29a]/20 text-[#7ec29a] border border-[#7ec29a]/40'
-            }`}>
-              NOWOŚĆ
-            </span>
           </button>
         </div>
       </div>

@@ -117,9 +117,9 @@ function getDaysRemainingInfo(
 
 export const TaskTable: React.FC<TaskTableProps> = ({
   tasks,
-  onToggleStatus: _onToggleStatus,
+  onToggleStatus,
   onTogglePaid,
-  onUpdateStatus,
+  onUpdateStatus: _onUpdateStatus,
   onToggleSubtask,
   onEdit,
   onDelete,
@@ -145,10 +145,8 @@ export const TaskTable: React.FC<TaskTableProps> = ({
         origin: { y: 0.8 },
         colors: ['#f5ede4', '#7ec29a', '#d99b5a'],
       });
-      onUpdateStatus(task.id, 'done');
-    } else {
-      onUpdateStatus(task.id, 'in_progress');
     }
+    onToggleStatus(task.id);
   };
 
   const handleTogglePaid = (task: Task) => {
